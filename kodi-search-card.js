@@ -15,12 +15,6 @@ class PlaylistSearchCard extends HTMLElement {
   setConfig(config) {
     this._config = config;
 
-    // Example configuration:
-    //
-    // type: custom:my-custom-card2
-    // entity: light.bed_light
-    //
-
     if (!config.entity) {
       // If no entity was specified, this will display a red error card with the message below
       throw new Error("You need to define an entity");

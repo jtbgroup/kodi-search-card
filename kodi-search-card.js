@@ -64,7 +64,15 @@ class PlaylistSearchCard extends HTMLElement {
 
   defineCSS() {
     return `
-           .search-form{
+
+    .song-*{
+      border: 1px solid orange;
+    }
+            .search-form{
+              margin-top: 20px;
+              margin-bottom: 20px;
+              margin-left: 10px;
+              margin-right: 10px;
             }
 
             #search_input{
@@ -89,7 +97,11 @@ class PlaylistSearchCard extends HTMLElement {
               text-align: right;
               border-bottom: solid;
             }
-
+            /*
+              -----------------
+              ----- SONGS -----
+              -----------------
+            */
             .song-inner-item{
               display: grid;
               grid-template-columns: ${this.SIZE_THUMBNAIL_ALBUM} 1fr auto auto;
@@ -100,15 +112,6 @@ class PlaylistSearchCard extends HTMLElement {
               margin-left: 10px;
               margin-right: 10px;
             }
-
-            .song-artistCell{
-              grid-column-start: 2;
-              grid-column-end: end-1;
-              grid-row-start: 2;
-              grid-row-end: 3;
-              font-size: 14px;
-            }
-
 
             .song-thumbnailCell{
               grid-column-start: 1;
@@ -128,13 +131,36 @@ class PlaylistSearchCard extends HTMLElement {
               height: 65px;
             }
 
-            .titleCell{
+            .song-titleCell{
               grid-column-start: 2;
               grid-column-end: end-1;
               grid-row-start: 1;
               grid-row-end: 2;
               font-weight: bold;
               font-size: 14px;
+            }
+
+            .song-genreCell{
+              grid-column-start: 2;
+              grid-column-end: end-1;
+              grid-row-start: 2;
+              grid-row-end: 3;
+              font-style: italic;
+            }
+
+            .song-albumCell{
+              grid-column-start: 2;
+              grid-column-end: end-1;
+              grid-row-start: 3;
+              grid-row-end: 4;
+            }
+
+            .song-durationCell{
+              grid-column-start: 3;
+              grid-column-end: end;
+              grid-row-start: 3;
+              grid-row-end: 4;
+              text-align: right;
             }
 
             /*
@@ -353,6 +379,10 @@ class PlaylistSearchCard extends HTMLElement {
           .result-grid{
             display: grid;
             grid-gap: 50px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            margin-left: 10px;
+            margin-right: 10px;
           }
 
 
@@ -648,15 +678,37 @@ class PlaylistSearchCard extends HTMLElement {
         thumbnailDiv.appendChild(thumbnailPlayDiv);
       }
 
+      // let titleDiv = document.createElement("div");
+      // titleDiv.setAttribute("class", "titleCell");
+      // titleDiv.innerHTML = item["title"];
+      // rowDiv.appendChild(titleDiv);
+
+      // let artistDiv = document.createElement("div");
+      // artistDiv.setAttribute("class", "song-artistCell");
+      // artistDiv.innerHTML = item["artist"];
+      // rowDiv.appendChild(artistDiv);
+
       let titleDiv = document.createElement("div");
-      titleDiv.setAttribute("class", "titleCell");
-      titleDiv.innerHTML = item["title"];
+      titleDiv.setAttribute("class", "song-titleCell");
+      titleDiv.innerHTML = item["artist"] + " - " + item["title"];
       rowDiv.appendChild(titleDiv);
 
-      let artistDiv = document.createElement("div");
-      artistDiv.setAttribute("class", "song-artistCell");
-      artistDiv.innerHTML = item["artist"];
-      rowDiv.appendChild(artistDiv);
+      let genreDiv = document.createElement("div");
+      genreDiv.setAttribute("class", "song-genreCell");
+      genreDiv.innerHTML = item["genre"] ? item["genre"] : "undefined";
+      rowDiv.appendChild(genreDiv);
+
+      let albumDiv = document.createElement("div");
+      albumDiv.setAttribute("class", "song-albumCell");
+      albumDiv.innerHTML = item["album"] + " (" + item["year"] + ")";
+      rowDiv.appendChild(albumDiv);
+
+      let durationDiv = document.createElement("div");
+      durationDiv.setAttribute("class", "song-durationCell");
+      durationDiv.innerHTML = new Date(item["duration"] * 1000)
+        .toISOString()
+        .substr(11, 8);
+      rowDiv.appendChild(durationDiv);
 
       songsDiv.appendChild(rowDiv);
     }

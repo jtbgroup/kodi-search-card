@@ -27,18 +27,8 @@ class PlaylistSearchCard extends HTMLElement {
       const card = document.createElement("ha-card");
       card.header = this._config.title;
 
-      // At this point, we don't necessarily know anything about the current state
-      // of anything, but we can set up the general structure of the card.
-      this.playerTypeDiv = document.createElement("div");
-      this.playerTypeDiv.setAttribute("class", "playerType");
-      card.appendChild(this.playerTypeDiv);
-
       this.content = document.createElement("div");
       card.appendChild(this.content);
-
-      // this.button = document.createElement("button");
-      // this.button.addEventListener("click", () => this.buttonClicked());
-      // card.appendChild(this.button);
 
       let style = document.createElement("style");
       style.textContent = this.defineCSS();
@@ -65,9 +55,7 @@ class PlaylistSearchCard extends HTMLElement {
   defineCSS() {
     return `
 
-    .song-*{
-      border: 1px solid orange;
-    }
+
             .search-form{
               margin-top: 20px;
               margin-bottom: 20px;
@@ -170,7 +158,7 @@ class PlaylistSearchCard extends HTMLElement {
             */
            .tvshow-seasondetails-inner-item{
             display: grid;
-            grid-template-columns: ${this.SIZE_THUMBNAIL_ALBUMDETAILS} auto;
+            grid-template-columns: calc(${this.MOVIE_THUMBNAIL_MIN_SIZE} * ${this.MOVIE_THUMBNAIL_RATIO}) auto;
             grid-gap: 3px;
             grid-auto-rows: auto;
             margin-top: 20px;
@@ -187,8 +175,8 @@ class PlaylistSearchCard extends HTMLElement {
             display: block;
             background-size: contain;
             background-repeat: no-repeat;
-            width: ${this.SIZE_THUMBNAIL_ALBUMDETAILS};
-            height: ${this.SIZE_THUMBNAIL_ALBUMDETAILS};
+            width: calc(${this.MOVIE_THUMBNAIL_MIN_SIZE} * ${this.MOVIE_THUMBNAIL_RATIO});
+            height: ${this.MOVIE_THUMBNAIL_MIN_SIZE};
           }
 
           .tvshow-seasondetails-thumbnailPlayCell{
@@ -198,8 +186,8 @@ class PlaylistSearchCard extends HTMLElement {
             grid-row-end: 3;
             display: block;
             background-size: cover;
-            width: ${this.SIZE_THUMBNAIL_ALBUMDETAILS};
-            height: ${this.SIZE_THUMBNAIL_ALBUMDETAILS};
+            width: calc(${this.MOVIE_THUMBNAIL_MIN_SIZE} * ${this.MOVIE_THUMBNAIL_RATIO});
+            height: ${this.MOVIE_THUMBNAIL_MIN_SIZE};
           }
 
           .tvshow-seasondetails-titleCell{
@@ -209,14 +197,6 @@ class PlaylistSearchCard extends HTMLElement {
             grid-row-end: 2;
             font-weight: bold;
             font-size: 18px;
-          }
-
-          .tvshow-seasondetails-yearCell{
-            grid-column-start: 1;
-            grid-column-end: 2;
-            grid-row-start: 3;
-            grid-row-end: 4;
-            font-size: 12px;
           }
 
           .tvshow-seasondetails-episodesCell{
@@ -586,7 +566,7 @@ class PlaylistSearchCard extends HTMLElement {
           background-color: rgb(250, 250, 250, 0.4)
         }
 
-        .song-thumbnailPlayCell:hover, .album-card-play:hover, .artist-card-play:hover, .movie-card-play:hover, .tvshow-card-play:hover, .albumdetails-thumbnailPlayCell:hover, .albumdetails-song-thumbnailPlayCell:hover, .tvshow-seasondetails-thumbnailPlayCell:hover{
+        .song-thumbnailPlayCell:hover, .album-card-play:hover, .artist-card-play:hover, .movie-card-play:hover, .tvshow-card-play:hover, .albumdetails-thumbnailPlayCell:hover, .albumdetails-song-thumbnailPlayCell:hover, .tvshow-seasondetails-thumbnailPlayCell:hover, .tvshow-seasondetails-episode-thumbnailPlayCell:hover{
           color: red;
         }
 
@@ -604,8 +584,7 @@ class PlaylistSearchCard extends HTMLElement {
     const entity = this._config.entity;
     let meta = hass.states[entity].attributes.meta;
     const json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
-    this._kodi_entity_id = json_meta[0]["kodi_entity_id"];
-    this._sensor_entity_id = json_meta[0]["sensor_entity_id"];
+    this._service_domain = json_meta[0]["service_domain"];
 
     let data = hass.states[entity].attributes.data;
     const json = typeof data == "object" ? data : JSON.parse(data);
@@ -678,16 +657,6 @@ class PlaylistSearchCard extends HTMLElement {
         thumbnailDiv.appendChild(thumbnailPlayDiv);
       }
 
-      // let titleDiv = document.createElement("div");
-      // titleDiv.setAttribute("class", "titleCell");
-      // titleDiv.innerHTML = item["title"];
-      // rowDiv.appendChild(titleDiv);
-
-      // let artistDiv = document.createElement("div");
-      // artistDiv.setAttribute("class", "song-artistCell");
-      // artistDiv.innerHTML = item["artist"];
-      // rowDiv.appendChild(artistDiv);
-
       let titleDiv = document.createElement("div");
       titleDiv.setAttribute("class", "song-titleCell");
       titleDiv.innerHTML = item["artist"] + " - " + item["title"];
@@ -721,7 +690,7 @@ class PlaylistSearchCard extends HTMLElement {
     let mediaTypeDiv = document.createElement("div");
     mediaTypeDiv.setAttribute("class", "media_type_div");
     mediaTypeDiv.innerHTML =
-      'Season Details<ha-icon icon="mdi:movie"></ha-icon>';
+      'Season Details <ha-icon icon="mdi:movie"></ha-icon>';
     seasonsDiv.appendChild(mediaTypeDiv);
 
     let max = items.length;
@@ -758,10 +727,10 @@ class PlaylistSearchCard extends HTMLElement {
       seasonTitleDiv.innerHTML = item["title"];
       rowDiv.appendChild(seasonTitleDiv);
 
-      let yearDiv = document.createElement("div");
-      yearDiv.setAttribute("class", "tvshow-seasondetails-yearCell");
-      yearDiv.innerHTML = item["year"];
-      rowDiv.appendChild(yearDiv);
+      // let yearDiv = document.createElement("div");
+      // yearDiv.setAttribute("class", "tvshow-seasondetails-yearCell");
+      // yearDiv.innerHTML = item["year"];
+      // rowDiv.appendChild(yearDiv);
 
       let episodesDiv = document.createElement("div");
       episodesDiv.setAttribute("class", "tvshow-seasondetails-episodesCell");
@@ -778,7 +747,7 @@ class PlaylistSearchCard extends HTMLElement {
           "class",
           "tvshow-seasondetails-episode-titleCell"
         );
-        titleDiv.innerHTML = episodesItem[idx]["title"];
+        titleDiv.innerHTML = episodesItem[idx]["label"];
         episodeDiv.appendChild(titleDiv);
 
         let playDiv = document.createElement("ha-icon");
@@ -788,7 +757,7 @@ class PlaylistSearchCard extends HTMLElement {
           "tvshow-seasondetails-episode-thumbnailPlayCell"
         );
         playDiv.addEventListener("click", () =>
-          this.playSong(episoepisodesItemdes[idx]["songid"])
+          this.playEpisode(episodesItem[idx]["episodeid"])
         );
         episodeDiv.appendChild(playDiv);
 
@@ -1088,6 +1057,7 @@ class PlaylistSearchCard extends HTMLElement {
     searchButton.setAttribute("class", "search-btn");
     searchButton.setAttribute("raised", "");
     searchButton.addEventListener("click", () => this.search());
+    searchButton.addEventListener("keyup", this.handleSearchInputEvent);
     controlsDiv.appendChild(searchButton);
 
     let cancelButton = document.createElement("mwc-button");
@@ -1112,99 +1082,77 @@ class PlaylistSearchCard extends HTMLElement {
   }
 
   clear() {
-    this._hass.callService("kodi_media_sensors", "call_method", {
-      entity_id: this._sensor_entity_id,
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
       method: "clear",
     });
   }
   search() {
     let searchText = this.searchInput.value;
-    this._hass.callService("kodi_media_sensors", "call_method", {
-      entity_id: this._sensor_entity_id,
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
       method: "search",
       item: {
         media_type: "all",
         value: searchText,
       },
     });
-    this._hass.callService("homeassistant", "update_entity", {
-      entity_id: this._config.entity,
-    });
     this.searchInput.value = "";
   }
 
   searchMoreOfTvShow(tvshow_id) {
     let searchText = this.searchInput.value;
-    this._hass.callService("kodi_media_sensors", "call_method", {
-      entity_id: this._sensor_entity_id,
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
       method: "search",
       item: {
         media_type: "tvshow",
         value: tvshow_id,
       },
     });
-    this._hass.callService("homeassistant", "update_entity", {
-      entity_id: this._config.entity,
-    });
   }
 
   searchMoreOfArtist(artist_id) {
     let searchText = this.searchInput.value;
-    this._hass.callService("kodi_media_sensors", "call_method", {
-      entity_id: this._sensor_entity_id,
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
       method: "search",
       item: {
         media_type: "artist",
         value: artist_id,
       },
     });
-    this._hass.callService("homeassistant", "update_entity", {
-      entity_id: this._config.entity,
-    });
   }
 
   playSong(song_id) {
-    this._hass.callService("kodi", "call_method", {
-      entity_id: this._kodi_entity_id,
-      method: "Playlist.Insert",
-      playlistid: 0,
-      position: 1,
-      item: { songid: song_id },
-    });
-    this._hass.callService("kodi", "call_method", {
-      entity_id: this._kodi_entity_id,
-      method: "Player.Open",
-      item: { playlistid: 0, position: 1 },
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "play",
+      songid: song_id,
     });
   }
 
   playAlbum(album_id) {
-    this._hass.callService("kodi", "call_method", {
-      entity_id: this._kodi_entity_id,
-      method: "Playlist.Insert",
-      playlistid: 0,
-      position: 1,
-      item: { albumid: album_id },
-    });
-    this._hass.callService("kodi", "call_method", {
-      entity_id: this._kodi_entity_id,
-      method: "Player.Open",
-      item: { playlistid: 0, position: 1 },
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "play",
+      albumid: album_id,
     });
   }
 
   playMovie(movie_id) {
-    this._hass.callService("kodi", "call_method", {
-      entity_id: this._kodi_entity_id,
-      method: "Playlist.Insert",
-      playlistid: 1,
-      position: 1,
-      item: { movieid: movie_id },
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "play",
+      movieid: movie_id,
     });
-    this._hass.callService("kodi", "call_method", {
-      entity_id: this._kodi_entity_id,
-      method: "Player.Open",
-      item: { playlistid: 1, position: 1 },
+  }
+
+  playEpisode(episode_id) {
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "play",
+      episodeid: episode_id,
     });
   }
 

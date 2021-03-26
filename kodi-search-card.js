@@ -598,30 +598,54 @@ class PlaylistSearchCard extends HTMLElement {
     this.content.appendChild(container);
   }
 
+  filterTypes(json, value) {
+    let result = json.filter((item) => {
+      return item.object_type == value;
+    });
+
+    return result;
+  }
+
   createResult(json) {
-    let max = json.length - 1;
     let resultDiv = document.createElement("div");
     resultDiv.setAttribute("class", "result-grid");
     resultDiv.innerHTML = "";
-    for (let count = 0; count <= max; count++) {
-      let typeOfItem = Object.keys(json[count])[0].toLowerCase();
-      let items = json[count][typeOfItem];
-      if (typeOfItem == "songs") {
-        this.fillSongs(items, resultDiv);
-      } else if (typeOfItem == "albums") {
-        this.fillAlbums(items, resultDiv);
-      } else if (typeOfItem == "artists") {
-        this.fillArtists(items, resultDiv);
-      } else if (typeOfItem == "movies") {
-        this.fillMovies(items, resultDiv);
-      } else if (typeOfItem == "tvshows") {
-        this.fillTvShows(items, resultDiv);
-      } else if (typeOfItem == "albumdetails") {
-        this.fillAlbumDetails(items, resultDiv);
-      } else if (typeOfItem == "seasondetails") {
-        this.fillTVShowSeasonDetails(items, resultDiv);
-      }
+
+    let filtered = this.filterTypes(json, "song");
+    if (filtered.length > 0) {
+      this.fillSongs(filtered, resultDiv);
     }
+
+    filtered = this.filterTypes(json, "album");
+    if (filtered.length > 0) {
+      this.fillAlbums(filtered, resultDiv);
+    }
+
+    filtered = this.filterTypes(json, "artist");
+    if (filtered.length > 0) {
+      this.fillArtists(filtered, resultDiv);
+    }
+
+    filtered = this.filterTypes(json, "movie");
+    if (filtered.length > 0) {
+      this.fillMovies(filtered, resultDiv);
+    }
+
+    filtered = this.filterTypes(json, "tvshow");
+    if (filtered.length > 0) {
+      this.fillTvShows(filtered, resultDiv);
+    }
+
+    filtered = this.filterTypes(json, "albumdetail");
+    if (filtered.length > 0) {
+      this.fillAlbumDetails(filtered, resultDiv);
+    }
+
+    filtered = this.filterTypes(json, "seasondetail");
+    if (filtered.length > 0) {
+      this.fillTVShowSeasonDetails(filtered, resultDiv);
+    }
+
     return resultDiv;
   }
 
@@ -634,6 +658,7 @@ class PlaylistSearchCard extends HTMLElement {
     songsDiv.appendChild(mediaTypeDiv);
 
     let max = items.length;
+
     for (let count = 0; count < max; count++) {
       const item = items[count];
       let rowDiv = document.createElement("div");
@@ -710,16 +735,17 @@ class PlaylistSearchCard extends HTMLElement {
         rowDiv.appendChild(thumbnailDiv);
       }
 
+      const episodes = item["episodes"].map((x) => x.episodeid);
+
       let thumbnailPlayDiv = document.createElement("ha-icon");
       thumbnailPlayDiv.setAttribute(
         "class",
         "tvshow-seasondetails-thumbnailPlayCell"
       );
       thumbnailPlayDiv.setAttribute("icon", "mdi:play");
-      // TODO: develop!
-      // thumbnailPlayDiv.addEventListener("click", () =>
-      //   this.playAlbum(item["albumid"])
-      // );
+      thumbnailPlayDiv.addEventListener("click", () =>
+        this.playEpisodes(episodes)
+      );
       rowDiv.appendChild(thumbnailPlayDiv);
 
       let seasonTitleDiv = document.createElement("div");
@@ -1101,7 +1127,6 @@ class PlaylistSearchCard extends HTMLElement {
   }
 
   searchMoreOfTvShow(tvshow_id) {
-    let searchText = this.searchInput.value;
     this._hass.callService(this._service_domain, "call_method", {
       entity_id: this._config.entity,
       method: "search",
@@ -1153,6 +1178,14 @@ class PlaylistSearchCard extends HTMLElement {
       entity_id: this._config.entity,
       method: "play",
       episodeid: episode_id,
+    });
+  }
+
+  playEpisodes(episode_ids) {
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "play",
+      episodeid: episode_ids,
     });
   }
 

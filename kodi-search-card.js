@@ -1,14 +1,13 @@
 class PlaylistSearchCard extends HTMLElement {
-  SIZE_THUMBNAIL_ALBUM = "65px";
-  SIZE_THUMBNAIL_ALBUMDETAILS = "100px";
-
-  // the height of the thumbnail
+  SONG_THUMBNAIL_MIN_SIZE = "65px";
+  ALBUMDETAIL_THUMBNAIL_MIN_SIZE = "100px";
+  // the height of the thumbnail of the movie in the search result
   MOVIE_THUMBNAIL_MIN_SIZE = "200px";
   MOVIE_THUMBNAIL_RATIO = 0.6;
-  // the height and width of the thumbnail
-  ARTIST_THUMBNAIL_MIN_SIZE = "80px";
-  // the height and width of the thumbnail
-  ALBUM_THUMBNAIL_MIN_SIZE = "150px";
+  // the height and width of the thumbnail of the artist in the search result
+  ARTIST_THUMBNAIL_MIN_SIZE = "100px";
+  // the height and width of the thumbnail of the album in the search result
+  ALBUM_THUMBNAIL_MIN_SIZE = "170px";
 
   BACKGROUND_BASIC_COLOR = "#9b9595";
 
@@ -92,7 +91,7 @@ class PlaylistSearchCard extends HTMLElement {
             */
             .song-inner-item{
               display: grid;
-              grid-template-columns: ${this.SIZE_THUMBNAIL_ALBUM} 1fr auto auto;
+              grid-template-columns: ${this.SONG_THUMBNAIL_MIN_SIZE} 1fr auto auto;
               grid-gap: 3px;
               grid-auto-rows: auto;
               margin-top: 20px;
@@ -110,13 +109,13 @@ class PlaylistSearchCard extends HTMLElement {
               background-color: ${this.BACKGROUND_BASIC_COLOR};
               background-size: contain;
               background-repeat: no-repeat;
-              width: ${this.SIZE_THUMBNAIL_ALBUM};
-              height: ${this.SIZE_THUMBNAIL_ALBUM};
+              width: ${this.SONG_THUMBNAIL_MIN_SIZE};
+              height: ${this.SONG_THUMBNAIL_MIN_SIZE};
             }
 
             .song-thumbnailPlayCell{
-              width: 65px;
-              height: 65px;
+              width: ${this.SONG_THUMBNAIL_MIN_SIZE};
+              height: ${this.SONG_THUMBNAIL_MIN_SIZE};
             }
 
             .song-titleCell{
@@ -242,7 +241,7 @@ class PlaylistSearchCard extends HTMLElement {
 
             .albumdetails-inner-item{
               display: grid;
-              grid-template-columns: ${this.SIZE_THUMBNAIL_ALBUMDETAILS} auto;
+              grid-template-columns: ${this.ALBUMDETAIL_THUMBNAIL_MIN_SIZE} auto;
               grid-gap: 3px;
               grid-auto-rows: auto;
               margin-top: 20px;
@@ -259,8 +258,8 @@ class PlaylistSearchCard extends HTMLElement {
               display: block;
               background-size: contain;
               background-repeat: no-repeat;
-              width: ${this.SIZE_THUMBNAIL_ALBUMDETAILS};
-              height: ${this.SIZE_THUMBNAIL_ALBUMDETAILS};
+              width: ${this.ALBUMDETAIL_THUMBNAIL_MIN_SIZE};
+              height: ${this.ALBUMDETAIL_THUMBNAIL_MIN_SIZE};
             }
 
             .albumdetails-thumbnailPlayCell{
@@ -270,8 +269,8 @@ class PlaylistSearchCard extends HTMLElement {
               grid-row-end: 3;
               display: block;
               background-size: cover;
-              width: ${this.SIZE_THUMBNAIL_ALBUMDETAILS};
-              height: ${this.SIZE_THUMBNAIL_ALBUMDETAILS};
+              width: ${this.ALBUMDETAIL_THUMBNAIL_MIN_SIZE};
+              height: ${this.ALBUMDETAIL_THUMBNAIL_MIN_SIZE};
             }
 
             .albumdetails-titleCell{
@@ -393,8 +392,11 @@ class PlaylistSearchCard extends HTMLElement {
             grid-column-start: 1;
             grid-column-end: 2;
             background-color: ${this.BACKGROUND_BASIC_COLOR};
-            background-size: cover;
+            display: block;
+            background-size: contain;
             background-repeat: no-repeat;
+            width: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
+            height: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
           }
 
           .album-card-play{
@@ -402,14 +404,14 @@ class PlaylistSearchCard extends HTMLElement {
             grid-row-end: 2;
             grid-column-start: 1;
             grid-column-end: 2;
+            width: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
+            height: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
           }
-
-          .album-card-data{
-           }
 
           .album-card-title{
             font-size: 16px;
             font-weight: bold;
+            vertical-align: top;
           }
 
           .album-card-artist{
@@ -446,6 +448,8 @@ class PlaylistSearchCard extends HTMLElement {
             text-align: right;
             background-color: ${this.BACKGROUND_BASIC_COLOR};
             --mdc-icon-size: calc(${this.ARTIST_THUMBNAIL_MIN_SIZE} - 50px);
+            width: ${this.ARTIST_THUMBNAIL_MIN_SIZE};
+            height: ${this.ARTIST_THUMBNAIL_MIN_SIZE};
           }
 
           .artist-card-play{
@@ -454,11 +458,14 @@ class PlaylistSearchCard extends HTMLElement {
             grid-column-start: 1;
             grid-column-end: 2;
             text-align: left;
+            width: ${this.ARTIST_THUMBNAIL_MIN_SIZE};
+            height: ${this.ARTIST_THUMBNAIL_MIN_SIZE};
           }
 
           .artist-card-title{
             font-size: 16px;
             font-weight: bold;
+            vertical-align: text-top;
           }
 
           /*

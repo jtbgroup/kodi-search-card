@@ -5,9 +5,9 @@ This card displays a search form to query the kodi entity. The refresh is automa
 This card is intented to be an alternative to an iframe containing Chorus.
 
 
-| Playlist Audio | Playlist Video
-| ---- | ---- 
-<img src="https://raw.githubusercontent.com/jtbgroup/kodi-search-card/master/assets/search_result.png" alt="Search Form" width="400"/> | 
+| Search Form 
+| ---- 
+<img src="https://raw.githubusercontent.com/jtbgroup/kodi-search-card/master/assets/search_result.png" alt="Search Form" width="400"/> 
 
 ## Requirements
 

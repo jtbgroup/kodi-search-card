@@ -1,6 +1,6 @@
 # Kodi-Search-Card
 
-This card displays a search form to query the kodi entity. The refresh is automatic based on events triggered by the entity. 
+This card displays a search form to query the kodi entity.
 
 This card is intented to be an alternative to an iframe containing Chorus.
 

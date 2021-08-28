@@ -54,6 +54,20 @@ class PlaylistSearchCard extends HTMLElement {
   defineCSS() {
     return `
 
+            .container-off{
+              display: grid;
+              grid-template-columns: 1fr auto;
+              grid-auto-rows: auto;
+              grid-gap: 10px;
+              text-align: right;
+              font-weight: bold;
+              font-size: 18px;
+              margin-top: 20px;
+              margin-bottom: 20px;
+              margin-left: 10px;
+              margin-right: 10px;
+              border-bottom: solid;
+            }
 
             .search-form{
               margin-top: 20px;
@@ -589,20 +603,42 @@ class PlaylistSearchCard extends HTMLElement {
     });
 
     const entity = this._config.entity;
-    let meta = hass.states[entity].attributes.meta;
-    const json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
-    this._service_domain = json_meta[0]["service_domain"];
+    let state = hass.states[entity];
+    if (!state) {
+      return;
+    }
 
-    let data = hass.states[entity].attributes.data;
-    const json = typeof data == "object" ? data : JSON.parse(data);
+    if (state.state == "off") {
+      this.formatContainerOff();
+    } else {
+      let meta = state.attributes.meta;
+      const json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
 
-    // const max = json.length - 1;
+      if (json_meta.length > 0) {
+        const entity = this._config.entity;
+        this._service_domain = json_meta[0]["service_domain"];
 
-    let container = document.createElement("div");
-    container.setAttribute("class", "container-grid");
-    container.appendChild(this.createForm());
-    container.appendChild(this.createResult(json));
-    this.content.appendChild(container);
+        let data = state.attributes.data;
+        const json = typeof data == "object" ? data : JSON.parse(data);
+
+        // const max = json.length - 1;
+
+        let container = document.createElement("div");
+        container.setAttribute("class", "container-grid");
+        container.appendChild(this.createForm());
+        container.appendChild(this.createResult(json));
+        this.content.appendChild(container);
+      }
+    }
+  }
+
+  formatContainerOff() {
+    let messageDiv = document.createElement("div");
+    messageDiv.innerHTML = `<div>Kodi is off</div>`;
+    messageDiv.setAttribute("class", "container-off");
+
+    this.content.innerHTML = ``;
+    this.content.appendChild(messageDiv);
   }
 
   filterTypes(json, value) {

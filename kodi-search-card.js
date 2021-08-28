@@ -42,13 +42,22 @@ class PlaylistSearchCard extends HTMLElement {
 
   createInputField() {
     this.searchInput = document.createElement("paper-input");
-    this.searchInput.setAttribute("label", "Type here...");
-    this.searchInput.setAttribute("id", "search_input");
+    this.searchInput.setAttribute("placeholder", "Search...");
+    this.searchInput.setAttribute("id", "kodi_sensor_search_input");
     this.searchInput.addEventListener("keydown", (event) => {
       if (event.code === "Enter") {
         this.search();
       }
     });
+
+    let pib = document.createElement("paper-item-body");
+    pib.appendChild(this.searchInput);
+    this.searchInputContainer = document.createElement("paper-item");
+    this.searchInputContainer.setAttribute(
+      "id",
+      "kodi_sensor_search_input_container"
+    );
+    this.searchInputContainer.appendChild(pib);
   }
 
   defineCSS() {
@@ -76,7 +85,11 @@ class PlaylistSearchCard extends HTMLElement {
               margin-right: 10px;
             }
 
-            #search_input{
+            #kodi_sensor_search_input{
+            }
+
+            #kodi_sensor_search_input_container{
+              width: 100%;
             }
 
             .control-buttons{
@@ -1115,7 +1128,7 @@ class PlaylistSearchCard extends HTMLElement {
 
     let searchFormDiv = document.createElement("div");
     searchFormDiv.setAttribute("class", "search-form");
-    searchFormDiv.appendChild(this.searchInput);
+    searchFormDiv.appendChild(this.searchInputContainer);
 
     let controlsDiv = document.createElement("div");
     controlsDiv.setAttribute("class", "control-buttons");

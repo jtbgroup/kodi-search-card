@@ -42,41 +42,18 @@ class PlaylistSearchCard extends HTMLElement {
 
   createInputField() {
     this.searchInput = document.createElement("paper-input");
-    this.searchInput.setAttribute("placeholder", "Search...");
-    this.searchInput.setAttribute("id", "kodi_sensor_search_input");
+    this.searchInput.setAttribute("label", "Type here...");
+    this.searchInput.setAttribute("id", "search_input");
     this.searchInput.addEventListener("keydown", (event) => {
       if (event.code === "Enter") {
         this.search();
       }
     });
-
-    let pib = document.createElement("paper-item-body");
-    pib.appendChild(this.searchInput);
-    this.searchInputContainer = document.createElement("paper-item");
-    this.searchInputContainer.setAttribute(
-      "id",
-      "kodi_sensor_search_input_container"
-    );
-    this.searchInputContainer.appendChild(pib);
   }
 
   defineCSS() {
     return `
 
-            .container-off{
-              display: grid;
-              grid-template-columns: 1fr auto;
-              grid-auto-rows: auto;
-              grid-gap: 10px;
-              text-align: right;
-              font-weight: bold;
-              font-size: 18px;
-              margin-top: 20px;
-              margin-bottom: 20px;
-              margin-left: 10px;
-              margin-right: 10px;
-              border-bottom: solid;
-            }
 
             .search-form{
               margin-top: 20px;
@@ -85,11 +62,7 @@ class PlaylistSearchCard extends HTMLElement {
               margin-right: 10px;
             }
 
-            #kodi_sensor_search_input{
-            }
-
-            #kodi_sensor_search_input_container{
-              width: 100%;
+            #search_input{
             }
 
             .control-buttons{
@@ -616,42 +589,20 @@ class PlaylistSearchCard extends HTMLElement {
     });
 
     const entity = this._config.entity;
-    let state = hass.states[entity];
-    if (!state) {
-      return;
-    }
+    let meta = hass.states[entity].attributes.meta;
+    const json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
+    this._service_domain = json_meta[0]["service_domain"];
 
-    if (state.state == "off") {
-      this.formatContainerOff();
-    } else {
-      let meta = state.attributes.meta;
-      const json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
+    let data = hass.states[entity].attributes.data;
+    const json = typeof data == "object" ? data : JSON.parse(data);
 
-      if (json_meta.length > 0) {
-        const entity = this._config.entity;
-        this._service_domain = json_meta[0]["service_domain"];
+    // const max = json.length - 1;
 
-        let data = state.attributes.data;
-        const json = typeof data == "object" ? data : JSON.parse(data);
-
-        // const max = json.length - 1;
-
-        let container = document.createElement("div");
-        container.setAttribute("class", "container-grid");
-        container.appendChild(this.createForm());
-        container.appendChild(this.createResult(json));
-        this.content.appendChild(container);
-      }
-    }
-  }
-
-  formatContainerOff() {
-    let messageDiv = document.createElement("div");
-    messageDiv.innerHTML = `<div>Kodi is off</div>`;
-    messageDiv.setAttribute("class", "container-off");
-
-    this.content.innerHTML = ``;
-    this.content.appendChild(messageDiv);
+    let container = document.createElement("div");
+    container.setAttribute("class", "container-grid");
+    container.appendChild(this.createForm());
+    container.appendChild(this.createResult(json));
+    this.content.appendChild(container);
   }
 
   filterTypes(json, value) {
@@ -1128,7 +1079,7 @@ class PlaylistSearchCard extends HTMLElement {
 
     let searchFormDiv = document.createElement("div");
     searchFormDiv.setAttribute("class", "search-form");
-    searchFormDiv.appendChild(this.searchInputContainer);
+    searchFormDiv.appendChild(this.searchInput);
 
     let controlsDiv = document.createElement("div");
     controlsDiv.setAttribute("class", "control-buttons");

@@ -1115,7 +1115,7 @@ class PlaylistSearchCard extends HTMLElement {
 
     let searchFormDiv = document.createElement("div");
     searchFormDiv.setAttribute("class", "search-form");
-    searchFormDiv.appendChild(this.searchInputContainer);
+    searchFormDiv.appendChild(this.searchInput);
 
     let controlsDiv = document.createElement("div");
     controlsDiv.setAttribute("class", "control-buttons");

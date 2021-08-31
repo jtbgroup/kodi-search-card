@@ -36,14 +36,18 @@ class PlaylistSearchCard extends HTMLElement {
       this.appendChild(card);
       this.setupComplete = true;
 
-      // this.createInputField();
       this.createForm();
+      this.createMessageKodiOff();
     }
   }
 
-  createForm(max, json) {
-    // this.content.innerHTML = "";
+  createMessageKodiOff() {
+    this.kodiOffMessageDiv = document.createElement("div");
+    this.kodiOffMessageDiv.innerHTML = `<div>Kodi is off</div>`;
+    this.kodiOffMessageDiv.setAttribute("class", "container-off");
+  }
 
+  createForm(max, json) {
     this.searchFormDiv = document.createElement("div");
     this.searchFormDiv.setAttribute("class", "search-form");
 
@@ -75,20 +79,625 @@ class PlaylistSearchCard extends HTMLElement {
     cancelButton.addEventListener("click", () => this.clear());
     controlsDiv.appendChild(cancelButton);
     this.searchFormDiv.appendChild(controlsDiv);
-
-    // return searchFormDiv;
   }
 
-  // createInputField() {
-  //   this.searchInput = document.createElement("paper-input");
-  //   this.searchInput.setAttribute("placeholder", "Search...");
-  //   this.searchInput.setAttribute("id", "kodi_sensor_search_input");
-  //   this.searchInput.addEventListener("keydown", (event) => {
-  //     if (event.code === "Enter") {
-  //       this.search();
-  //     }
-  //   });
-  // }
+  set hass(hass) {
+    this._hass = hass;
+    // Update the card in case anything has changed
+    if (!this._config) return; // Can't assume setConfig is called before hass is set
+
+    const entity = this._config.entity;
+    let oldState = "off";
+    if (this.state) {
+      oldState = this.state.state;
+    }
+    this.state = hass.states[entity];
+    if (!this.state) {
+      return;
+    }
+
+    if (this.state.state == "off") {
+      this.content.innerHTML = ``;
+      this.content.appendChild(this.kodiOffMessageDiv);
+    } else {
+      let meta = this.state.attributes.meta;
+      const json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
+
+      if (oldState != this.state.state) {
+        this.container = document.createElement("div");
+        this.container.setAttribute("class", "container-grid");
+        this.container.appendChild(this.searchFormDiv);
+        this.content.appendChild(this.container);
+      }
+
+      if (this.container.contains(this.kodiOffMessageDiv)) {
+        this.container.removeChild(this.kodiOffMessageDiv);
+      }
+
+      if (this.resultDiv && this.container.contains(this.resultDiv)) {
+        this.container.removeChild(this.resultDiv);
+      }
+
+      if (json_meta.length > 0) {
+        const entity = this._config.entity;
+        this._service_domain = json_meta[0]["service_domain"];
+
+        let data = this.state.attributes.data;
+        const json = typeof data == "object" ? data : JSON.parse(data);
+
+        this.container.appendChild(this.createResult(json));
+      }
+    }
+  }
+
+  filterTypes(json, value) {
+    let result = json.filter((item) => {
+      return item.object_type == value;
+    });
+
+    return result;
+  }
+
+  createResult(json) {
+    this.resultDiv = document.createElement("div");
+    this.resultDiv.setAttribute("class", "result-grid");
+    this.resultDiv.innerHTML = "";
+
+    let filtered = this.filterTypes(json, "song");
+    if (filtered.length > 0) {
+      this.fillSongs(filtered, this.resultDiv);
+    }
+
+    filtered = this.filterTypes(json, "album");
+    if (filtered.length > 0) {
+      this.fillAlbums(filtered, this.resultDiv);
+    }
+
+    filtered = this.filterTypes(json, "artist");
+    if (filtered.length > 0) {
+      this.fillArtists(filtered, this.resultDiv);
+    }
+
+    filtered = this.filterTypes(json, "movie");
+    if (filtered.length > 0) {
+      this.fillMovies(filtered, this.resultDiv);
+    }
+
+    filtered = this.filterTypes(json, "tvshow");
+    if (filtered.length > 0) {
+      this.fillTvShows(filtered, this.resultDiv);
+    }
+
+    filtered = this.filterTypes(json, "albumdetail");
+    if (filtered.length > 0) {
+      this.fillAlbumDetails(filtered, this.resultDiv);
+    }
+
+    filtered = this.filterTypes(json, "seasondetail");
+    if (filtered.length > 0) {
+      this.fillTVShowSeasonDetails(filtered, this.resultDiv);
+    }
+
+    return this.resultDiv;
+  }
+
+  fillSongs(items, resultDiv) {
+    let songsDiv = document.createElement("div");
+
+    let mediaTypeDiv = document.createElement("div");
+    mediaTypeDiv.setAttribute("class", "media_type_div");
+    mediaTypeDiv.innerHTML = 'Songs <ha-icon icon="mdi:music"></ha-icon>';
+    songsDiv.appendChild(mediaTypeDiv);
+
+    let max = items.length;
+
+    for (let count = 0; count < max; count++) {
+      const item = items[count];
+      let rowDiv = document.createElement("div");
+      rowDiv.setAttribute("class", "song-inner-item");
+
+      let thumbnailDiv = document.createElement("div");
+      thumbnailDiv.setAttribute("class", "song-thumbnailCell");
+      if (this._config.show_thumbnail) {
+        let url = "background-image: url('" + item["thumbnail"] + "')";
+        thumbnailDiv.setAttribute("style", url);
+      }
+      rowDiv.appendChild(thumbnailDiv);
+
+      if (this._config.show_thumbnail && item["thumbnail"] != "") {
+        let thumbnailPlayDiv = document.createElement("ha-icon");
+        thumbnailPlayDiv.setAttribute("class", "song-thumbnailPlayCell");
+        thumbnailPlayDiv.setAttribute("icon", "mdi:play");
+        thumbnailPlayDiv.addEventListener("click", () =>
+          this.playSong(item["songid"])
+        );
+        thumbnailDiv.appendChild(thumbnailPlayDiv);
+      }
+
+      let titleDiv = document.createElement("div");
+      titleDiv.setAttribute("class", "song-titleCell");
+      titleDiv.innerHTML = item["artist"] + " - " + item["title"];
+      rowDiv.appendChild(titleDiv);
+
+      let genreDiv = document.createElement("div");
+      genreDiv.setAttribute("class", "song-genreCell");
+      genreDiv.innerHTML = item["genre"] ? item["genre"] : "undefined";
+      rowDiv.appendChild(genreDiv);
+
+      let albumDiv = document.createElement("div");
+      albumDiv.setAttribute("class", "song-albumCell");
+      albumDiv.innerHTML = item["album"] + " (" + item["year"] + ")";
+      rowDiv.appendChild(albumDiv);
+
+      let durationDiv = document.createElement("div");
+      durationDiv.setAttribute("class", "song-durationCell");
+      durationDiv.innerHTML = new Date(item["duration"] * 1000)
+        .toISOString()
+        .substr(11, 8);
+      rowDiv.appendChild(durationDiv);
+
+      songsDiv.appendChild(rowDiv);
+    }
+    resultDiv.appendChild(songsDiv);
+  }
+
+  fillTVShowSeasonDetails(items, resultDiv) {
+    let seasonsDiv = document.createElement("div");
+
+    let mediaTypeDiv = document.createElement("div");
+    mediaTypeDiv.setAttribute("class", "media_type_div");
+    mediaTypeDiv.innerHTML =
+      'Season Details <ha-icon icon="mdi:movie"></ha-icon>';
+    seasonsDiv.appendChild(mediaTypeDiv);
+
+    let max = items.length;
+    for (let count = 0; count < max; count++) {
+      let item = items[count];
+      let rowDiv = document.createElement("div");
+      rowDiv.setAttribute("class", "tvshow-seasondetails-inner-item");
+
+      if (this._config.show_thumbnail) {
+        let thumbnailDiv = document.createElement("div");
+        thumbnailDiv.setAttribute(
+          "class",
+          "tvshow-seasondetails-thumbnailCell"
+        );
+        let url = "background-image: url('" + item["thumbnail"] + "')";
+        thumbnailDiv.setAttribute("style", url);
+        rowDiv.appendChild(thumbnailDiv);
+      }
+
+      const episodes = item["episodes"].map((x) => x.episodeid);
+
+      let thumbnailPlayDiv = document.createElement("ha-icon");
+      thumbnailPlayDiv.setAttribute(
+        "class",
+        "tvshow-seasondetails-thumbnailPlayCell"
+      );
+      thumbnailPlayDiv.setAttribute("icon", "mdi:play");
+      thumbnailPlayDiv.addEventListener("click", () =>
+        this.playEpisodes(episodes)
+      );
+      rowDiv.appendChild(thumbnailPlayDiv);
+
+      let seasonTitleDiv = document.createElement("div");
+      seasonTitleDiv.setAttribute("class", "tvshow-seasondetails-titleCell");
+      seasonTitleDiv.innerHTML = item["title"];
+      rowDiv.appendChild(seasonTitleDiv);
+
+      // let yearDiv = document.createElement("div");
+      // yearDiv.setAttribute("class", "tvshow-seasondetails-yearCell");
+      // yearDiv.innerHTML = item["year"];
+      // rowDiv.appendChild(yearDiv);
+
+      let episodesDiv = document.createElement("div");
+      episodesDiv.setAttribute("class", "tvshow-seasondetails-episodesCell");
+      let episodesItem = item["episodes"];
+      for (let idx = 0; idx < episodesItem.length; idx++) {
+        let episodeDiv = document.createElement("div");
+        episodeDiv.setAttribute(
+          "class",
+          "tvshow-seasondetails-episode-inner-item"
+        );
+
+        let titleDiv = document.createElement("div");
+        titleDiv.setAttribute(
+          "class",
+          "tvshow-seasondetails-episode-titleCell"
+        );
+        titleDiv.innerHTML = episodesItem[idx]["label"];
+        episodeDiv.appendChild(titleDiv);
+
+        let playDiv = document.createElement("ha-icon");
+        playDiv.setAttribute("icon", "mdi:play");
+        playDiv.setAttribute(
+          "class",
+          "tvshow-seasondetails-episode-thumbnailPlayCell"
+        );
+        playDiv.addEventListener("click", () =>
+          this.playEpisode(episodesItem[idx]["episodeid"])
+        );
+        episodeDiv.appendChild(playDiv);
+
+        episodesDiv.appendChild(episodeDiv);
+      }
+      rowDiv.appendChild(episodesDiv);
+
+      seasonsDiv.appendChild(rowDiv);
+    }
+    resultDiv.appendChild(seasonsDiv);
+  }
+
+  fillAlbumDetails(items, resultDiv) {
+    let albumsDiv = document.createElement("div");
+
+    let mediaTypeDiv = document.createElement("div");
+    mediaTypeDiv.setAttribute("class", "media_type_div");
+    mediaTypeDiv.innerHTML = 'Album Details<ha-icon icon="mdi:disc"></ha-icon>';
+    albumsDiv.appendChild(mediaTypeDiv);
+
+    let max = items.length;
+    for (let count = 0; count < max; count++) {
+      let item = items[count];
+      let rowDiv = document.createElement("div");
+      rowDiv.setAttribute("class", "albumdetails-inner-item");
+
+      if (this._config.show_thumbnail) {
+        let thumbnailDiv = document.createElement("div");
+        thumbnailDiv.setAttribute("class", "albumdetails-thumbnailCell");
+        let url = "background-image: url('" + item["thumbnail"] + "')";
+        thumbnailDiv.setAttribute("style", url);
+        rowDiv.appendChild(thumbnailDiv);
+      }
+
+      let thumbnailPlayDiv = document.createElement("ha-icon");
+      thumbnailPlayDiv.setAttribute("class", "albumdetails-thumbnailPlayCell");
+      thumbnailPlayDiv.setAttribute("icon", "mdi:play");
+      thumbnailPlayDiv.addEventListener("click", () =>
+        this.playAlbum(item["albumid"])
+      );
+      rowDiv.appendChild(thumbnailPlayDiv);
+
+      let albumTitleDiv = document.createElement("div");
+      albumTitleDiv.setAttribute("class", "albumdetails-titleCell");
+      albumTitleDiv.innerHTML = item["title"];
+      rowDiv.appendChild(albumTitleDiv);
+
+      let yearDiv = document.createElement("div");
+      yearDiv.setAttribute("class", "albumdetails-yearCell");
+      yearDiv.innerHTML = item["year"];
+      rowDiv.appendChild(yearDiv);
+
+      let songsDiv = document.createElement("div");
+      songsDiv.setAttribute("class", "albumdetails-songsCell");
+      let songsItem = item["songs"];
+      let albumDuration = 0;
+      for (let idx = 0; idx < songsItem.length; idx++) {
+        let songDuration = songsItem[idx]["duration"];
+        albumDuration += songDuration;
+        let songDiv = document.createElement("div");
+        songDiv.setAttribute("class", "albumdetails-song-inner-item");
+
+        let titleDiv = document.createElement("div");
+        titleDiv.setAttribute("class", "albumdetails-song-titleCell");
+        titleDiv.innerHTML =
+          songsItem[idx]["track"] + ". " + songsItem[idx]["title"];
+        if (songDuration) {
+          titleDiv.innerHTML += " (" + this.formatDuration(songDuration) + ")";
+        }
+        songDiv.appendChild(titleDiv);
+
+        let playDiv = document.createElement("ha-icon");
+        playDiv.setAttribute("icon", "mdi:play");
+        playDiv.setAttribute("class", "albumdetails-song-thumbnailPlayCell");
+        playDiv.addEventListener("click", () =>
+          this.playSong(songsItem[idx]["songid"])
+        );
+        songDiv.appendChild(playDiv);
+
+        songsDiv.appendChild(songDiv);
+      }
+      rowDiv.appendChild(songsDiv);
+
+      let durationDiv = document.createElement("div");
+      durationDiv.setAttribute("class", "albumdetails-durationCell");
+      rowDiv.appendChild(durationDiv);
+
+      albumsDiv.appendChild(rowDiv);
+    }
+    resultDiv.appendChild(albumsDiv);
+  }
+
+  fillAlbums(items, resultDiv) {
+    let rowsDiv = document.createElement("div");
+    let mediaTypeDiv = document.createElement("div");
+    mediaTypeDiv.setAttribute("class", "media_type_div");
+    mediaTypeDiv.innerHTML = 'Albums <ha-icon icon="mdi:disc"></ha-icon>';
+    rowsDiv.appendChild(mediaTypeDiv);
+
+    let albumsDiv = document.createElement("div");
+    albumsDiv.setAttribute("class", "albums-grid");
+    rowsDiv.appendChild(albumsDiv);
+
+    let max = items.length;
+    for (let count = 0; count < max; count++) {
+      let item = items[count];
+      let albumCardDiv = document.createElement("div");
+      albumCardDiv.setAttribute("class", "album-card");
+      albumsDiv.appendChild(albumCardDiv);
+
+      if (this._config.show_thumbnail && ["thumbnail"] != "") {
+        let thumbnailDiv = document.createElement("div");
+        thumbnailDiv.setAttribute("class", "album-card-thumbnail");
+        let url = "background-image: url('" + item["thumbnail"] + "')";
+        thumbnailDiv.setAttribute("style", url);
+        albumCardDiv.appendChild(thumbnailDiv);
+      }
+
+      let playDiv = document.createElement("ha-icon");
+      playDiv.setAttribute("class", "album-card-play");
+      playDiv.setAttribute("icon", "mdi:play");
+      playDiv.addEventListener("click", () => this.playAlbum(item["albumid"]));
+      albumCardDiv.appendChild(playDiv);
+
+      let dataDiv = document.createElement("div");
+      dataDiv.setAttribute("class", "album-card-data");
+      albumCardDiv.appendChild(dataDiv);
+
+      let titleDiv = document.createElement("div");
+      titleDiv.setAttribute("class", "album-card-title");
+      titleDiv.innerHTML = item["title"];
+      dataDiv.appendChild(titleDiv);
+
+      let artistDiv = document.createElement("div");
+      artistDiv.setAttribute("class", "album-card-artist");
+      artistDiv.innerHTML = item["artist"] + " (" + item["year"] + ")";
+      dataDiv.appendChild(artistDiv);
+    }
+    resultDiv.appendChild(rowsDiv);
+  }
+
+  fillArtists(items, resultDiv) {
+    let rowsDiv = document.createElement("div");
+    let mediaTypeDiv = document.createElement("div");
+    mediaTypeDiv.setAttribute("class", "media_type_div");
+    mediaTypeDiv.innerHTML =
+      'Artists <ha-icon icon="mdi:account-circle"></ha-icon>';
+    rowsDiv.appendChild(mediaTypeDiv);
+
+    let artistsDiv = document.createElement("div");
+    artistsDiv.setAttribute("class", "artists-grid");
+    rowsDiv.appendChild(artistsDiv);
+
+    let max = items.length;
+    for (let count = 0; count < max; count++) {
+      let item = items[count];
+      let artistcardDiv = document.createElement("div");
+      artistcardDiv.setAttribute("class", "artist-card");
+      artistsDiv.appendChild(artistcardDiv);
+
+      let thumbnailDiv = document.createElement("ha-icon");
+      thumbnailDiv.setAttribute("class", "artist-card-thumbnail");
+      thumbnailDiv.setAttribute("icon", "mdi:account-circle");
+      artistcardDiv.appendChild(thumbnailDiv);
+
+      let moreDetailDiv = document.createElement("ha-icon");
+      moreDetailDiv.setAttribute("class", "artist-card-play");
+      moreDetailDiv.setAttribute("icon", "mdi:menu");
+      moreDetailDiv.addEventListener("click", () =>
+        this.searchMoreOfArtist(item["artistid"])
+      );
+      artistcardDiv.appendChild(moreDetailDiv);
+
+      let titleDiv = document.createElement("div");
+      titleDiv.setAttribute("class", "artist-card-title");
+      titleDiv.innerHTML = item["artist"];
+      artistcardDiv.appendChild(titleDiv);
+    }
+    resultDiv.appendChild(rowsDiv);
+  }
+
+  fillMovies(items, resultDiv) {
+    let rowsDiv = document.createElement("div");
+    let mediaTypeDiv = document.createElement("div");
+    mediaTypeDiv.setAttribute("class", "media_type_div");
+    mediaTypeDiv.innerHTML = 'Movies <ha-icon icon="mdi:movie"></ha-icon>';
+    rowsDiv.appendChild(mediaTypeDiv);
+
+    let moviesDiv = document.createElement("div");
+    moviesDiv.setAttribute("class", "movies-grid");
+    rowsDiv.appendChild(moviesDiv);
+
+    let max = items.length;
+    for (let count = 0; count < max; count++) {
+      let item = items[count];
+      let movieCardDiv = document.createElement("div");
+      movieCardDiv.setAttribute("class", "movie-card");
+      moviesDiv.appendChild(movieCardDiv);
+
+      if (this._config.show_thumbnail && item["thumbnail"] != "") {
+        let thumbnailDiv = document.createElement("div");
+        thumbnailDiv.setAttribute("class", "movie-card-thumbnail");
+        let url = "background-image: url('" + item["thumbnail"] + "')";
+        thumbnailDiv.setAttribute("style", url);
+        movieCardDiv.appendChild(thumbnailDiv);
+      }
+
+      let playDiv = document.createElement("ha-icon");
+      playDiv.setAttribute("class", "movie-card-play");
+      playDiv.setAttribute("icon", "mdi:play");
+      playDiv.addEventListener("click", () => this.playMovie(item["movieid"]));
+      movieCardDiv.appendChild(playDiv);
+
+      let dataDiv = document.createElement("div");
+      dataDiv.setAttribute("class", "movie-card-data");
+      movieCardDiv.appendChild(dataDiv);
+
+      let titleDiv = document.createElement("div");
+      titleDiv.setAttribute("class", "movie-card-title");
+      titleDiv.innerHTML = item["title"];
+      dataDiv.appendChild(titleDiv);
+
+      let genreDiv = document.createElement("div");
+      genreDiv.setAttribute("class", "movie-card-genre");
+      genreDiv.innerHTML = item["genre"] + " (" + item["year"] + ")";
+      dataDiv.appendChild(genreDiv);
+    }
+    resultDiv.appendChild(rowsDiv);
+
+    resultDiv.appendChild(rowsDiv);
+  }
+
+  fillTvShows(items, resultDiv) {
+    let rowsDiv = document.createElement("div");
+    let mediaTypeDiv = document.createElement("div");
+    mediaTypeDiv.setAttribute("class", "media_type_div");
+    mediaTypeDiv.innerHTML = 'TV Shows <ha-icon icon="mdi:movie"></ha-icon>';
+    rowsDiv.appendChild(mediaTypeDiv);
+
+    let tvshowsDiv = document.createElement("div");
+    tvshowsDiv.setAttribute("class", "tvshows-grid");
+    rowsDiv.appendChild(tvshowsDiv);
+
+    let max = items.length;
+    for (let count = 0; count < max; count++) {
+      let item = items[count];
+      let tvshowCardDiv = document.createElement("div");
+      tvshowCardDiv.setAttribute("class", "tvshow-card");
+      tvshowsDiv.appendChild(tvshowCardDiv);
+
+      if (this._config.show_thumbnail && ["thumbnail"] != "") {
+        let thumbnailDiv = document.createElement("div");
+        thumbnailDiv.setAttribute("class", "tvshow-card-thumbnail");
+        let url = "background-image: url('" + item["thumbnail"] + "')";
+        thumbnailDiv.setAttribute("style", url);
+        tvshowCardDiv.appendChild(thumbnailDiv);
+      }
+
+      let playDiv = document.createElement("ha-icon");
+      playDiv.setAttribute("class", "tvshow-card-play");
+      playDiv.setAttribute("icon", "mdi:menu");
+      playDiv.addEventListener("click", () =>
+        this.searchMoreOfTvShow(item["tvshowid"])
+      );
+      tvshowCardDiv.appendChild(playDiv);
+
+      let dataDiv = document.createElement("div");
+      dataDiv.setAttribute("class", "tvshow-card-data");
+      tvshowCardDiv.appendChild(dataDiv);
+
+      let titleDiv = document.createElement("div");
+      titleDiv.setAttribute("class", "tvshow-card-title");
+      titleDiv.innerHTML = item["title"];
+      dataDiv.appendChild(titleDiv);
+
+      let genreDiv = document.createElement("div");
+      genreDiv.setAttribute("class", "tvshow-card-genre");
+      genreDiv.innerHTML = item["genre"];
+      dataDiv.appendChild(genreDiv);
+    }
+    resultDiv.appendChild(rowsDiv);
+  }
+
+  handleSearchInputEvent(event) {
+    var key = event.keyCode || event.which;
+    if (key == 13) {
+      this.search();
+    }
+  }
+
+  formatDuration(duration) {
+    return new Date(duration * 1000).toISOString().substr(11, 8);
+  }
+
+  clear() {
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "clear",
+    });
+    this.searchInput.value = "";
+  }
+  search() {
+    let searchText = this.searchInput.value;
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "search",
+      item: {
+        media_type: "all",
+        value: searchText,
+      },
+    });
+    this.searchInput.value = "";
+  }
+
+  searchMoreOfTvShow(tvshow_id) {
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "search",
+      item: {
+        media_type: "tvshow",
+        value: tvshow_id,
+      },
+    });
+  }
+
+  searchMoreOfArtist(artist_id) {
+    let searchText = this.searchInput.value;
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "search",
+      item: {
+        media_type: "artist",
+        value: artist_id,
+      },
+    });
+  }
+
+  playSong(song_id) {
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "play",
+      songid: song_id,
+    });
+  }
+
+  playAlbum(album_id) {
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "play",
+      albumid: album_id,
+    });
+  }
+
+  playMovie(movie_id) {
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "play",
+      movieid: movie_id,
+    });
+  }
+
+  playEpisode(episode_id) {
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "play",
+      episodeid: episode_id,
+    });
+  }
+
+  playEpisodes(episode_ids) {
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "play",
+      episodeid: episode_ids,
+    });
+  }
+
+  getCardSize() {
+    // let view = this.config.image_style || "poster";
+    // return view == "poster" ? window.cardSize * 5 : window.cardSize * 3;
+    return 30;
+  }
 
   defineCSS() {
     return `
@@ -630,626 +1239,7 @@ class PlaylistSearchCard extends HTMLElement {
           color: red;
         }
 
-          `;
-  }
-  set hass(hass) {
-    this._hass = hass;
-    // Update the card in case anything has changed
-    if (!this._config) return; // Can't assume setConfig is called before hass is set
-
-    // this._hass.callService("homeassistant", "update_entity", {
-    //   entity_id: this._config.entity,
-    // });
-
-    const entity = this._config.entity;
-    let state = hass.states[entity];
-    if (!state) {
-      return;
-    }
-
-    this.content.innerHTML = ``;
-
-    if (state.state == "off") {
-      this.formatContainerOff();
-    } else {
-      let meta = state.attributes.meta;
-      const json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
-
-      if (json_meta.length > 0) {
-        const entity = this._config.entity;
-        this._service_domain = json_meta[0]["service_domain"];
-
-        let data = state.attributes.data;
-        const json = typeof data == "object" ? data : JSON.parse(data);
-
-        // const max = json.length - 1;
-
-        let container = document.createElement("div");
-        container.setAttribute("class", "container-grid");
-        // container.appendChild(this.createForm());
-        container.appendChild(this.searchFormDiv);
-        container.appendChild(this.createResult(json));
-        this.content.appendChild(container);
-      }
-    }
-  }
-
-  formatContainerOff() {
-    let messageDiv = document.createElement("div");
-    messageDiv.innerHTML = `<div>Kodi is off</div>`;
-    messageDiv.setAttribute("class", "container-off");
-
-    this.content.appendChild(messageDiv);
-  }
-
-  filterTypes(json, value) {
-    let result = json.filter((item) => {
-      return item.object_type == value;
-    });
-
-    return result;
-  }
-
-  createResult(json) {
-    let resultDiv = document.createElement("div");
-    resultDiv.setAttribute("class", "result-grid");
-    resultDiv.innerHTML = "";
-
-    let filtered = this.filterTypes(json, "song");
-    if (filtered.length > 0) {
-      this.fillSongs(filtered, resultDiv);
-    }
-
-    filtered = this.filterTypes(json, "album");
-    if (filtered.length > 0) {
-      this.fillAlbums(filtered, resultDiv);
-    }
-
-    filtered = this.filterTypes(json, "artist");
-    if (filtered.length > 0) {
-      this.fillArtists(filtered, resultDiv);
-    }
-
-    filtered = this.filterTypes(json, "movie");
-    if (filtered.length > 0) {
-      this.fillMovies(filtered, resultDiv);
-    }
-
-    filtered = this.filterTypes(json, "tvshow");
-    if (filtered.length > 0) {
-      this.fillTvShows(filtered, resultDiv);
-    }
-
-    filtered = this.filterTypes(json, "albumdetail");
-    if (filtered.length > 0) {
-      this.fillAlbumDetails(filtered, resultDiv);
-    }
-
-    filtered = this.filterTypes(json, "seasondetail");
-    if (filtered.length > 0) {
-      this.fillTVShowSeasonDetails(filtered, resultDiv);
-    }
-
-    return resultDiv;
-  }
-
-  fillSongs(items, resultDiv) {
-    let songsDiv = document.createElement("div");
-
-    let mediaTypeDiv = document.createElement("div");
-    mediaTypeDiv.setAttribute("class", "media_type_div");
-    mediaTypeDiv.innerHTML = 'Songs <ha-icon icon="mdi:music"></ha-icon>';
-    songsDiv.appendChild(mediaTypeDiv);
-
-    let max = items.length;
-
-    for (let count = 0; count < max; count++) {
-      const item = items[count];
-      let rowDiv = document.createElement("div");
-      rowDiv.setAttribute("class", "song-inner-item");
-
-      let thumbnailDiv = document.createElement("div");
-      thumbnailDiv.setAttribute("class", "song-thumbnailCell");
-      if (this._config.show_thumbnail) {
-        let url = "background-image: url('" + item["thumbnail"] + "')";
-        thumbnailDiv.setAttribute("style", url);
-      }
-      rowDiv.appendChild(thumbnailDiv);
-
-      if (this._config.show_thumbnail && item["thumbnail"] != "") {
-        let thumbnailPlayDiv = document.createElement("ha-icon");
-        thumbnailPlayDiv.setAttribute("class", "song-thumbnailPlayCell");
-        thumbnailPlayDiv.setAttribute("icon", "mdi:play");
-        thumbnailPlayDiv.addEventListener("click", () =>
-          this.playSong(item["songid"])
-        );
-        thumbnailDiv.appendChild(thumbnailPlayDiv);
-      }
-
-      let titleDiv = document.createElement("div");
-      titleDiv.setAttribute("class", "song-titleCell");
-      titleDiv.innerHTML = item["artist"] + " - " + item["title"];
-      rowDiv.appendChild(titleDiv);
-
-      let genreDiv = document.createElement("div");
-      genreDiv.setAttribute("class", "song-genreCell");
-      genreDiv.innerHTML = item["genre"] ? item["genre"] : "undefined";
-      rowDiv.appendChild(genreDiv);
-
-      let albumDiv = document.createElement("div");
-      albumDiv.setAttribute("class", "song-albumCell");
-      albumDiv.innerHTML = item["album"] + " (" + item["year"] + ")";
-      rowDiv.appendChild(albumDiv);
-
-      let durationDiv = document.createElement("div");
-      durationDiv.setAttribute("class", "song-durationCell");
-      durationDiv.innerHTML = new Date(item["duration"] * 1000)
-        .toISOString()
-        .substr(11, 8);
-      rowDiv.appendChild(durationDiv);
-
-      songsDiv.appendChild(rowDiv);
-    }
-    resultDiv.appendChild(songsDiv);
-  }
-
-  fillTVShowSeasonDetails(items, resultDiv) {
-    let seasonsDiv = document.createElement("div");
-
-    let mediaTypeDiv = document.createElement("div");
-    mediaTypeDiv.setAttribute("class", "media_type_div");
-    mediaTypeDiv.innerHTML =
-      'Season Details <ha-icon icon="mdi:movie"></ha-icon>';
-    seasonsDiv.appendChild(mediaTypeDiv);
-
-    let max = items.length;
-    for (let count = 0; count < max; count++) {
-      let item = items[count];
-      let rowDiv = document.createElement("div");
-      rowDiv.setAttribute("class", "tvshow-seasondetails-inner-item");
-
-      if (this._config.show_thumbnail) {
-        let thumbnailDiv = document.createElement("div");
-        thumbnailDiv.setAttribute(
-          "class",
-          "tvshow-seasondetails-thumbnailCell"
-        );
-        let url = "background-image: url('" + item["thumbnail"] + "')";
-        thumbnailDiv.setAttribute("style", url);
-        rowDiv.appendChild(thumbnailDiv);
-      }
-
-      const episodes = item["episodes"].map((x) => x.episodeid);
-
-      let thumbnailPlayDiv = document.createElement("ha-icon");
-      thumbnailPlayDiv.setAttribute(
-        "class",
-        "tvshow-seasondetails-thumbnailPlayCell"
-      );
-      thumbnailPlayDiv.setAttribute("icon", "mdi:play");
-      thumbnailPlayDiv.addEventListener("click", () =>
-        this.playEpisodes(episodes)
-      );
-      rowDiv.appendChild(thumbnailPlayDiv);
-
-      let seasonTitleDiv = document.createElement("div");
-      seasonTitleDiv.setAttribute("class", "tvshow-seasondetails-titleCell");
-      seasonTitleDiv.innerHTML = item["title"];
-      rowDiv.appendChild(seasonTitleDiv);
-
-      // let yearDiv = document.createElement("div");
-      // yearDiv.setAttribute("class", "tvshow-seasondetails-yearCell");
-      // yearDiv.innerHTML = item["year"];
-      // rowDiv.appendChild(yearDiv);
-
-      let episodesDiv = document.createElement("div");
-      episodesDiv.setAttribute("class", "tvshow-seasondetails-episodesCell");
-      let episodesItem = item["episodes"];
-      for (let idx = 0; idx < episodesItem.length; idx++) {
-        let episodeDiv = document.createElement("div");
-        episodeDiv.setAttribute(
-          "class",
-          "tvshow-seasondetails-episode-inner-item"
-        );
-
-        let titleDiv = document.createElement("div");
-        titleDiv.setAttribute(
-          "class",
-          "tvshow-seasondetails-episode-titleCell"
-        );
-        titleDiv.innerHTML = episodesItem[idx]["label"];
-        episodeDiv.appendChild(titleDiv);
-
-        let playDiv = document.createElement("ha-icon");
-        playDiv.setAttribute("icon", "mdi:play");
-        playDiv.setAttribute(
-          "class",
-          "tvshow-seasondetails-episode-thumbnailPlayCell"
-        );
-        playDiv.addEventListener("click", () =>
-          this.playEpisode(episodesItem[idx]["episodeid"])
-        );
-        episodeDiv.appendChild(playDiv);
-
-        episodesDiv.appendChild(episodeDiv);
-      }
-      rowDiv.appendChild(episodesDiv);
-
-      seasonsDiv.appendChild(rowDiv);
-    }
-    resultDiv.appendChild(seasonsDiv);
-  }
-
-  fillAlbumDetails(items, resultDiv) {
-    let albumsDiv = document.createElement("div");
-
-    let mediaTypeDiv = document.createElement("div");
-    mediaTypeDiv.setAttribute("class", "media_type_div");
-    mediaTypeDiv.innerHTML = 'Album Details<ha-icon icon="mdi:disc"></ha-icon>';
-    albumsDiv.appendChild(mediaTypeDiv);
-
-    let max = items.length;
-    for (let count = 0; count < max; count++) {
-      let item = items[count];
-      let rowDiv = document.createElement("div");
-      rowDiv.setAttribute("class", "albumdetails-inner-item");
-
-      if (this._config.show_thumbnail) {
-        let thumbnailDiv = document.createElement("div");
-        thumbnailDiv.setAttribute("class", "albumdetails-thumbnailCell");
-        let url = "background-image: url('" + item["thumbnail"] + "')";
-        thumbnailDiv.setAttribute("style", url);
-        rowDiv.appendChild(thumbnailDiv);
-      }
-
-      let thumbnailPlayDiv = document.createElement("ha-icon");
-      thumbnailPlayDiv.setAttribute("class", "albumdetails-thumbnailPlayCell");
-      thumbnailPlayDiv.setAttribute("icon", "mdi:play");
-      thumbnailPlayDiv.addEventListener("click", () =>
-        this.playAlbum(item["albumid"])
-      );
-      rowDiv.appendChild(thumbnailPlayDiv);
-
-      let albumTitleDiv = document.createElement("div");
-      albumTitleDiv.setAttribute("class", "albumdetails-titleCell");
-      albumTitleDiv.innerHTML = item["title"];
-      rowDiv.appendChild(albumTitleDiv);
-
-      let yearDiv = document.createElement("div");
-      yearDiv.setAttribute("class", "albumdetails-yearCell");
-      yearDiv.innerHTML = item["year"];
-      rowDiv.appendChild(yearDiv);
-
-      let songsDiv = document.createElement("div");
-      songsDiv.setAttribute("class", "albumdetails-songsCell");
-      let songsItem = item["songs"];
-      let albumDuration = 0;
-      for (let idx = 0; idx < songsItem.length; idx++) {
-        let songDuration = songsItem[idx]["duration"];
-        albumDuration += songDuration;
-        let songDiv = document.createElement("div");
-        songDiv.setAttribute("class", "albumdetails-song-inner-item");
-
-        let titleDiv = document.createElement("div");
-        titleDiv.setAttribute("class", "albumdetails-song-titleCell");
-        titleDiv.innerHTML =
-          songsItem[idx]["track"] + ". " + songsItem[idx]["title"];
-        if (songDuration) {
-          titleDiv.innerHTML += " (" + this.formatDuration(songDuration) + ")";
-        }
-        songDiv.appendChild(titleDiv);
-
-        let playDiv = document.createElement("ha-icon");
-        playDiv.setAttribute("icon", "mdi:play");
-        playDiv.setAttribute("class", "albumdetails-song-thumbnailPlayCell");
-        playDiv.addEventListener("click", () =>
-          this.playSong(songsItem[idx]["songid"])
-        );
-        songDiv.appendChild(playDiv);
-
-        songsDiv.appendChild(songDiv);
-      }
-      rowDiv.appendChild(songsDiv);
-
-      let durationDiv = document.createElement("div");
-      durationDiv.setAttribute("class", "albumdetails-durationCell");
-      rowDiv.appendChild(durationDiv);
-
-      albumsDiv.appendChild(rowDiv);
-    }
-    resultDiv.appendChild(albumsDiv);
-  }
-
-  fillAlbums(items, resultDiv) {
-    let rowsDiv = document.createElement("div");
-    let mediaTypeDiv = document.createElement("div");
-    mediaTypeDiv.setAttribute("class", "media_type_div");
-    mediaTypeDiv.innerHTML = 'Albums <ha-icon icon="mdi:disc"></ha-icon>';
-    rowsDiv.appendChild(mediaTypeDiv);
-
-    let albumsDiv = document.createElement("div");
-    albumsDiv.setAttribute("class", "albums-grid");
-    rowsDiv.appendChild(albumsDiv);
-
-    let max = items.length;
-    for (let count = 0; count < max; count++) {
-      let item = items[count];
-      let albumCardDiv = document.createElement("div");
-      albumCardDiv.setAttribute("class", "album-card");
-      albumsDiv.appendChild(albumCardDiv);
-
-      if (this._config.show_thumbnail && ["thumbnail"] != "") {
-        let thumbnailDiv = document.createElement("div");
-        thumbnailDiv.setAttribute("class", "album-card-thumbnail");
-        let url = "background-image: url('" + item["thumbnail"] + "')";
-        thumbnailDiv.setAttribute("style", url);
-        albumCardDiv.appendChild(thumbnailDiv);
-      }
-
-      let playDiv = document.createElement("ha-icon");
-      playDiv.setAttribute("class", "album-card-play");
-      playDiv.setAttribute("icon", "mdi:play");
-      playDiv.addEventListener("click", () => this.playAlbum(item["albumid"]));
-      albumCardDiv.appendChild(playDiv);
-
-      let dataDiv = document.createElement("div");
-      dataDiv.setAttribute("class", "album-card-data");
-      albumCardDiv.appendChild(dataDiv);
-
-      let titleDiv = document.createElement("div");
-      titleDiv.setAttribute("class", "album-card-title");
-      titleDiv.innerHTML = item["title"];
-      dataDiv.appendChild(titleDiv);
-
-      let artistDiv = document.createElement("div");
-      artistDiv.setAttribute("class", "album-card-artist");
-      artistDiv.innerHTML = item["artist"] + " (" + item["year"] + ")";
-      dataDiv.appendChild(artistDiv);
-    }
-    resultDiv.appendChild(rowsDiv);
-  }
-
-  fillArtists(items, resultDiv) {
-    let rowsDiv = document.createElement("div");
-    let mediaTypeDiv = document.createElement("div");
-    mediaTypeDiv.setAttribute("class", "media_type_div");
-    mediaTypeDiv.innerHTML =
-      'Artists <ha-icon icon="mdi:account-circle"></ha-icon>';
-    rowsDiv.appendChild(mediaTypeDiv);
-
-    let artistsDiv = document.createElement("div");
-    artistsDiv.setAttribute("class", "artists-grid");
-    rowsDiv.appendChild(artistsDiv);
-
-    let max = items.length;
-    for (let count = 0; count < max; count++) {
-      let item = items[count];
-      let artistcardDiv = document.createElement("div");
-      artistcardDiv.setAttribute("class", "artist-card");
-      artistsDiv.appendChild(artistcardDiv);
-
-      let thumbnailDiv = document.createElement("ha-icon");
-      thumbnailDiv.setAttribute("class", "artist-card-thumbnail");
-      thumbnailDiv.setAttribute("icon", "mdi:account-circle");
-      artistcardDiv.appendChild(thumbnailDiv);
-
-      let moreDetailDiv = document.createElement("ha-icon");
-      moreDetailDiv.setAttribute("class", "artist-card-play");
-      moreDetailDiv.setAttribute("icon", "mdi:menu");
-      moreDetailDiv.addEventListener("click", () =>
-        this.searchMoreOfArtist(item["artistid"])
-      );
-      artistcardDiv.appendChild(moreDetailDiv);
-
-      let titleDiv = document.createElement("div");
-      titleDiv.setAttribute("class", "artist-card-title");
-      titleDiv.innerHTML = item["artist"];
-      artistcardDiv.appendChild(titleDiv);
-    }
-    resultDiv.appendChild(rowsDiv);
-  }
-
-  fillMovies(items, resultDiv) {
-    let rowsDiv = document.createElement("div");
-    let mediaTypeDiv = document.createElement("div");
-    mediaTypeDiv.setAttribute("class", "media_type_div");
-    mediaTypeDiv.innerHTML = 'Movies <ha-icon icon="mdi:movie"></ha-icon>';
-    rowsDiv.appendChild(mediaTypeDiv);
-
-    let moviesDiv = document.createElement("div");
-    moviesDiv.setAttribute("class", "movies-grid");
-    rowsDiv.appendChild(moviesDiv);
-
-    let max = items.length;
-    for (let count = 0; count < max; count++) {
-      let item = items[count];
-      let movieCardDiv = document.createElement("div");
-      movieCardDiv.setAttribute("class", "movie-card");
-      moviesDiv.appendChild(movieCardDiv);
-
-      if (this._config.show_thumbnail && item["thumbnail"] != "") {
-        let thumbnailDiv = document.createElement("div");
-        thumbnailDiv.setAttribute("class", "movie-card-thumbnail");
-        let url = "background-image: url('" + item["thumbnail"] + "')";
-        thumbnailDiv.setAttribute("style", url);
-        movieCardDiv.appendChild(thumbnailDiv);
-      }
-
-      let playDiv = document.createElement("ha-icon");
-      playDiv.setAttribute("class", "movie-card-play");
-      playDiv.setAttribute("icon", "mdi:play");
-      playDiv.addEventListener("click", () => this.playMovie(item["movieid"]));
-      movieCardDiv.appendChild(playDiv);
-
-      let dataDiv = document.createElement("div");
-      dataDiv.setAttribute("class", "movie-card-data");
-      movieCardDiv.appendChild(dataDiv);
-
-      let titleDiv = document.createElement("div");
-      titleDiv.setAttribute("class", "movie-card-title");
-      titleDiv.innerHTML = item["title"];
-      dataDiv.appendChild(titleDiv);
-
-      let genreDiv = document.createElement("div");
-      genreDiv.setAttribute("class", "movie-card-genre");
-      genreDiv.innerHTML = item["genre"] + " (" + item["year"] + ")";
-      dataDiv.appendChild(genreDiv);
-    }
-    resultDiv.appendChild(rowsDiv);
-
-    resultDiv.appendChild(rowsDiv);
-  }
-
-  fillTvShows(items, resultDiv) {
-    let rowsDiv = document.createElement("div");
-    let mediaTypeDiv = document.createElement("div");
-    mediaTypeDiv.setAttribute("class", "media_type_div");
-    mediaTypeDiv.innerHTML = 'TV Shows <ha-icon icon="mdi:movie"></ha-icon>';
-    rowsDiv.appendChild(mediaTypeDiv);
-
-    let tvshowsDiv = document.createElement("div");
-    tvshowsDiv.setAttribute("class", "tvshows-grid");
-    rowsDiv.appendChild(tvshowsDiv);
-
-    let max = items.length;
-    for (let count = 0; count < max; count++) {
-      let item = items[count];
-      let tvshowCardDiv = document.createElement("div");
-      tvshowCardDiv.setAttribute("class", "tvshow-card");
-      tvshowsDiv.appendChild(tvshowCardDiv);
-
-      if (this._config.show_thumbnail && ["thumbnail"] != "") {
-        let thumbnailDiv = document.createElement("div");
-        thumbnailDiv.setAttribute("class", "tvshow-card-thumbnail");
-        let url = "background-image: url('" + item["thumbnail"] + "')";
-        thumbnailDiv.setAttribute("style", url);
-        tvshowCardDiv.appendChild(thumbnailDiv);
-      }
-
-      let playDiv = document.createElement("ha-icon");
-      playDiv.setAttribute("class", "tvshow-card-play");
-      playDiv.setAttribute("icon", "mdi:menu");
-      playDiv.addEventListener("click", () =>
-        this.searchMoreOfTvShow(item["tvshowid"])
-      );
-      tvshowCardDiv.appendChild(playDiv);
-
-      let dataDiv = document.createElement("div");
-      dataDiv.setAttribute("class", "tvshow-card-data");
-      tvshowCardDiv.appendChild(dataDiv);
-
-      let titleDiv = document.createElement("div");
-      titleDiv.setAttribute("class", "tvshow-card-title");
-      titleDiv.innerHTML = item["title"];
-      dataDiv.appendChild(titleDiv);
-
-      let genreDiv = document.createElement("div");
-      genreDiv.setAttribute("class", "tvshow-card-genre");
-      genreDiv.innerHTML = item["genre"];
-      dataDiv.appendChild(genreDiv);
-    }
-    resultDiv.appendChild(rowsDiv);
-  }
-
-  handleSearchInputEvent(event) {
-    var key = event.keyCode || event.which;
-    if (key == 13) {
-      this.search();
-    }
-  }
-
-  formatDuration(duration) {
-    return new Date(duration * 1000).toISOString().substr(11, 8);
-  }
-
-  clear() {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "clear",
-    });
-    this.searchInput.value = "";
-    // this.searchInput.commit();
-  }
-  search() {
-    let searchText = this.searchInput.value;
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "search",
-      item: {
-        media_type: "all",
-        value: searchText,
-      },
-    });
-    this.searchInput.value = "";
-  }
-
-  searchMoreOfTvShow(tvshow_id) {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "search",
-      item: {
-        media_type: "tvshow",
-        value: tvshow_id,
-      },
-    });
-  }
-
-  searchMoreOfArtist(artist_id) {
-    let searchText = this.searchInput.value;
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "search",
-      item: {
-        media_type: "artist",
-        value: artist_id,
-      },
-    });
-  }
-
-  playSong(song_id) {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "play",
-      songid: song_id,
-    });
-  }
-
-  playAlbum(album_id) {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "play",
-      albumid: album_id,
-    });
-  }
-
-  playMovie(movie_id) {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "play",
-      movieid: movie_id,
-    });
-  }
-
-  playEpisode(episode_id) {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "play",
-      episodeid: episode_id,
-    });
-  }
-
-  playEpisodes(episode_ids) {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "play",
-      episodeid: episode_ids,
-    });
-  }
-
-  getCardSize() {
-    // let view = this.config.image_style || "poster";
-    // return view == "poster" ? window.cardSize * 5 : window.cardSize * 3;
-    return 30;
+      `;
   }
 }
 customElements.define("kodi-search-card", PlaylistSearchCard);

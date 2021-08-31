@@ -36,11 +36,17 @@ class PlaylistSearchCard extends HTMLElement {
       this.appendChild(card);
       this.setupComplete = true;
 
-      this.createInputField();
+      // this.createInputField();
+      this.createForm();
     }
   }
 
-  createInputField() {
+  createForm(max, json) {
+    // this.content.innerHTML = "";
+
+    this.searchFormDiv = document.createElement("div");
+    this.searchFormDiv.setAttribute("class", "search-form");
+
     this.searchInput = document.createElement("paper-input");
     this.searchInput.setAttribute("placeholder", "Search...");
     this.searchInput.setAttribute("id", "kodi_sensor_search_input");
@@ -49,7 +55,40 @@ class PlaylistSearchCard extends HTMLElement {
         this.search();
       }
     });
+    this.searchFormDiv.appendChild(this.searchInput);
+
+    let controlsDiv = document.createElement("div");
+    controlsDiv.setAttribute("class", "control-buttons");
+
+    let searchButton = document.createElement("mwc-button");
+    searchButton.innerHTML = "Search";
+    searchButton.setAttribute("class", "search-btn");
+    searchButton.setAttribute("raised", "");
+    searchButton.addEventListener("click", () => this.search());
+    searchButton.addEventListener("keyup", this.handleSearchInputEvent);
+    controlsDiv.appendChild(searchButton);
+
+    let cancelButton = document.createElement("mwc-button");
+    cancelButton.setAttribute("class", "cancel-btn");
+    cancelButton.setAttribute("raised", "");
+    cancelButton.innerHTML = "Clear";
+    cancelButton.addEventListener("click", () => this.clear());
+    controlsDiv.appendChild(cancelButton);
+    this.searchFormDiv.appendChild(controlsDiv);
+
+    // return searchFormDiv;
   }
+
+  // createInputField() {
+  //   this.searchInput = document.createElement("paper-input");
+  //   this.searchInput.setAttribute("placeholder", "Search...");
+  //   this.searchInput.setAttribute("id", "kodi_sensor_search_input");
+  //   this.searchInput.addEventListener("keydown", (event) => {
+  //     if (event.code === "Enter") {
+  //       this.search();
+  //     }
+  //   });
+  // }
 
   defineCSS() {
     return `
@@ -608,6 +647,8 @@ class PlaylistSearchCard extends HTMLElement {
       return;
     }
 
+    this.content.innerHTML = ``;
+
     if (state.state == "off") {
       this.formatContainerOff();
     } else {
@@ -625,7 +666,8 @@ class PlaylistSearchCard extends HTMLElement {
 
         let container = document.createElement("div");
         container.setAttribute("class", "container-grid");
-        container.appendChild(this.createForm());
+        // container.appendChild(this.createForm());
+        container.appendChild(this.searchFormDiv);
         container.appendChild(this.createResult(json));
         this.content.appendChild(container);
       }
@@ -637,7 +679,6 @@ class PlaylistSearchCard extends HTMLElement {
     messageDiv.innerHTML = `<div>Kodi is off</div>`;
     messageDiv.setAttribute("class", "container-off");
 
-    this.content.innerHTML = ``;
     this.content.appendChild(messageDiv);
   }
 
@@ -1110,35 +1151,6 @@ class PlaylistSearchCard extends HTMLElement {
     resultDiv.appendChild(rowsDiv);
   }
 
-  createForm(max, json) {
-    this.content.innerHTML = "";
-
-    let searchFormDiv = document.createElement("div");
-    searchFormDiv.setAttribute("class", "search-form");
-    searchFormDiv.appendChild(this.searchInputContainer);
-
-    let controlsDiv = document.createElement("div");
-    controlsDiv.setAttribute("class", "control-buttons");
-    searchFormDiv.appendChild(controlsDiv);
-
-    let searchButton = document.createElement("mwc-button");
-    searchButton.innerHTML = "Search";
-    searchButton.setAttribute("class", "search-btn");
-    searchButton.setAttribute("raised", "");
-    searchButton.addEventListener("click", () => this.search());
-    searchButton.addEventListener("keyup", this.handleSearchInputEvent);
-    controlsDiv.appendChild(searchButton);
-
-    let cancelButton = document.createElement("mwc-button");
-    cancelButton.setAttribute("class", "cancel-btn");
-    cancelButton.setAttribute("raised", "");
-    cancelButton.innerHTML = "Clear";
-    cancelButton.addEventListener("click", () => this.clear());
-    controlsDiv.appendChild(cancelButton);
-
-    return searchFormDiv;
-  }
-
   handleSearchInputEvent(event) {
     var key = event.keyCode || event.which;
     if (key == 13) {
@@ -1155,6 +1167,8 @@ class PlaylistSearchCard extends HTMLElement {
       entity_id: this._config.entity,
       method: "clear",
     });
+    this.searchInput.value = "";
+    // this.searchInput.commit();
   }
   search() {
     let searchText = this.searchInput.value;

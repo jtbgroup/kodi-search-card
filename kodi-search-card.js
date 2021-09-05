@@ -87,47 +87,103 @@ class PlaylistSearchCard extends HTMLElement {
     if (!this._config) return; // Can't assume setConfig is called before hass is set
 
     const entity = this._config.entity;
-    let oldState = "off";
-    if (this.state) {
-      oldState = this.state.state;
-    }
-    this.state = hass.states[entity];
-    if (!this.state) {
+
+    let state = hass.states[entity];
+    if (!state) {
+      console.error("no state for the sensor");
       return;
     }
 
-    if (this.state.state == "off") {
+    if (state.state == "off") {
       this.content.innerHTML = ``;
       this.content.appendChild(this.kodiOffMessageDiv);
     } else {
-      let meta = this.state.attributes.meta;
+      let meta = state.attributes.meta;
+      if (!meta) {
+        console.error("no metadata for the sensor");
+        return;
+      }
       const json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
+      if (json_meta.length == 0) {
+        console.error("empty metadata attribute");
+        return;
+      }
 
-      if (oldState != this.state.state) {
+      let update_time = json_meta[0]["update_time"];
+      if (this.last_update_time && this.last_update_time == update_time) {
+        console.log("no update available");
+        return;
+      }
+
+      this.last_update_time = update_time;
+
+      if (this.content.contains(this.kodiOffMessageDiv)) {
+        this.content.removeChild(this.kodiOffMessageDiv);
+      }
+
+      if (!this.container || !this.content.contains(this.container)) {
         this.container = document.createElement("div");
         this.container.setAttribute("class", "container-grid");
         this.container.appendChild(this.searchFormDiv);
         this.content.appendChild(this.container);
       }
 
-      if (this.container.contains(this.kodiOffMessageDiv)) {
-        this.container.removeChild(this.kodiOffMessageDiv);
-      }
-
       if (this.resultDiv && this.container.contains(this.resultDiv)) {
         this.container.removeChild(this.resultDiv);
       }
 
-      if (json_meta.length > 0) {
-        const entity = this._config.entity;
-        this._service_domain = json_meta[0]["service_domain"];
+      // if (json_meta.length > 0) {
+      // const entity = this._config.entity;
+      this._service_domain = json_meta[0]["service_domain"];
 
-        let data = this.state.attributes.data;
-        const json = typeof data == "object" ? data : JSON.parse(data);
+      let data = state.attributes.data;
+      const json = typeof data == "object" ? data : JSON.parse(data);
 
-        this.container.appendChild(this.createResult(json));
-      }
+      this.container.appendChild(this.createResult(json));
+      // }
     }
+
+    // let oldState = "off";
+    // if (this.state) {
+    //   oldState = this.state.state;
+    // }
+    // this.state = hass.states[entity];
+    // if (!this.state) {
+    //   return;
+    // }
+
+    // if (this.state.state == "off") {
+    //   this.content.innerHTML = ``;
+    //   this.content.appendChild(this.kodiOffMessageDiv);
+    // } else {
+    //   let meta = this.state.attributes.meta;
+    //   const json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
+
+    //   if (oldState != this.state.state) {
+    //     this.container = document.createElement("div");
+    //     this.container.setAttribute("class", "container-grid");
+    //     this.container.appendChild(this.searchFormDiv);
+    //     this.content.appendChild(this.container);
+    //   }
+
+    //   if (this.container.contains(this.kodiOffMessageDiv)) {
+    //     this.container.removeChild(this.kodiOffMessageDiv);
+    //   }
+
+    //   if (this.resultDiv && this.container.contains(this.resultDiv)) {
+    //     this.container.removeChild(this.resultDiv);
+    //   }
+
+    //   if (json_meta.length > 0) {
+    //     const entity = this._config.entity;
+    //     this._service_domain = json_meta[0]["service_domain"];
+
+    //     let data = this.state.attributes.data;
+    //     const json = typeof data == "object" ? data : JSON.parse(data);
+
+    //     this.container.appendChild(this.createResult(json));
+    //   }
+    // }
   }
 
   filterTypes(json, value) {

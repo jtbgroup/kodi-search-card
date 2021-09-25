@@ -59,26 +59,30 @@ class PlaylistSearchCard extends HTMLElement {
         this.search();
       }
     });
-    this.searchFormDiv.appendChild(this.searchInput);
-
-    let controlsDiv = document.createElement("div");
-    controlsDiv.setAttribute("class", "control-buttons");
 
     let searchButton = document.createElement("mwc-button");
+    searchButton.setAttribute("id", "form-btn-search");
     searchButton.innerHTML = "Search";
-    searchButton.setAttribute("class", "search-btn");
     searchButton.setAttribute("raised", "");
     searchButton.addEventListener("click", () => this.search());
     searchButton.addEventListener("keyup", this.handleSearchInputEvent);
-    controlsDiv.appendChild(searchButton);
 
     let cancelButton = document.createElement("mwc-button");
-    cancelButton.setAttribute("class", "cancel-btn");
+    cancelButton.setAttribute("id", "form-btn-cancel");
     cancelButton.setAttribute("raised", "");
     cancelButton.innerHTML = "Clear";
     cancelButton.addEventListener("click", () => this.clear());
-    controlsDiv.appendChild(cancelButton);
-    this.searchFormDiv.appendChild(controlsDiv);
+
+    let recentButton = document.createElement("mwc-button");
+    recentButton.setAttribute("id", "form-btn-recent");
+    recentButton.setAttribute("raised", "");
+    recentButton.innerHTML = "All recently added";
+    recentButton.addEventListener("click", () => this.recent());
+
+    this.searchFormDiv.appendChild(this.searchInput);
+    this.searchFormDiv.appendChild(searchButton);
+    this.searchFormDiv.appendChild(recentButton);
+    this.searchFormDiv.appendChild(cancelButton);
   }
 
   set hass(hass) {
@@ -132,58 +136,17 @@ class PlaylistSearchCard extends HTMLElement {
         this.container.removeChild(this.resultDiv);
       }
 
-      // if (json_meta.length > 0) {
-      // const entity = this._config.entity;
       this._service_domain = json_meta[0]["service_domain"];
 
       let data = state.attributes.data;
       const json = typeof data == "object" ? data : JSON.parse(data);
 
-      this.container.appendChild(this.createResult(json));
-      // }
+      if (json_meta[0]["search"] && json.length == 0) {
+        this.container.appendChild(this.createNoResult());
+      } else {
+        this.container.appendChild(this.createResult(json));
+      }
     }
-
-    // let oldState = "off";
-    // if (this.state) {
-    //   oldState = this.state.state;
-    // }
-    // this.state = hass.states[entity];
-    // if (!this.state) {
-    //   return;
-    // }
-
-    // if (this.state.state == "off") {
-    //   this.content.innerHTML = ``;
-    //   this.content.appendChild(this.kodiOffMessageDiv);
-    // } else {
-    //   let meta = this.state.attributes.meta;
-    //   const json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
-
-    //   if (oldState != this.state.state) {
-    //     this.container = document.createElement("div");
-    //     this.container.setAttribute("class", "container-grid");
-    //     this.container.appendChild(this.searchFormDiv);
-    //     this.content.appendChild(this.container);
-    //   }
-
-    //   if (this.container.contains(this.kodiOffMessageDiv)) {
-    //     this.container.removeChild(this.kodiOffMessageDiv);
-    //   }
-
-    //   if (this.resultDiv && this.container.contains(this.resultDiv)) {
-    //     this.container.removeChild(this.resultDiv);
-    //   }
-
-    //   if (json_meta.length > 0) {
-    //     const entity = this._config.entity;
-    //     this._service_domain = json_meta[0]["service_domain"];
-
-    //     let data = this.state.attributes.data;
-    //     const json = typeof data == "object" ? data : JSON.parse(data);
-
-    //     this.container.appendChild(this.createResult(json));
-    //   }
-    // }
   }
 
   filterTypes(json, value) {
@@ -192,6 +155,13 @@ class PlaylistSearchCard extends HTMLElement {
     });
 
     return result;
+  }
+
+  createNoResult(json) {
+    this.resultDiv = document.createElement("div");
+    this.resultDiv.setAttribute("class", "result-div-noresult");
+    this.resultDiv.innerHTML = "No result found";
+    return this.resultDiv;
   }
 
   createResult(json) {
@@ -340,11 +310,6 @@ class PlaylistSearchCard extends HTMLElement {
       seasonTitleDiv.setAttribute("class", "tvshow-seasondetails-titleCell");
       seasonTitleDiv.innerHTML = item["title"];
       rowDiv.appendChild(seasonTitleDiv);
-
-      // let yearDiv = document.createElement("div");
-      // yearDiv.setAttribute("class", "tvshow-seasondetails-yearCell");
-      // yearDiv.innerHTML = item["year"];
-      // rowDiv.appendChild(yearDiv);
 
       let episodesDiv = document.createElement("div");
       episodesDiv.setAttribute("class", "tvshow-seasondetails-episodesCell");
@@ -686,6 +651,18 @@ class PlaylistSearchCard extends HTMLElement {
     this.searchInput.value = "";
   }
 
+  recent() {
+    let searchText = this.searchInput.value;
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "search",
+      item: {
+        media_type: "recent",
+      },
+    });
+    this.searchInput.value = "";
+  }
+
   searchMoreOfTvShow(tvshow_id) {
     this._hass.callService(this._service_domain, "call_method", {
       entity_id: this._config.entity,
@@ -774,6 +751,11 @@ class PlaylistSearchCard extends HTMLElement {
             }
 
             .search-form{
+              display: grid;
+              grid-template-columns: 50% 50%;
+              grid-gap: 3px;
+
+
               margin-top: 20px;
               margin-bottom: 20px;
               margin-left: 10px;
@@ -781,22 +763,35 @@ class PlaylistSearchCard extends HTMLElement {
             }
 
             #kodi_sensor_search_input{
+              grid-column-start: 1;
+              grid-column-end: 3;
+              grid-row-start: 1;
+              grid-row-end: 1;
             }
 
-            .control-buttons{
-              display: grid;
-              grid-template-columns: auto auto;
-              grid-gap: 3px;
+            #form-btn-search{
+              grid-column-start: 1;
+              grid-column-end: 3;
+              grid-row-start: 2;
+              grid-row-end: 2;
+              margin-bottom: 30px;
             }
 
-            .search-btn{
+            #form-btn-cancel{
+              grid-column-start: 2;
+              grid-column-end: 3;
+              grid-row-start: 3;
+              grid-row-end: 3;
+            }
+            #form-btn-recent{
+              grid-column-start: 1;
+              grid-column-end: 2;
+              grid-row-start: 3;
+              grid-row-end: 3;
             }
 
-            .cancel-btn{
-            }
 
-
-            .media_type_div{
+            .media_type_div, .result-div-noresult{
               font-weight: bold;
               font-size: 18px;
               text-align: right;
@@ -1081,7 +1076,6 @@ class PlaylistSearchCard extends HTMLElement {
             margin-left: 10px;
             margin-right: 10px;
           }
-
 
           /*
             ------------------

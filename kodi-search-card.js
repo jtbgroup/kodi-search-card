@@ -204,6 +204,11 @@ class PlaylistSearchCard extends HTMLElement {
       this.fillTVShowSeasonDetails(filtered, this.resultDiv);
     }
 
+    filtered = this.filterTypes(json, "episodedetail");
+    if (filtered.length > 0) {
+      this.fillTvShowEpisodeDetails(filtered, this.resultDiv);
+    }
+
     return this.resultDiv;
   }
 
@@ -518,6 +523,71 @@ class PlaylistSearchCard extends HTMLElement {
     resultDiv.appendChild(rowsDiv);
   }
 
+  fillTvShowEpisodeDetails(items, resultDiv) {
+    let rowsDiv = document.createElement("div");
+    let mediaTypeDiv = document.createElement("div");
+    mediaTypeDiv.setAttribute("class", "media_type_div");
+    mediaTypeDiv.innerHTML =
+      'TV Show Episodes <ha-icon icon="mdi:movie"></ha-icon>';
+    rowsDiv.appendChild(mediaTypeDiv);
+
+    let moviesDiv = document.createElement("div");
+    moviesDiv.setAttribute("class", "movies-grid");
+    rowsDiv.appendChild(moviesDiv);
+
+    let max = items.length;
+    for (let count = 0; count < max; count++) {
+      let item = items[count];
+      let episodeCardDiv = document.createElement("div");
+      episodeCardDiv.setAttribute("class", "movie-card");
+      moviesDiv.appendChild(episodeCardDiv);
+
+      if (this._config.show_thumbnail && item["thumbnail"] != "") {
+        let thumbnailDiv = document.createElement("div");
+
+        let image = item["thumbnail"];
+        if (item["poster"]) {
+          image = item["poster"];
+        }
+
+        thumbnailDiv.setAttribute("class", "movie-card-thumbnail");
+        let url = "background-image: url('" + image + "')";
+        thumbnailDiv.setAttribute("style", url);
+        episodeCardDiv.appendChild(thumbnailDiv);
+      }
+
+      let playDiv = document.createElement("ha-icon");
+      playDiv.setAttribute("class", "movie-card-play");
+      playDiv.setAttribute("icon", "mdi:play");
+      playDiv.addEventListener("click", () =>
+        this.playEpisode(item["episodeid"])
+      );
+      episodeCardDiv.appendChild(playDiv);
+
+      let dataDiv = document.createElement("div");
+      dataDiv.setAttribute("class", "movie-card-data");
+      episodeCardDiv.appendChild(dataDiv);
+
+      let tvshowtitleDiv = document.createElement("div");
+      tvshowtitleDiv.setAttribute("class", "movie-card-title");
+      tvshowtitleDiv.innerHTML = item["tvshowtitle"];
+      dataDiv.appendChild(tvshowtitleDiv);
+
+      let titleDiv = document.createElement("div");
+      // titleDiv.setAttribute("class", "movie-card-title");
+      titleDiv.innerHTML = item["label"];
+      dataDiv.appendChild(titleDiv);
+
+      let genreDiv = document.createElement("div");
+      genreDiv.setAttribute("class", "movie-card-genre");
+      // genreDiv.innerHTML = item["genre"] + " (" + item["year"] + ")";
+      genreDiv.innerHTML = item["genre"];
+      dataDiv.appendChild(genreDiv);
+    }
+
+    resultDiv.appendChild(rowsDiv);
+  }
+
   fillMovies(items, resultDiv) {
     let rowsDiv = document.createElement("div");
     let mediaTypeDiv = document.createElement("div");
@@ -538,8 +608,12 @@ class PlaylistSearchCard extends HTMLElement {
 
       if (this._config.show_thumbnail && item["thumbnail"] != "") {
         let thumbnailDiv = document.createElement("div");
+        let image = item["thumbnail"];
+        if (item["poster"]) {
+          image = item["poster"];
+        }
         thumbnailDiv.setAttribute("class", "movie-card-thumbnail");
-        let url = "background-image: url('" + item["thumbnail"] + "')";
+        let url = "background-image: url('" + image + "')";
         thumbnailDiv.setAttribute("style", url);
         movieCardDiv.appendChild(thumbnailDiv);
       }
@@ -589,8 +663,12 @@ class PlaylistSearchCard extends HTMLElement {
 
       if (this._config.show_thumbnail && ["thumbnail"] != "") {
         let thumbnailDiv = document.createElement("div");
+        let image = item["thumbnail"];
+        if (item["poster"]) {
+          image = item["poster"];
+        }
         thumbnailDiv.setAttribute("class", "tvshow-card-thumbnail");
-        let url = "background-image: url('" + item["thumbnail"] + "')";
+        let url = "background-image: url('" + image + "')";
         thumbnailDiv.setAttribute("style", url);
         tvshowCardDiv.appendChild(thumbnailDiv);
       }
@@ -1209,6 +1287,7 @@ class PlaylistSearchCard extends HTMLElement {
             grid-column-end: 2;
             background-color: ${this.BACKGROUND_BASIC_COLOR};
             background-size: cover;
+            // background-size: contain;
             background-repeat: no-repeat;
           }
 

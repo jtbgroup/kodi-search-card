@@ -2,14 +2,22 @@ class PlaylistSearchCard extends HTMLElement {
   SONG_THUMBNAIL_MIN_SIZE = "65px";
   ALBUMDETAIL_THUMBNAIL_MIN_SIZE = "100px";
   // the height of the thumbnail of the movie in the search result
-  MOVIE_THUMBNAIL_MIN_SIZE = "200px";
+  MOVIE_THUMBNAIL_MIN_HEIGHT = "200px";
   MOVIE_THUMBNAIL_RATIO = 0.6;
+  // the height of the epthumbnailsode of the episode in the search result
+  EPISODE_THUMBNAIL_MIN_HEIGHT = "100px";
+  EPISODE_THUMBNAIL_RATIO = 1.8;
   // the height and width of the thumbnail of the artist in the search result
   ARTIST_THUMBNAIL_MIN_SIZE = "100px";
   // the height and width of the thumbnail of the album in the search result
   ALBUM_THUMBNAIL_MIN_SIZE = "170px";
+  ALBUM_THUMBNAIL_RATIO = 1;
 
   BACKGROUND_BASIC_COLOR = "#9b9595";
+  _config_show_thumbnail = true;
+  _config_show_thumbnail_border = false;
+  _config_thumbnail_border_color = "white";
+  _config_thumbnail_overlay = true;
 
   setConfig(config) {
     this._config = config;
@@ -17,6 +25,20 @@ class PlaylistSearchCard extends HTMLElement {
     if (!config.entity) {
       // If no entity was specified, this will display a red error card with the message below
       throw new Error("You need to define an entity");
+    }
+    if (this._config.show_thumbnail) {
+      this._config_show_thumbnail = this._config.show_thumbnail;
+    }
+    if (this._config.show_thumbnail_border) {
+      this._config_show_thumbnail_border = this._config.show_thumbnail_border;
+    }
+
+    if (this._config.thumbnail_border_color) {
+      this._config_thumbnail_border_color = this._config.thumbnail_border_color;
+    }
+
+    if (this._config.thumbnail_overlay) {
+      this._config_thumbnail_overlay = this._config.thumbnail_overlay;
     }
 
     // Make sure this only runs once
@@ -151,7 +173,7 @@ class PlaylistSearchCard extends HTMLElement {
 
   filterTypes(json, value) {
     let result = json.filter((item) => {
-      return item.object_type == value;
+      return item.type == value;
     });
 
     return result;
@@ -204,9 +226,9 @@ class PlaylistSearchCard extends HTMLElement {
       this.fillTVShowSeasonDetails(filtered, this.resultDiv);
     }
 
-    filtered = this.filterTypes(json, "episodedetail");
+    filtered = this.filterTypes(json, "episode");
     if (filtered.length > 0) {
-      this.fillTvShowEpisodeDetails(filtered, this.resultDiv);
+      this.fillEpisode(filtered, this.resultDiv);
     }
 
     return this.resultDiv;
@@ -228,16 +250,16 @@ class PlaylistSearchCard extends HTMLElement {
       rowDiv.setAttribute("class", "song-inner-item");
 
       let thumbnailDiv = document.createElement("div");
-      thumbnailDiv.setAttribute("class", "song-thumbnailCell");
-      if (this._config.show_thumbnail) {
+      thumbnailDiv.setAttribute("class", "song-thumbnail");
+      if (this._config_show_thumbnail) {
         let url = "background-image: url('" + item["thumbnail"] + "')";
         thumbnailDiv.setAttribute("style", url);
       }
       rowDiv.appendChild(thumbnailDiv);
 
-      if (this._config.show_thumbnail && item["thumbnail"] != "") {
+      if (this._config_show_thumbnail && item["thumbnail"] != "") {
         let thumbnailPlayDiv = document.createElement("ha-icon");
-        thumbnailPlayDiv.setAttribute("class", "song-thumbnailPlayCell");
+        thumbnailPlayDiv.setAttribute("class", "song-play");
         thumbnailPlayDiv.setAttribute("icon", "mdi:play");
         thumbnailPlayDiv.addEventListener("click", () =>
           this.playSong(item["songid"])
@@ -246,22 +268,22 @@ class PlaylistSearchCard extends HTMLElement {
       }
 
       let titleDiv = document.createElement("div");
-      titleDiv.setAttribute("class", "song-titleCell");
+      titleDiv.setAttribute("class", "song-title");
       titleDiv.innerHTML = item["artist"] + " - " + item["title"];
       rowDiv.appendChild(titleDiv);
 
       let genreDiv = document.createElement("div");
-      genreDiv.setAttribute("class", "song-genreCell");
+      genreDiv.setAttribute("class", "song-genre");
       genreDiv.innerHTML = item["genre"] ? item["genre"] : "undefined";
       rowDiv.appendChild(genreDiv);
 
       let albumDiv = document.createElement("div");
-      albumDiv.setAttribute("class", "song-albumCell");
+      albumDiv.setAttribute("class", "song-album");
       albumDiv.innerHTML = item["album"] + " (" + item["year"] + ")";
       rowDiv.appendChild(albumDiv);
 
       let durationDiv = document.createElement("div");
-      durationDiv.setAttribute("class", "song-durationCell");
+      durationDiv.setAttribute("class", "song-duration");
       durationDiv.innerHTML = new Date(item["duration"] * 1000)
         .toISOString()
         .substr(11, 8);
@@ -285,26 +307,28 @@ class PlaylistSearchCard extends HTMLElement {
     for (let count = 0; count < max; count++) {
       let item = items[count];
       let rowDiv = document.createElement("div");
-      rowDiv.setAttribute("class", "tvshow-seasondetails-inner-item");
+      rowDiv.setAttribute("class", "seasondetails-inner-item");
 
-      if (this._config.show_thumbnail) {
+      if (this._config_show_thumbnail) {
         let thumbnailDiv = document.createElement("div");
-        thumbnailDiv.setAttribute(
-          "class",
-          "tvshow-seasondetails-thumbnailCell"
-        );
-        let url = "background-image: url('" + item["thumbnail"] + "')";
+
+        let image = item["thumbnail"];
+        if (item["poster"]) {
+          image = item["poster"];
+        }
+
+        thumbnailDiv.setAttribute("class", "seasondetails-thumbnail");
+
+        let url = "background-image: url('" + image + "')";
         thumbnailDiv.setAttribute("style", url);
+
         rowDiv.appendChild(thumbnailDiv);
       }
 
       const episodes = item["episodes"].map((x) => x.episodeid);
 
       let thumbnailPlayDiv = document.createElement("ha-icon");
-      thumbnailPlayDiv.setAttribute(
-        "class",
-        "tvshow-seasondetails-thumbnailPlayCell"
-      );
+      thumbnailPlayDiv.setAttribute("class", "seasondetails-play");
       thumbnailPlayDiv.setAttribute("icon", "mdi:play");
       thumbnailPlayDiv.addEventListener("click", () =>
         this.playEpisodes(episodes)
@@ -312,34 +336,25 @@ class PlaylistSearchCard extends HTMLElement {
       rowDiv.appendChild(thumbnailPlayDiv);
 
       let seasonTitleDiv = document.createElement("div");
-      seasonTitleDiv.setAttribute("class", "tvshow-seasondetails-titleCell");
+      seasonTitleDiv.setAttribute("class", "seasondetails-title");
       seasonTitleDiv.innerHTML = item["title"];
       rowDiv.appendChild(seasonTitleDiv);
 
       let episodesDiv = document.createElement("div");
-      episodesDiv.setAttribute("class", "tvshow-seasondetails-episodesCell");
+      episodesDiv.setAttribute("class", "seasondetails-episodes");
       let episodesItem = item["episodes"];
       for (let idx = 0; idx < episodesItem.length; idx++) {
         let episodeDiv = document.createElement("div");
-        episodeDiv.setAttribute(
-          "class",
-          "tvshow-seasondetails-episode-inner-item"
-        );
+        episodeDiv.setAttribute("class", "seasondetails-episode-inner-item");
 
         let titleDiv = document.createElement("div");
-        titleDiv.setAttribute(
-          "class",
-          "tvshow-seasondetails-episode-titleCell"
-        );
+        titleDiv.setAttribute("class", "seasondetails-episode-title");
         titleDiv.innerHTML = episodesItem[idx]["label"];
         episodeDiv.appendChild(titleDiv);
 
         let playDiv = document.createElement("ha-icon");
         playDiv.setAttribute("icon", "mdi:play");
-        playDiv.setAttribute(
-          "class",
-          "tvshow-seasondetails-episode-thumbnailPlayCell"
-        );
+        playDiv.setAttribute("class", "seasondetails-episode-play");
         playDiv.addEventListener("click", () =>
           this.playEpisode(episodesItem[idx]["episodeid"])
         );
@@ -368,16 +383,16 @@ class PlaylistSearchCard extends HTMLElement {
       let rowDiv = document.createElement("div");
       rowDiv.setAttribute("class", "albumdetails-inner-item");
 
-      if (this._config.show_thumbnail) {
+      if (this._config_show_thumbnail) {
         let thumbnailDiv = document.createElement("div");
-        thumbnailDiv.setAttribute("class", "albumdetails-thumbnailCell");
+        thumbnailDiv.setAttribute("class", "albumdetails-thumbnail");
         let url = "background-image: url('" + item["thumbnail"] + "')";
         thumbnailDiv.setAttribute("style", url);
         rowDiv.appendChild(thumbnailDiv);
       }
 
       let thumbnailPlayDiv = document.createElement("ha-icon");
-      thumbnailPlayDiv.setAttribute("class", "albumdetails-thumbnailPlayCell");
+      thumbnailPlayDiv.setAttribute("class", "albumdetails-play");
       thumbnailPlayDiv.setAttribute("icon", "mdi:play");
       thumbnailPlayDiv.addEventListener("click", () =>
         this.playAlbum(item["albumid"])
@@ -385,17 +400,17 @@ class PlaylistSearchCard extends HTMLElement {
       rowDiv.appendChild(thumbnailPlayDiv);
 
       let albumTitleDiv = document.createElement("div");
-      albumTitleDiv.setAttribute("class", "albumdetails-titleCell");
+      albumTitleDiv.setAttribute("class", "albumdetails-title");
       albumTitleDiv.innerHTML = item["title"];
       rowDiv.appendChild(albumTitleDiv);
 
       let yearDiv = document.createElement("div");
-      yearDiv.setAttribute("class", "albumdetails-yearCell");
+      yearDiv.setAttribute("class", "albumdetails-year");
       yearDiv.innerHTML = item["year"];
       rowDiv.appendChild(yearDiv);
 
       let songsDiv = document.createElement("div");
-      songsDiv.setAttribute("class", "albumdetails-songsCell");
+      songsDiv.setAttribute("class", "albumdetails-songs");
       let songsItem = item["songs"];
       let albumDuration = 0;
       for (let idx = 0; idx < songsItem.length; idx++) {
@@ -405,7 +420,7 @@ class PlaylistSearchCard extends HTMLElement {
         songDiv.setAttribute("class", "albumdetails-song-inner-item");
 
         let titleDiv = document.createElement("div");
-        titleDiv.setAttribute("class", "albumdetails-song-titleCell");
+        titleDiv.setAttribute("class", "albumdetails-song-title");
         titleDiv.innerHTML =
           songsItem[idx]["track"] + ". " + songsItem[idx]["title"];
         if (songDuration) {
@@ -415,7 +430,7 @@ class PlaylistSearchCard extends HTMLElement {
 
         let playDiv = document.createElement("ha-icon");
         playDiv.setAttribute("icon", "mdi:play");
-        playDiv.setAttribute("class", "albumdetails-song-thumbnailPlayCell");
+        playDiv.setAttribute("class", "albumdetails-song-play");
         playDiv.addEventListener("click", () =>
           this.playSong(songsItem[idx]["songid"])
         );
@@ -426,7 +441,7 @@ class PlaylistSearchCard extends HTMLElement {
       rowDiv.appendChild(songsDiv);
 
       let durationDiv = document.createElement("div");
-      durationDiv.setAttribute("class", "albumdetails-durationCell");
+      durationDiv.setAttribute("class", "albumdetails-duration");
       rowDiv.appendChild(durationDiv);
 
       albumsDiv.appendChild(rowDiv);
@@ -452,33 +467,29 @@ class PlaylistSearchCard extends HTMLElement {
       albumCardDiv.setAttribute("class", "album-card");
       albumsDiv.appendChild(albumCardDiv);
 
-      if (this._config.show_thumbnail && ["thumbnail"] != "") {
+      if (this._config_show_thumbnail && ["thumbnail"] != "") {
         let thumbnailDiv = document.createElement("div");
-        thumbnailDiv.setAttribute("class", "album-card-thumbnail");
+        thumbnailDiv.setAttribute("class", "album-thumbnail");
         let url = "background-image: url('" + item["thumbnail"] + "')";
         thumbnailDiv.setAttribute("style", url);
         albumCardDiv.appendChild(thumbnailDiv);
       }
 
       let playDiv = document.createElement("ha-icon");
-      playDiv.setAttribute("class", "album-card-play");
+      playDiv.setAttribute("class", "album-play");
       playDiv.setAttribute("icon", "mdi:play");
       playDiv.addEventListener("click", () => this.playAlbum(item["albumid"]));
       albumCardDiv.appendChild(playDiv);
 
-      let dataDiv = document.createElement("div");
-      dataDiv.setAttribute("class", "album-card-data");
-      albumCardDiv.appendChild(dataDiv);
-
       let titleDiv = document.createElement("div");
-      titleDiv.setAttribute("class", "album-card-title");
+      titleDiv.setAttribute("class", "album-title");
       titleDiv.innerHTML = item["title"];
-      dataDiv.appendChild(titleDiv);
+      albumCardDiv.appendChild(titleDiv);
 
       let artistDiv = document.createElement("div");
-      artistDiv.setAttribute("class", "album-card-artist");
+      artistDiv.setAttribute("class", "album-artist");
       artistDiv.innerHTML = item["artist"] + " (" + item["year"] + ")";
-      dataDiv.appendChild(artistDiv);
+      albumCardDiv.appendChild(artistDiv);
     }
     resultDiv.appendChild(rowsDiv);
   }
@@ -503,12 +514,12 @@ class PlaylistSearchCard extends HTMLElement {
       artistsDiv.appendChild(artistcardDiv);
 
       let thumbnailDiv = document.createElement("ha-icon");
-      thumbnailDiv.setAttribute("class", "artist-card-thumbnail");
+      thumbnailDiv.setAttribute("class", "artist-thumbnail");
       thumbnailDiv.setAttribute("icon", "mdi:account-circle");
       artistcardDiv.appendChild(thumbnailDiv);
 
       let moreDetailDiv = document.createElement("ha-icon");
-      moreDetailDiv.setAttribute("class", "artist-card-play");
+      moreDetailDiv.setAttribute("class", "artist-play");
       moreDetailDiv.setAttribute("icon", "mdi:menu");
       moreDetailDiv.addEventListener("click", () =>
         this.searchMoreOfArtist(item["artistid"])
@@ -523,7 +534,7 @@ class PlaylistSearchCard extends HTMLElement {
     resultDiv.appendChild(rowsDiv);
   }
 
-  fillTvShowEpisodeDetails(items, resultDiv) {
+  fillEpisode(items, resultDiv) {
     let rowsDiv = document.createElement("div");
     let mediaTypeDiv = document.createElement("div");
     mediaTypeDiv.setAttribute("class", "media_type_div");
@@ -532,17 +543,17 @@ class PlaylistSearchCard extends HTMLElement {
     rowsDiv.appendChild(mediaTypeDiv);
 
     let moviesDiv = document.createElement("div");
-    moviesDiv.setAttribute("class", "movies-grid");
+    moviesDiv.setAttribute("class", "episode-grid");
     rowsDiv.appendChild(moviesDiv);
 
     let max = items.length;
     for (let count = 0; count < max; count++) {
       let item = items[count];
       let episodeCardDiv = document.createElement("div");
-      episodeCardDiv.setAttribute("class", "movie-card");
+      episodeCardDiv.setAttribute("class", "episode-card");
       moviesDiv.appendChild(episodeCardDiv);
 
-      if (this._config.show_thumbnail && item["thumbnail"] != "") {
+      if (this._config_show_thumbnail && item["thumbnail"] != "") {
         let thumbnailDiv = document.createElement("div");
 
         let image = item["thumbnail"];
@@ -550,14 +561,14 @@ class PlaylistSearchCard extends HTMLElement {
           image = item["poster"];
         }
 
-        thumbnailDiv.setAttribute("class", "movie-card-thumbnail");
+        thumbnailDiv.setAttribute("class", "episode-thumbnail");
         let url = "background-image: url('" + image + "')";
         thumbnailDiv.setAttribute("style", url);
         episodeCardDiv.appendChild(thumbnailDiv);
       }
 
       let playDiv = document.createElement("ha-icon");
-      playDiv.setAttribute("class", "movie-card-play");
+      playDiv.setAttribute("class", "episode-play");
       playDiv.setAttribute("icon", "mdi:play");
       playDiv.addEventListener("click", () =>
         this.playEpisode(item["episodeid"])
@@ -565,22 +576,26 @@ class PlaylistSearchCard extends HTMLElement {
       episodeCardDiv.appendChild(playDiv);
 
       let dataDiv = document.createElement("div");
-      dataDiv.setAttribute("class", "movie-card-data");
+      dataDiv.setAttribute("class", "episode-card-data");
       episodeCardDiv.appendChild(dataDiv);
 
-      let tvshowtitleDiv = document.createElement("div");
-      tvshowtitleDiv.setAttribute("class", "movie-card-title");
-      tvshowtitleDiv.innerHTML = item["tvshowtitle"];
-      dataDiv.appendChild(tvshowtitleDiv);
+      let episodeDiv = document.createElement("div");
+      episodeDiv.setAttribute("class", "episode-card-title");
+      episodeDiv.innerHTML =
+        item["tvshowtitle"] +
+        " (S" +
+        item["season"].toString().padStart(2, "0") +
+        ":E" +
+        item["episode"].toString().padStart(2, "0") +
+        ")";
+      dataDiv.appendChild(episodeDiv);
 
       let titleDiv = document.createElement("div");
-      // titleDiv.setAttribute("class", "movie-card-title");
-      titleDiv.innerHTML = item["label"];
+      titleDiv.innerHTML = item["title"];
       dataDiv.appendChild(titleDiv);
 
       let genreDiv = document.createElement("div");
-      genreDiv.setAttribute("class", "movie-card-genre");
-      // genreDiv.innerHTML = item["genre"] + " (" + item["year"] + ")";
+      genreDiv.setAttribute("class", "episode-card-genre");
       genreDiv.innerHTML = item["genre"];
       dataDiv.appendChild(genreDiv);
     }
@@ -606,39 +621,34 @@ class PlaylistSearchCard extends HTMLElement {
       movieCardDiv.setAttribute("class", "movie-card");
       moviesDiv.appendChild(movieCardDiv);
 
-      if (this._config.show_thumbnail && item["thumbnail"] != "") {
+      if (this._config_show_thumbnail && item["thumbnail"] != "") {
         let thumbnailDiv = document.createElement("div");
         let image = item["thumbnail"];
         if (item["poster"]) {
           image = item["poster"];
         }
-        thumbnailDiv.setAttribute("class", "movie-card-thumbnail");
+        thumbnailDiv.setAttribute("class", "movie-thumbnail");
         let url = "background-image: url('" + image + "')";
         thumbnailDiv.setAttribute("style", url);
         movieCardDiv.appendChild(thumbnailDiv);
       }
 
       let playDiv = document.createElement("ha-icon");
-      playDiv.setAttribute("class", "movie-card-play");
+      playDiv.setAttribute("class", "movie-play");
       playDiv.setAttribute("icon", "mdi:play");
       playDiv.addEventListener("click", () => this.playMovie(item["movieid"]));
       movieCardDiv.appendChild(playDiv);
 
-      let dataDiv = document.createElement("div");
-      dataDiv.setAttribute("class", "movie-card-data");
-      movieCardDiv.appendChild(dataDiv);
-
       let titleDiv = document.createElement("div");
       titleDiv.setAttribute("class", "movie-card-title");
       titleDiv.innerHTML = item["title"];
-      dataDiv.appendChild(titleDiv);
+      movieCardDiv.appendChild(titleDiv);
 
       let genreDiv = document.createElement("div");
       genreDiv.setAttribute("class", "movie-card-genre");
       genreDiv.innerHTML = item["genre"] + " (" + item["year"] + ")";
-      dataDiv.appendChild(genreDiv);
+      movieCardDiv.appendChild(genreDiv);
     }
-    resultDiv.appendChild(rowsDiv);
 
     resultDiv.appendChild(rowsDiv);
   }
@@ -661,20 +671,20 @@ class PlaylistSearchCard extends HTMLElement {
       tvshowCardDiv.setAttribute("class", "tvshow-card");
       tvshowsDiv.appendChild(tvshowCardDiv);
 
-      if (this._config.show_thumbnail && ["thumbnail"] != "") {
+      if (this._config_show_thumbnail && ["thumbnail"] != "") {
         let thumbnailDiv = document.createElement("div");
         let image = item["thumbnail"];
         if (item["poster"]) {
           image = item["poster"];
         }
-        thumbnailDiv.setAttribute("class", "tvshow-card-thumbnail");
+        thumbnailDiv.setAttribute("class", "tvshow-thumbnail");
         let url = "background-image: url('" + image + "')";
         thumbnailDiv.setAttribute("style", url);
         tvshowCardDiv.appendChild(thumbnailDiv);
       }
 
       let playDiv = document.createElement("ha-icon");
-      playDiv.setAttribute("class", "tvshow-card-play");
+      playDiv.setAttribute("class", "tvshow-play");
       playDiv.setAttribute("icon", "mdi:menu");
       playDiv.addEventListener("click", () =>
         this.searchMoreOfTvShow(item["tvshowid"])
@@ -686,12 +696,12 @@ class PlaylistSearchCard extends HTMLElement {
       tvshowCardDiv.appendChild(dataDiv);
 
       let titleDiv = document.createElement("div");
-      titleDiv.setAttribute("class", "tvshow-card-title");
+      titleDiv.setAttribute("class", "tvshow-title");
       titleDiv.innerHTML = item["title"];
       dataDiv.appendChild(titleDiv);
 
       let genreDiv = document.createElement("div");
-      genreDiv.setAttribute("class", "tvshow-card-genre");
+      genreDiv.setAttribute("class", "tvshow-genre");
       genreDiv.innerHTML = item["genre"];
       dataDiv.appendChild(genreDiv);
     }
@@ -811,8 +821,7 @@ class PlaylistSearchCard extends HTMLElement {
   }
 
   defineCSS() {
-    return `
-
+    let css = `
             .container-off{
               display: grid;
               grid-template-columns: 1fr auto;
@@ -832,8 +841,6 @@ class PlaylistSearchCard extends HTMLElement {
               display: grid;
               grid-template-columns: 50% 50%;
               grid-gap: 3px;
-
-
               margin-top: 20px;
               margin-bottom: 20px;
               margin-left: 10px;
@@ -861,13 +868,13 @@ class PlaylistSearchCard extends HTMLElement {
               grid-row-start: 3;
               grid-row-end: 3;
             }
+
             #form-btn-recent{
               grid-column-start: 1;
               grid-column-end: 2;
               grid-row-start: 3;
               grid-row-end: 3;
             }
-
 
             .media_type_div, .result-div-noresult{
               font-weight: bold;
@@ -891,7 +898,7 @@ class PlaylistSearchCard extends HTMLElement {
               margin-right: 10px;
             }
 
-            .song-thumbnailCell{
+            .song-thumbnail{
               grid-column-start: 1;
               grid-column-end: 2;
               grid-row-start: 1;
@@ -904,12 +911,12 @@ class PlaylistSearchCard extends HTMLElement {
               height: ${this.SONG_THUMBNAIL_MIN_SIZE};
             }
 
-            .song-thumbnailPlayCell{
+            .song-play{
               width: ${this.SONG_THUMBNAIL_MIN_SIZE};
               height: ${this.SONG_THUMBNAIL_MIN_SIZE};
             }
 
-            .song-titleCell{
+            .song-title{
               grid-column-start: 2;
               grid-column-end: end-1;
               grid-row-start: 1;
@@ -918,7 +925,7 @@ class PlaylistSearchCard extends HTMLElement {
               font-size: 14px;
             }
 
-            .song-genreCell{
+            .song-title{
               grid-column-start: 2;
               grid-column-end: end-1;
               grid-row-start: 2;
@@ -926,14 +933,14 @@ class PlaylistSearchCard extends HTMLElement {
               font-style: italic;
             }
 
-            .song-albumCell{
+            .song-album{
               grid-column-start: 2;
               grid-column-end: end-1;
               grid-row-start: 3;
               grid-row-end: 4;
             }
 
-            .song-durationCell{
+            .song-duration{
               grid-column-start: 3;
               grid-column-end: end;
               grid-row-start: 3;
@@ -943,12 +950,12 @@ class PlaylistSearchCard extends HTMLElement {
 
             /*
               --------------------------------
-              ----- TVSHOW SEASON DETAIL -----
+              ----- SEASON DETAIL -----
               --------------------------------
             */
-           .tvshow-seasondetails-inner-item{
+           .seasondetails-inner-item{
             display: grid;
-            grid-template-columns: calc(${this.MOVIE_THUMBNAIL_MIN_SIZE} * ${this.MOVIE_THUMBNAIL_RATIO}) auto;
+            grid-template-columns: calc(${this.MOVIE_THUMBNAIL_MIN_HEIGHT} * ${this.MOVIE_THUMBNAIL_RATIO}) auto;
             grid-gap: 3px;
             grid-auto-rows: auto;
             margin-top: 20px;
@@ -957,7 +964,7 @@ class PlaylistSearchCard extends HTMLElement {
             margin-right: 10px;
           }
 
-          .tvshow-seasondetails-thumbnailCell{
+          .seasondetails-thumbnail{
             grid-column-start: 1;
             grid-column-end: 2;
             grid-row-start: 1;
@@ -965,22 +972,22 @@ class PlaylistSearchCard extends HTMLElement {
             display: block;
             background-size: contain;
             background-repeat: no-repeat;
-            width: calc(${this.MOVIE_THUMBNAIL_MIN_SIZE} * ${this.MOVIE_THUMBNAIL_RATIO});
-            height: ${this.MOVIE_THUMBNAIL_MIN_SIZE};
+            width: calc(${this.MOVIE_THUMBNAIL_MIN_HEIGHT} * ${this.MOVIE_THUMBNAIL_RATIO});
+            height: ${this.MOVIE_THUMBNAIL_MIN_HEIGHT};
           }
 
-          .tvshow-seasondetails-thumbnailPlayCell{
+          .seasondetails-play{
             grid-column-start: 1;
             grid-column-end: 2;
             grid-row-start: 1;
             grid-row-end: 3;
             display: block;
             background-size: cover;
-            width: calc(${this.MOVIE_THUMBNAIL_MIN_SIZE} * ${this.MOVIE_THUMBNAIL_RATIO});
-            height: ${this.MOVIE_THUMBNAIL_MIN_SIZE};
+            width: calc(${this.MOVIE_THUMBNAIL_MIN_HEIGHT} * ${this.MOVIE_THUMBNAIL_RATIO});
+            height: ${this.MOVIE_THUMBNAIL_MIN_HEIGHT};
           }
 
-          .tvshow-seasondetails-titleCell{
+          .seasondetails-title{
             grid-column-start: 2;
             grid-column-end: 3;
             grid-row-start: 1;
@@ -989,7 +996,7 @@ class PlaylistSearchCard extends HTMLElement {
             font-size: 18px;
           }
 
-          .tvshow-seasondetails-episodesCell{
+          .seasondetails-episodes{
             grid-column-start: 2;
             grid-column-end: end;
             grid-row-start: 2;
@@ -997,7 +1004,7 @@ class PlaylistSearchCard extends HTMLElement {
             font-size: 12px;
           }
 
-          .tvshow-seasondetails-episode-inner-item{
+          .seasondetails-episode-inner-item{
             display: grid;
             grid-template-columns: auto 25px;
             grid-gap: 3px;
@@ -1008,14 +1015,14 @@ class PlaylistSearchCard extends HTMLElement {
             margin-right: 10px;
           }
 
-          .tvshow-seasondetails-episode-titleCell{
+          .seasondetails-episode-title{
             grid-column-start: 1;
             grid-column-end: 2;
             grid-row-start: 1;
             grid-row-end: 2;
           }
 
-          .tvshow-seasondetails-episode-thumbnailPlayCell{
+          .seasondetails-episode-play{
             grid-column-start: 3;
             grid-column-end: 4;
             grid-row-start: 1;
@@ -1041,7 +1048,7 @@ class PlaylistSearchCard extends HTMLElement {
               margin-right: 10px;
             }
 
-            .albumdetails-thumbnailCell{
+            .albumdetails-thumbnail{
               grid-column-start: 1;
               grid-column-end: 2;
               grid-row-start: 1;
@@ -1053,7 +1060,7 @@ class PlaylistSearchCard extends HTMLElement {
               height: ${this.ALBUMDETAIL_THUMBNAIL_MIN_SIZE};
             }
 
-            .albumdetails-thumbnailPlayCell{
+            .albumdetails-play{
               grid-column-start: 1;
               grid-column-end: 2;
               grid-row-start: 1;
@@ -1064,7 +1071,7 @@ class PlaylistSearchCard extends HTMLElement {
               height: ${this.ALBUMDETAIL_THUMBNAIL_MIN_SIZE};
             }
 
-            .albumdetails-titleCell{
+            .albumdetails-title{
               grid-column-start: 2;
               grid-column-end: 3;
               grid-row-start: 1;
@@ -1073,7 +1080,7 @@ class PlaylistSearchCard extends HTMLElement {
               font-size: 18px;
             }
 
-            .albumdetails-yearCell{
+            .albumdetails-year{
               grid-column-start: 1;
               grid-column-end: 2;
               grid-row-start: 3;
@@ -1081,7 +1088,7 @@ class PlaylistSearchCard extends HTMLElement {
               font-size: 12px;
             }
 
-            .albumdetails-durationCell{
+            .albumdetails-duration{
               grid-column-start: 1;
               grid-column-end: 2;
               grid-row-start: 4;
@@ -1090,7 +1097,7 @@ class PlaylistSearchCard extends HTMLElement {
               text-align: left;
             }
 
-            .albumdetails-songsCell{
+            .albumdetails-songs{
               grid-column-start: 2;
               grid-column-end: end;
               grid-row-start: 2;
@@ -1109,21 +1116,21 @@ class PlaylistSearchCard extends HTMLElement {
               margin-right: 10px;
             }
 
-            .albumdetails-song-titleCell{
+            .albumdetails-song-title{
               grid-column-start: 1;
               grid-column-end: 2;
               grid-row-start: 1;
               grid-row-end: 2;
             }
 
-            .albumdetails-song-durationCell{
+            .albumdetails-song-duration{
               grid-column-start: 2;
               grid-column-end: 3;
               grid-row-start: 1;
               grid-row-end: 2;
             }
 
-            .albumdetails-song-thumbnailPlayCell{
+            .albumdetails-song-play{
               grid-column-start: 3;
               grid-column-end: 4;
               grid-row-start: 1;
@@ -1173,38 +1180,50 @@ class PlaylistSearchCard extends HTMLElement {
 
           .album-card{
             display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(${this.ALBUM_THUMBNAIL_MIN_SIZE}, 1fr));
             grid-template-rows: minmax(${this.ALBUM_THUMBNAIL_MIN_SIZE}, 1fr) auto;
+            grid-gap: auto;
           }
 
-          .album-card-thumbnail{
+          .album-thumbnail{
             grid-row-start: 1;
             grid-row-end: 2;
             grid-column-start: 1;
             grid-column-end: 2;
-            background-color: ${this.BACKGROUND_BASIC_COLOR};
+            // background-color: ${this.BACKGROUND_BASIC_COLOR};
             display: block;
-            background-size: contain;
+            background-size: cover;
             background-repeat: no-repeat;
-            width: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
-            height: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
+            // width: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
+            // height: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
           }
 
-          .album-card-play{
+          .album-play{
             grid-row-start: 1;
             grid-row-end: 2;
             grid-column-start: 1;
             grid-column-end: 2;
-            width: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
-            height: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
+            // width: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
+            // height: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
           }
 
-          .album-card-title{
+          .album-title{
+            grid-row-start: 2;
+            grid-row-end: 3;
+            grid-column-start: 1;
+            grid-column-end: 2;
+            width: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
             font-size: 16px;
             font-weight: bold;
             vertical-align: top;
           }
 
-          .album-card-artist{
+          .album-artist{
+            grid-row-start: 3;
+            grid-row-end: 4;
+            grid-column-start: 1;
+            grid-column-end: 2;
+            width: ${this.ALBUM_THUMBNAIL_MIN_SIZE};
             font-style: italic;
           }
 
@@ -1230,7 +1249,7 @@ class PlaylistSearchCard extends HTMLElement {
             grid-template-rows: minmax(${this.ARTIST_THUMBNAIL_MIN_SIZE}, 1fr) auto;
           }
 
-          .artist-card-thumbnail{
+          .artist-thumbnail{
             grid-row-start: 1;
             grid-row-end: 2;
             grid-column-start: 1;
@@ -1242,7 +1261,7 @@ class PlaylistSearchCard extends HTMLElement {
             height: ${this.ARTIST_THUMBNAIL_MIN_SIZE};
           }
 
-          .artist-card-play{
+          .artist-play{
             grid-row-start: 1;
             grid-row-end: 2;
             grid-column-start: 1;
@@ -1265,8 +1284,8 @@ class PlaylistSearchCard extends HTMLElement {
           */
           .movies-grid{
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(calc(${this.MOVIE_THUMBNAIL_MIN_SIZE} * ${this.MOVIE_THUMBNAIL_RATIO}), 1fr));
-            grid-template-rows: minmax(${this.MOVIE_THUMBNAIL_MIN_SIZE}, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(calc(${this.MOVIE_THUMBNAIL_MIN_HEIGHT} * ${this.MOVIE_THUMBNAIL_RATIO}), 1fr));
+            // grid-template-rows: minmax(${this.MOVIE_THUMBNAIL_MIN_HEIGHT}, 1fr);
             grid-gap: 10px;
             margin-top: 20px;
             margin-bottom: 20px;
@@ -1276,34 +1295,34 @@ class PlaylistSearchCard extends HTMLElement {
 
           .movie-card{
             display: grid;
-            grid-template-columns: minmax(calc(${this.MOVIE_THUMBNAIL_MIN_SIZE} * ${this.MOVIE_THUMBNAIL_RATIO}), 1fr);
-            grid-template-rows: minmax(${this.MOVIE_THUMBNAIL_MIN_SIZE}, 1fr) auto;
+            grid-template-columns: auto;
+            grid-template-rows: ${this.MOVIE_THUMBNAIL_MIN_HEIGHT} auto auto 1fr;
+            grid-gap: 2px;
           }
 
-          .movie-card-thumbnail{
-            grid-row-start: 1;
-            grid-row-end: 2;
-            grid-column-start: 1;
-            grid-column-end: 2;
-            background-color: ${this.BACKGROUND_BASIC_COLOR};
-            background-size: cover;
-            // background-size: contain;
+          .movie-thumbnail{
+            grid-row: 1;
+            grid-column: 1;
+            background-size: contain;
             background-repeat: no-repeat;
+            width: 100%;
           }
 
-          .movie-card-play{
-            grid-row-start: 1;
-            grid-row-end: 2;
-            grid-column-start: 1;
-            grid-column-end: 2;
+          .movie-play{
+            grid-row: 1;
+            grid-column: 1;
           }
 
           .movie-card-title{
+            grid-row: 2;
+            grid-column: 1;
             font-size: 16px;
             font-weight: bold;
           }
 
           .movie-card-genre{
+            grid-row: 3;
+            grid-column: 1;
             font-style: italic;
           }
 
@@ -1315,8 +1334,8 @@ class PlaylistSearchCard extends HTMLElement {
         */
         .tvshows-grid{
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(calc(${this.MOVIE_THUMBNAIL_MIN_SIZE} * ${this.MOVIE_THUMBNAIL_RATIO}), 1fr));
-          grid-template-rows: minmax(${this.MOVIE_THUMBNAIL_MIN_SIZE}, 1fr);
+          grid-template-columns: repeat(auto-fill, minmax(calc(${this.MOVIE_THUMBNAIL_MIN_HEIGHT} * ${this.MOVIE_THUMBNAIL_RATIO}), 1fr));
+          grid-template-rows: minmax(${this.MOVIE_THUMBNAIL_MIN_HEIGHT}, 1fr);
           grid-gap: 10px;
           margin-top: 20px;
           margin-bottom: 20px;
@@ -1326,11 +1345,11 @@ class PlaylistSearchCard extends HTMLElement {
 
         .tvshow-card{
           display: grid;
-          grid-template-columns: minmax(calc(${this.MOVIE_THUMBNAIL_MIN_SIZE} * ${this.MOVIE_THUMBNAIL_RATIO}), 1fr);
-          grid-template-rows: minmax(${this.MOVIE_THUMBNAIL_MIN_SIZE}, 1fr) auto;
+          grid-template-columns: minmax(calc(${this.MOVIE_THUMBNAIL_MIN_HEIGHT} * ${this.MOVIE_THUMBNAIL_RATIO}), 1fr);
+          grid-template-rows: minmax(${this.MOVIE_THUMBNAIL_MIN_HEIGHT}, 1fr) auto;
         }
 
-        .tvshow-card-thumbnail{
+        .tvshow-thumbnail{
           grid-row-start: 1;
           grid-row-end: 2;
           grid-column-start: 1;
@@ -1340,7 +1359,7 @@ class PlaylistSearchCard extends HTMLElement {
           background-color: ${this.BACKGROUND_BASIC_COLOR};
         }
 
-        .tvshow-card-play{
+        .tvshow-play{
           grid-row-start: 1;
           grid-row-end: 2;
           grid-column-start: 1;
@@ -1348,27 +1367,100 @@ class PlaylistSearchCard extends HTMLElement {
         }
 
 
-        .tvshow-card-title{
+        .tvshow-title{
           font-size: 16px;
           font-weight: bold;
         }
 
-        .tvshow-card-genre{
+        .tvshow-genre{
           font-style: italic;
         }
 
 
-        .song-thumbnailPlayCell, .album-card-play, .artist-card-play, .movie-card-play, .tvshow-card-play, .albumdetails-thumbnailPlayCell, .tvshow-seasondetails-thumbnailPlayCell{
-          display: block;
-          color: black;
-          background-color: rgb(250, 250, 250, 0.4)
+        /*
+        --------------------
+        ----- EPISODES -----
+        --------------------
+      */
+
+        .episode-grid{
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(calc(${this.EPISODE_THUMBNAIL_MIN_HEIGHT} * ${this.EPISODE_THUMBNAIL_RATIO}), 1fr));
+          grid-template-rows: minmax(${this.EPISODE_THUMBNAIL_MIN_HEIGHT}, 1fr);
+          grid-gap: 10px;
+          margin-top: 20px;
+          margin-bottom: 20px;
+          margin-left: 10px;
+          margin-right: 10px;
         }
 
-        .song-thumbnailPlayCell:hover, .album-card-play:hover, .artist-card-play:hover, .movie-card-play:hover, .tvshow-card-play:hover, .albumdetails-thumbnailPlayCell:hover, .albumdetails-song-thumbnailPlayCell:hover, .tvshow-seasondetails-thumbnailPlayCell:hover, .tvshow-seasondetails-episode-thumbnailPlayCell:hover{
+        .episode-card{
+          display: grid;
+          grid-template-columns: minmax(calc(${this.EPISODE_THUMBNAIL_MIN_HEIGHT} * ${this.EPISODE_THUMBNAIL_RATIO}), 1fr);
+          grid-template-rows: minmax(${this.EPISODE_THUMBNAIL_MIN_HEIGHT}, 1fr) auto;
+          grid-gap: auto;
+        }
+
+        .episode-thumbnail{
+          grid-row-start: 1;
+          grid-row-end: 2;
+          grid-column-start: 1;
+          grid-column-end: 2;
+          background-color: ${this.BACKGROUND_BASIC_COLOR};
+          background-size: cover;
+          // background-size: contain;
+          background-repeat: no-repeat;
+        }
+
+        .episode-play{
+          grid-row-start: 1;
+          grid-row-end: 2;
+          grid-column-start: 1;
+          grid-column-end: 2;
+        }
+
+        .episode-card-title{
+          font-size: 16px;
+          font-weight: bold;
+        }
+
+        .movie-card-genre{
+          font-style: italic;
+        }
+
+
+
+        .song-play, .album-play, .artist-play, .movie-play, .tvshow-play, .albumdetails-play, .seasondetails-play, .episode-play{
+          display: block;
+          color: black;
+        }
+
+        .song-play:hover, .album-play:hover, .artist-play:hover, .movie-play:hover, .tvshow-play:hover, .albumdetails-play:hover, .albumdetails-song-play:hover, .seasondetails-play:hover, .seasondetails-episode-play:hover, .episode-play:hover{
           color: red;
         }
 
       `;
+
+    if (this._config_show_thumbnail_border) {
+      css +=
+        `
+        .song-thumbnail, .album-thumbnail, .artist-thumbnail, .movie-thumbnail, .tvshow-thumbnail, .episode-thumbnail, .albumdetails-thumbnail, .seasondetails-thumbnail{
+          border:1px solid ` +
+        this._config_thumbnail_border_color +
+        `;
+        }
+       `;
+    }
+
+    if (this._config_thumbnail_overlay) {
+      css += `
+        .song-play, .album-play, .artist-play, .movie-play, .tvshow-play, .albumdetails-play, .seasondetails-play, .episode-play{
+          background-color: rgb(250, 250, 250, 0.4)
+        }
+       `;
+    }
+
+    return css;
   }
 }
 customElements.define("kodi-search-card", PlaylistSearchCard);

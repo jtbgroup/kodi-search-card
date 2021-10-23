@@ -4,7 +4,6 @@ This card displays a search form to query the kodi entity.
 
 This card is intented to be an alternative to an iframe containing Chorus.
 
-
 | Search Form |
 | ---- |
 <img src="https://raw.githubusercontent.com/jtbgroup/kodi-search-card/master/assets/search_result_v3.1.png" alt="Search Form" width="400"/> 
@@ -33,7 +32,7 @@ You can pdirectly play items in your kodi instance.
 
 | Name | Type | Default | Since | Description |
 |------|------|---------|-------|-------------|
-| type | string	| **required** | v1.0.0 | 'custom:kodi-search-card' |
+| type | string	| **required** | v1.0.0 | `custom:kodi-search-card` |
 | entity | string | **required** | v1.0.0 |  `sensor.kodi_media_sensor_search` |
 | title | string | optional | v1.0.0 | The title of the card |
 | show_thumbnail | boolean | `false` | v1.0.0 | Set to true if you want to show the thumbnails coming from kodi. Attention you can get problems when mixing http and https content; if so, leave it to false. |

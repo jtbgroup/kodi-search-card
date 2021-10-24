@@ -2,8 +2,10 @@ class PlaylistSearchCard extends HTMLElement {
   SONG_THUMBNAIL_WIDTH = "65px";
   // the height of the thumbnail of the movie in the search result
   MOVIE_THUMBNAIL_WIDTH = "150px";
+  MOVIE_THUMBNAIL_RATIO = 0.8;
   // the height of the epthumbnailsode of the episode in the search result
   EPISODE_THUMBNAIL_WIDTH = "180px";
+  EPISODE_THUMBNAIL_RATIO = 1.5;
   // the height and width of the thumbnail of the artist in the search result
   ARTIST_THUMBNAIL_WIDTH = "130px";
   // the height and width of the thumbnail of the album in the search result
@@ -347,35 +349,46 @@ class PlaylistSearchCard extends HTMLElement {
       artistDiv.setAttribute("class", "search-artist-grid");
       artistsDiv.appendChild(artistDiv);
 
-      let coverDiv = document.createElement("div");
-      coverDiv.setAttribute("class", "search-artist-cover");
-      artistDiv.appendChild(coverDiv);
+      // let coverDiv = document.createElement("div");
+      // coverDiv.setAttribute("class", "search-artist-cover");
+      // artistDiv.appendChild(coverDiv);
 
-      let coverContainer = document.createElement("div");
-      coverContainer.setAttribute("class", "search-cover-container");
-      coverDiv.appendChild(coverContainer);
+      // let coverContainer = document.createElement("div");
+      // coverContainer.setAttribute("class", "search-cover-container");
+      // coverDiv.appendChild(coverContainer);
 
-      let coverImgDefault = document.createElement("ha-icon");
-      coverImgDefault.setAttribute(
-        "class",
-        "search-artist-cover-image-default search-cover-image-default"
+      // let coverImgDefault = document.createElement("ha-icon");
+      // coverImgDefault.setAttribute(
+      //   "class",
+      //   "search-artist-cover-image-default search-cover-image-default"
+      // );
+      // coverImgDefault.setAttribute("icon", "mdi:account-circle");
+      // coverContainer.appendChild(coverImgDefault);
+
+      // if (!this._config_show_thumbnail_overlay) {
+      //   coverContainer.addEventListener("click", () =>
+      //     this.searchMoreOfArtist(item["artistid"])
+      //   );
+      // } else if (this._config_show_thumbnail_overlay) {
+      //   let overlayImg = document.createElement("ha-icon");
+      //   overlayImg.setAttribute("class", "overlay-play");
+      //   overlayImg.setAttribute("icon", "mdi:menu");
+      //   overlayImg.addEventListener("click", () =>
+      //     this.searchMoreOfArtist(item["artistid"])
+      //   );
+      //   coverContainer.appendChild(overlayImg);
+      // }
+      let cover = item["thumbnail"];
+      let coverDiv = this.prepareCover(
+        cover,
+        "search-artist-cover",
+        "search-artist-cover-image",
+        "search-artist-cover-image-default",
+        "mdi:menu",
+        "mdi:disc",
+        () => this.searchMoreOfArtist(item["artistid"])
       );
-      coverImgDefault.setAttribute("icon", "mdi:account-circle");
-      coverContainer.appendChild(coverImgDefault);
-
-      if (!this._config_show_thumbnail_overlay) {
-        coverContainer.addEventListener("click", () =>
-          this.searchMoreOfArtist(item["artistid"])
-        );
-      } else if (this._config_show_thumbnail_overlay) {
-        let overlayImg = document.createElement("ha-icon");
-        overlayImg.setAttribute("class", "overlay-play");
-        overlayImg.setAttribute("icon", "mdi:menu");
-        overlayImg.addEventListener("click", () =>
-          this.searchMoreOfArtist(item["artistid"])
-        );
-        coverContainer.appendChild(overlayImg);
-      }
+      artistDiv.appendChild(coverDiv);
 
       let titleDiv = document.createElement("div");
       titleDiv.setAttribute("class", "search-artist-title search-title");
@@ -463,7 +476,7 @@ class PlaylistSearchCard extends HTMLElement {
         "search-episode-cover-image",
         "search-episode-cover-image-default",
         "mdi:play",
-        "mdi:music",
+        "mdi:movie",
         () => this.playEpisode(item["episodeid"])
       );
       episodeDiv.appendChild(coverDiv);
@@ -708,6 +721,17 @@ class PlaylistSearchCard extends HTMLElement {
     if (this._config_show_thumbnail && cover && cover != "") {
       let coverImg = document.createElement("img");
       coverImg.setAttribute("src", cover);
+      coverImg.onerror = function () {
+        coverImg.remove();
+
+        let coverImgDefault = document.createElement("ha-icon");
+        coverImgDefault.setAttribute(
+          "class",
+          "search-cover-image-default " + class_cover_image_default
+        );
+        coverImgDefault.setAttribute("icon", icon_default);
+        coverContainer.appendChild(coverImgDefault);
+      };
       coverImg.setAttribute("class", class_cover_image + " search-cover-image");
       coverContainer.appendChild(coverImg);
     } else {
@@ -732,6 +756,7 @@ class PlaylistSearchCard extends HTMLElement {
 
     return coverDiv;
   }
+
   handleSearchInputEvent(event) {
     var key = event.keyCode || event.which;
     if (key == 13) {
@@ -1092,8 +1117,10 @@ class PlaylistSearchCard extends HTMLElement {
         }
 
         .search-artist-grid{
-          display: grid;
-          grid-template-rows: minmax(${this.ARTIST_THUMBNAIL_WIDTH}, 1fr) auto;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-rows: auto;
+            row-gap: 3px;
         }
 
         .search-artist-title{
@@ -1104,6 +1131,10 @@ class PlaylistSearchCard extends HTMLElement {
         .search-artist-cover{
           grid-column: 1;
           grid-row: 1;
+        }
+
+        .search-artist-cover-image{
+          width: ${this.ARTIST_THUMBNAIL_WIDTH};
         }
 
         .search-artist-cover-image-default{
@@ -1151,7 +1182,7 @@ class PlaylistSearchCard extends HTMLElement {
 
       .search-movie-cover-image-default{
         width: ${this.MOVIE_THUMBNAIL_WIDTH};
-        height: ${this.MOVIE_THUMBNAIL_WIDTH};
+        height: calc(${this.MOVIE_THUMBNAIL_WIDTH} / ${this.MOVIE_THUMBNAIL_RATIO});
         --mdc-icon-size: calc(${this.MOVIE_THUMBNAIL_WIDTH} - 30px);
       }
 
@@ -1198,8 +1229,8 @@ class PlaylistSearchCard extends HTMLElement {
 
       .search-episode-cover-image-default{
         width: ${this.EPISODE_THUMBNAIL_WIDTH};
-        height: ${this.EPISODE_THUMBNAIL_WIDTH};
-        --mdc-icon-size: calc(${this.EPISODE_THUMBNAIL_WIDTH} - 30px);
+        height: calc(${this.EPISODE_THUMBNAIL_WIDTH} / ${this.EPISODE_THUMBNAIL_RATIO});
+        --mdc-icon-size: calc((${this.EPISODE_THUMBNAIL_WIDTH} / ${this.EPISODE_THUMBNAIL_RATIO}) - 30px);
       }
 
         /*
@@ -1238,7 +1269,7 @@ class PlaylistSearchCard extends HTMLElement {
             width: ${this.MOVIE_THUMBNAIL_WIDTH};
           }
 
-          .search-movie-cover-image-default{
+          .search-tvshow-cover-image-default{
             width: ${this.MOVIE_THUMBNAIL_WIDTH};
             height: ${this.MOVIE_THUMBNAIL_WIDTH};
             --mdc-icon-size: calc(${this.MOVIE_THUMBNAIL_WIDTH} - 30px);

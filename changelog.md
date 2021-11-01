@@ -2,7 +2,7 @@
 
 #### 2.2.0
 
-* Card editor + made avaialble in the card picker
+* Card editor + made available in the card picker
 
 #### 2.1.4
 

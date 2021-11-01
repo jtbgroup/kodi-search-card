@@ -1,3 +1,8 @@
+const DEFAULT_SHOW_THUMBNAIL = true;
+const DEFAULT_SHOW_THUMBNAIL_BORDER = false;
+const DEFAULT_SHOW_THUMBNAIL_OVERLAY = true;
+const DEFAULT_THUMBNAIL_BORDER_COLOR = "white";
+
 class PlaylistSearchCard extends HTMLElement {
   SONG_THUMBNAIL_WIDTH = "65px";
   // the height of the thumbnail of the movie in the search result
@@ -12,10 +17,26 @@ class PlaylistSearchCard extends HTMLElement {
   ALBUM_THUMBNAIL_WIDTH = "130px";
 
   BACKGROUND_BASIC_COLOR = "#9b9595";
-  _config_show_thumbnail = true;
-  _config_show_thumbnail_border = false;
-  _config_thumbnail_border_color = "white";
-  _config_thumbnail_overlay = true;
+
+  _config_show_thumbnail = DEFAULT_SHOW_THUMBNAIL;
+  _config_show_thumbnail_border = DEFAULT_SHOW_THUMBNAIL_BORDER;
+  _config_thumbnail_border_color = DEFAULT_THUMBNAIL_BORDER_COLOR;
+  _config_show_thumbnail_overlay = DEFAULT_SHOW_THUMBNAIL_OVERLAY;
+
+  static async getConfigElement() {
+    await import("./kodi-search-card-editor.js");
+    return document.createElement("kodi-search-card-editor");
+  }
+
+  static getStubConfig() {
+    return {
+      entity: _config.entity,
+      show_thumbnail: DEFAULT_SHOW_THUMBNAIL,
+      show_thumbnail_border: DEFAULT_SHOW_THUMBNAIL_BORDER,
+      show_thumbnail_overlay: DEFAULT_SHOW_THUMBNAIL_OVERLAY,
+      thumbnail_border_color: DEFAULT_THUMBNAIL_BORDER_COLOR,
+    };
+  }
 
   setConfig(config) {
     this._config = config;

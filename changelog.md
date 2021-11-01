@@ -1,5 +1,9 @@
 # Changelog
 
+#### 2.2.0
+
+* Card editor + made avaialble in the card picker
+
 #### 2.1.4
 
 * compatible with [kodi media sensors](https://github.com/jtbgroup/kodi-media-sensors) 3.1.5

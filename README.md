@@ -14,8 +14,11 @@ This card requires a specific sensor that gets the data from Kodi. The sensor is
 
 ## Features
 
-The card will let you search items in kodi. 
-You can pdirectly play items in your kodi instance.
+The card will let you search items in kodi.
+You can display the recently added items.
+You can directly play items in your kodi instance.
+
+The search function will look for songs (title), albums (title), artists (name), movies (title), tvshows (title), PVR Channels (label) [only if a PVR client addon is present].
 
 ## Installation
 

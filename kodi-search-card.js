@@ -251,6 +251,11 @@ class PlaylistSearchCard extends HTMLElement {
       this.fillEpisode(filtered, this.resultDiv);
     }
 
+    filtered = this.filterTypes(json, "channel");
+    if (filtered.length > 0) {
+      this.fillChannel(filtered, this.resultDiv);
+    }
+
     return this.resultDiv;
   }
 
@@ -370,35 +375,6 @@ class PlaylistSearchCard extends HTMLElement {
       artistDiv.setAttribute("class", "search-artist-grid");
       artistsDiv.appendChild(artistDiv);
 
-      // let coverDiv = document.createElement("div");
-      // coverDiv.setAttribute("class", "search-artist-cover");
-      // artistDiv.appendChild(coverDiv);
-
-      // let coverContainer = document.createElement("div");
-      // coverContainer.setAttribute("class", "search-cover-container");
-      // coverDiv.appendChild(coverContainer);
-
-      // let coverImgDefault = document.createElement("ha-icon");
-      // coverImgDefault.setAttribute(
-      //   "class",
-      //   "search-artist-cover-image-default search-cover-image-default"
-      // );
-      // coverImgDefault.setAttribute("icon", "mdi:account-circle");
-      // coverContainer.appendChild(coverImgDefault);
-
-      // if (!this._config_show_thumbnail_overlay) {
-      //   coverContainer.addEventListener("click", () =>
-      //     this.searchMoreOfArtist(item["artistid"])
-      //   );
-      // } else if (this._config_show_thumbnail_overlay) {
-      //   let overlayImg = document.createElement("ha-icon");
-      //   overlayImg.setAttribute("class", "overlay-play");
-      //   overlayImg.setAttribute("icon", "mdi:menu");
-      //   overlayImg.addEventListener("click", () =>
-      //     this.searchMoreOfArtist(item["artistid"])
-      //   );
-      //   coverContainer.appendChild(overlayImg);
-      // }
       let cover = item["thumbnail"];
       let coverDiv = this.prepareCover(
         cover,
@@ -570,6 +546,54 @@ class PlaylistSearchCard extends HTMLElement {
       genreDiv.setAttribute("class", "search-tvshow-genre search-genre");
       genreDiv.innerHTML = item["genre"] + " (" + item["year"] + ")";
       tvshowDiv.appendChild(genreDiv);
+    }
+    resultDiv.appendChild(rowsDiv);
+  }
+
+  fillChannel(items, resultDiv) {
+    let rowsDiv = document.createElement("div");
+    let mediaTypeDiv = document.createElement("div");
+    mediaTypeDiv.setAttribute("class", "media-type-div");
+    mediaTypeDiv.innerHTML = 'Channels <ha-icon icon="mdi:movie"></ha-icon>';
+    rowsDiv.appendChild(mediaTypeDiv);
+
+    let channelsDiv = document.createElement("div");
+    channelsDiv.setAttribute("class", "search-channel-grid search-grid");
+    rowsDiv.appendChild(channelsDiv);
+
+    let max = items.length;
+    for (let count = 0; count < max; count++) {
+      let item = items[count];
+
+      let channelDiv = document.createElement("div");
+      channelDiv.setAttribute("class", "search-channel-grid");
+      channelsDiv.appendChild(channelDiv);
+
+      let cover =
+        item["poster"] && item["poster"] != ""
+          ? item["poster"]
+          : item["thumbnail"];
+
+      let coverDiv = this.prepareCover(
+        cover,
+        "search-channel-cover",
+        "search-channel-cover-image",
+        "search-channel-cover-image-default",
+        "mdi:play",
+        "mdi:movie",
+        () => this.playChannel(item["channelid"])
+      );
+      channelDiv.appendChild(coverDiv);
+
+      let titleDiv = document.createElement("div");
+      titleDiv.setAttribute("class", "search-channel-title search-title");
+      titleDiv.innerHTML = item["label"];
+      channelDiv.appendChild(titleDiv);
+
+      // let genreDiv = document.createElement("div");
+      // genreDiv.setAttribute("class", "search-channel-genre search-genre");
+      // genreDiv.innerHTML = item["genre"] + " (" + item["year"] + ")";
+      // channelDiv.appendChild(genreDiv);
     }
     resultDiv.appendChild(rowsDiv);
   }
@@ -865,6 +889,14 @@ class PlaylistSearchCard extends HTMLElement {
       entity_id: this._config.entity,
       method: "play",
       movieid: movie_id,
+    });
+  }
+
+  playChannel(channel_id) {
+    this._hass.callService(this._service_domain, "call_method", {
+      entity_id: this._config.entity,
+      method: "play",
+      channelid: channel_id,
     });
   }
 
@@ -1296,6 +1328,51 @@ class PlaylistSearchCard extends HTMLElement {
             --mdc-icon-size: calc(${this.MOVIE_THUMBNAIL_WIDTH} - 30px);
           }
 
+
+          /*
+          --------------------
+            ----- CHANNEL -----
+            --------------------
+          */
+            .search-channel-grid{
+              grid-template-columns: repeat(auto-fill, minmax(${this.MOVIE_THUMBNAIL_WIDTH}, 1fr));
+              grid-template-rows: auto;
+            }
+
+            .search-channel-grid{
+              display: grid;
+              grid-template-columns: auto 1fr;
+              grid-template-rows: auto;
+              row-gap: 3px;
+            }
+
+            .search-channel-cover{
+              grid-column: 1 / 2;
+              grid-row: 1;
+            }
+
+            .search-channel-title{
+                grid-column: 1 / 3;
+              grid-row: 2;
+            }
+
+            .search-channel-genre{
+              grid-column: 1 / 3;
+              grid-row: 3;
+            }
+
+            .search-channel-cover-image{
+              width: ${this.MOVIE_THUMBNAIL_WIDTH};
+            }
+
+            .search-channel-cover-image-default{
+              width: ${this.MOVIE_THUMBNAIL_WIDTH};
+              height: ${this.MOVIE_THUMBNAIL_WIDTH};
+              --mdc-icon-size: calc(${this.MOVIE_THUMBNAIL_WIDTH} - 30px);
+            }
+
+
+
           /*
           ------------------------
           ----- ALBUM DETAIL -----
@@ -1430,12 +1507,12 @@ class PlaylistSearchCard extends HTMLElement {
           }
 
 
-        .song-play, .album-play, .artist-play, .movie-play, .tvshow-play, .albumdetails-play, .seasondetails-play, .episode-play{
+        .song-play, .album-play, .artist-play, .movie-play, .tvshow-play, .albumdetails-play, .seasondetails-play, .episode-play, .channel-play{
           display: block;
           color: black;
         }
 
-        .song-play:hover, .album-play:hover, .artist-play:hover, .movie-play:hover, .tvshow-play:hover, .albumdetails-play:hover, .albumdetails-song-play:hover, .seasondetails-play:hover, .seasondetails-episode-play:hover, .episode-play:hover{
+        .song-play:hover, .album-play:hover, .artist-play:hover, .movie-play:hover, .tvshow-play:hover, .albumdetails-play:hover, .albumdetails-song-play:hover, .seasondetails-play:hover, .seasondetails-episode-play:hover, .episode-play:hover, channel-play:hover{
           color: red;
         }
       `;

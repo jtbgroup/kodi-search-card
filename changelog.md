@@ -1,5 +1,8 @@
-# Changelog
+# SEARCH CARD - Changelog
 
+
+#### 2.3.0
+* PVR Channels can now be displayed if searched by the sensor
 #### 2.2.0
 
 * Card editor + made available in the card picker

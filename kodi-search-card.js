@@ -16,6 +16,9 @@ class PlaylistSearchCard extends HTMLElement {
   // the height and width of the thumbnail of the album in the search result
   ALBUM_THUMBNAIL_WIDTH = "130px";
 
+  CHANNEL_THUMBNAIL_WIDTH = "180px";
+  CHANNEL_THUMBNAIL_RATIO = 1.5;
+
   BACKGROUND_BASIC_COLOR = "#9b9595";
 
   _config_show_thumbnail = DEFAULT_SHOW_THUMBNAIL;
@@ -590,12 +593,75 @@ class PlaylistSearchCard extends HTMLElement {
       titleDiv.innerHTML = item["label"];
       channelDiv.appendChild(titleDiv);
 
-      // let genreDiv = document.createElement("div");
-      // genreDiv.setAttribute("class", "search-channel-genre search-genre");
-      // genreDiv.innerHTML = item["genre"] + " (" + item["year"] + ")";
-      // channelDiv.appendChild(genreDiv);
+      let channelTypeDiv = document.createElement("div");
+      channelTypeDiv.setAttribute("class", "search-channel-type search-genre");
+      channelTypeDiv.innerHTML =
+        item["channeltype"] + " ( nr " + item["channelnumber"] + ")";
+      channelDiv.appendChild(channelTypeDiv);
     }
     resultDiv.appendChild(rowsDiv);
+  }
+
+  fillTVShowSeasonDetails(items, resultDiv) {
+    let seasonsDiv = document.createElement("div");
+
+    let mediaTypeDiv = document.createElement("div");
+    mediaTypeDiv.setAttribute("class", "media-type-div");
+    mediaTypeDiv.innerHTML =
+      'TVShow Season Details<ha-icon icon="mdi:movie"></ha-icon>';
+    seasonsDiv.appendChild(mediaTypeDiv);
+
+    let max = items.length;
+    for (let count = 0; count < max; count++) {
+      let item = items[count];
+      let seasonDetailsDiv = document.createElement("div");
+      seasonDetailsDiv.setAttribute(
+        "class",
+        "search-seasondetails-grid search-grid"
+      );
+
+      const episodes = item["episodes"].map((x) => x.episodeid);
+      let cover =
+        item["poster"] && item["poster"] != ""
+          ? item["poster"]
+          : item["thumbnail"];
+      let coverDiv = this.prepareCover(
+        cover,
+        "search-seasondetails-cover",
+        "search-seasondetails-cover-image",
+        "search-seasondetails-cover-image-default",
+        "mdi:play",
+        "mdi:movie",
+        () => this.playEpisodes(episodes)
+      );
+      seasonDetailsDiv.appendChild(coverDiv);
+
+      let albumTitleDiv = document.createElement("div");
+      albumTitleDiv.setAttribute(
+        "class",
+        "search-seasondetails-title search-title"
+      );
+      albumTitleDiv.innerHTML = item["title"];
+      seasonDetailsDiv.appendChild(albumTitleDiv);
+
+      let episodesDiv = document.createElement("div");
+      episodesDiv.setAttribute("class", "search-seasondetails-episodes");
+      let episodesItem = item["episodes"];
+      for (let idx = 0; idx < episodesItem.length; idx++) {
+        let episodeDiv = document.createElement("div");
+        episodeDiv.setAttribute("class", "search-seasondetails-episode-grid");
+
+        let titleDiv = document.createElement("div");
+        titleDiv.setAttribute("class", "search-seasondetails-episode-title");
+        titleDiv.innerHTML = episodesItem[idx]["label"];
+        episodeDiv.appendChild(titleDiv);
+
+        episodesDiv.appendChild(episodeDiv);
+      }
+      seasonDetailsDiv.appendChild(episodesDiv);
+      seasonsDiv.appendChild(seasonDetailsDiv);
+    }
+    resultDiv.appendChild(seasonsDiv);
   }
 
   fillAlbumDetails(items, resultDiv) {
@@ -1335,7 +1401,7 @@ class PlaylistSearchCard extends HTMLElement {
             --------------------
           */
             .search-channel-grid{
-              grid-template-columns: repeat(auto-fill, minmax(${this.MOVIE_THUMBNAIL_WIDTH}, 1fr));
+              grid-template-columns: repeat(auto-fill, minmax(${this.CHANNEL_THUMBNAIL_WIDTH}, 1fr));
               grid-template-rows: auto;
             }
 
@@ -1356,19 +1422,19 @@ class PlaylistSearchCard extends HTMLElement {
               grid-row: 2;
             }
 
-            .search-channel-genre{
+            .search-channel-type{
               grid-column: 1 / 3;
               grid-row: 3;
             }
 
             .search-channel-cover-image{
-              width: ${this.MOVIE_THUMBNAIL_WIDTH};
+              width: ${this.CHANNEL_THUMBNAIL_WIDTH};
             }
 
             .search-channel-cover-image-default{
-              width: ${this.MOVIE_THUMBNAIL_WIDTH};
-              height: ${this.MOVIE_THUMBNAIL_WIDTH};
-              --mdc-icon-size: calc(${this.MOVIE_THUMBNAIL_WIDTH} - 30px);
+              width: ${this.CHANNEL_THUMBNAIL_WIDTH};
+              height: calc(${this.CHANNEL_THUMBNAIL_WIDTH} / ${this.CHANNEL_THUMBNAIL_RATIO});
+              --mdc-icon-size: calc((${this.CHANNEL_THUMBNAIL_WIDTH} / ${this.CHANNEL_THUMBNAIL_RATIO}) - 30px);
             }
 
 

@@ -602,68 +602,6 @@ class PlaylistSearchCard extends HTMLElement {
     resultDiv.appendChild(rowsDiv);
   }
 
-  fillTVShowSeasonDetails(items, resultDiv) {
-    let seasonsDiv = document.createElement("div");
-
-    let mediaTypeDiv = document.createElement("div");
-    mediaTypeDiv.setAttribute("class", "media-type-div");
-    mediaTypeDiv.innerHTML =
-      'TVShow Season Details<ha-icon icon="mdi:movie"></ha-icon>';
-    seasonsDiv.appendChild(mediaTypeDiv);
-
-    let max = items.length;
-    for (let count = 0; count < max; count++) {
-      let item = items[count];
-      let seasonDetailsDiv = document.createElement("div");
-      seasonDetailsDiv.setAttribute(
-        "class",
-        "search-seasondetails-grid search-grid"
-      );
-
-      const episodes = item["episodes"].map((x) => x.episodeid);
-      let cover =
-        item["poster"] && item["poster"] != ""
-          ? item["poster"]
-          : item["thumbnail"];
-      let coverDiv = this.prepareCover(
-        cover,
-        "search-seasondetails-cover",
-        "search-seasondetails-cover-image",
-        "search-seasondetails-cover-image-default",
-        "mdi:play",
-        "mdi:movie",
-        () => this.playEpisodes(episodes)
-      );
-      seasonDetailsDiv.appendChild(coverDiv);
-
-      let albumTitleDiv = document.createElement("div");
-      albumTitleDiv.setAttribute(
-        "class",
-        "search-seasondetails-title search-title"
-      );
-      albumTitleDiv.innerHTML = item["title"];
-      seasonDetailsDiv.appendChild(albumTitleDiv);
-
-      let episodesDiv = document.createElement("div");
-      episodesDiv.setAttribute("class", "search-seasondetails-episodes");
-      let episodesItem = item["episodes"];
-      for (let idx = 0; idx < episodesItem.length; idx++) {
-        let episodeDiv = document.createElement("div");
-        episodeDiv.setAttribute("class", "search-seasondetails-episode-grid");
-
-        let titleDiv = document.createElement("div");
-        titleDiv.setAttribute("class", "search-seasondetails-episode-title");
-        titleDiv.innerHTML = episodesItem[idx]["label"];
-        episodeDiv.appendChild(titleDiv);
-
-        episodesDiv.appendChild(episodeDiv);
-      }
-      seasonDetailsDiv.appendChild(episodesDiv);
-      seasonsDiv.appendChild(seasonDetailsDiv);
-    }
-    resultDiv.appendChild(seasonsDiv);
-  }
-
   fillAlbumDetails(items, resultDiv) {
     let albumsDiv = document.createElement("div");
 
@@ -744,7 +682,7 @@ class PlaylistSearchCard extends HTMLElement {
     resultDiv.appendChild(albumsDiv);
   }
 
-  fillSeasonDetails(items, resultDiv) {
+  fillTVShowSeasonDetails(items, resultDiv) {
     let seasonsDiv = document.createElement("div");
 
     let mediaTypeDiv = document.createElement("div");

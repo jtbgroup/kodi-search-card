@@ -1,6 +1,9 @@
 # SEARCH CARD - Changelog
 
 
+#### 2.3.1
+* bugfix : episode play button had disappeared
+
 #### 2.3.0
 * PVR Channels can now be displayed if searched by the sensor
 

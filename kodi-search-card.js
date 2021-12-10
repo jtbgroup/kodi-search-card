@@ -275,7 +275,7 @@ class PlaylistSearchCard extends HTMLElement {
     for (let count = 0; count < max; count++) {
       const item = items[count];
       let songDiv = document.createElement("div");
-      songDiv.setAttribute("class", "search-song-grid search-grid");
+      songDiv.setAttribute("class", "search-song-grid search-grid-list");
       songsDiv.appendChild(songDiv);
 
       let cover = item["thumbnail"];
@@ -323,7 +323,7 @@ class PlaylistSearchCard extends HTMLElement {
     rowsDiv.appendChild(mediaTypeDiv);
 
     let albumsDiv = document.createElement("div");
-    albumsDiv.setAttribute("class", "search-albums-grid search-grid");
+    albumsDiv.setAttribute("class", "search-albums-grid search-grid-repeat");
     rowsDiv.appendChild(albumsDiv);
 
     let max = items.length;
@@ -368,7 +368,7 @@ class PlaylistSearchCard extends HTMLElement {
     rowsDiv.appendChild(mediaTypeDiv);
 
     let artistsDiv = document.createElement("div");
-    artistsDiv.setAttribute("class", "search-artists-grid search-grid");
+    artistsDiv.setAttribute("class", "search-artists-grid  search-grid-repeat");
     rowsDiv.appendChild(artistsDiv);
 
     let max = items.length;
@@ -406,7 +406,7 @@ class PlaylistSearchCard extends HTMLElement {
     rowsDiv.appendChild(mediaTypeDiv);
 
     let moviesDiv = document.createElement("div");
-    moviesDiv.setAttribute("class", "search-movies-grid search-grid");
+    moviesDiv.setAttribute("class", "search-movies-grid  search-grid-repeat");
     rowsDiv.appendChild(moviesDiv);
 
     let max = items.length;
@@ -454,7 +454,10 @@ class PlaylistSearchCard extends HTMLElement {
     rowsDiv.appendChild(mediaTypeDiv);
 
     let episodesDiv = document.createElement("div");
-    episodesDiv.setAttribute("class", "search-episodes-grid search-grid");
+    episodesDiv.setAttribute(
+      "class",
+      "search-episodes-grid  search-grid-repeat"
+    );
     rowsDiv.appendChild(episodesDiv);
 
     let max = items.length;
@@ -513,7 +516,7 @@ class PlaylistSearchCard extends HTMLElement {
     rowsDiv.appendChild(mediaTypeDiv);
 
     let tvshowsDiv = document.createElement("div");
-    tvshowsDiv.setAttribute("class", "search-tvshows-grid search-grid");
+    tvshowsDiv.setAttribute("class", "search-tvshows-grid  search-grid-repeat");
     rowsDiv.appendChild(tvshowsDiv);
 
     let max = items.length;
@@ -561,7 +564,7 @@ class PlaylistSearchCard extends HTMLElement {
     rowsDiv.appendChild(mediaTypeDiv);
 
     let channelsDiv = document.createElement("div");
-    channelsDiv.setAttribute("class", "search-channel-grid search-grid");
+    channelsDiv.setAttribute("class", "search-channel-grid search-grid-repeat");
     rowsDiv.appendChild(channelsDiv);
 
     let max = items.length;
@@ -616,7 +619,7 @@ class PlaylistSearchCard extends HTMLElement {
       let albumDetailsDiv = document.createElement("div");
       albumDetailsDiv.setAttribute(
         "class",
-        "search-albumdetails-grid search-grid"
+        "search-albumdetails-grid  search-grid-repeat"
       );
 
       let cover = item["thumbnail"];
@@ -695,7 +698,10 @@ class PlaylistSearchCard extends HTMLElement {
     for (let count = 0; count < max; count++) {
       let item = items[count];
       let seasonDiv = document.createElement("div");
-      seasonDiv.setAttribute("class", "search-seasondetails-grid search-grid");
+      seasonDiv.setAttribute(
+        "class",
+        "search-seasondetails-grid  search-grid-repeat"
+      );
 
       let cover =
         item["poster"] && item["poster"] != ""
@@ -1063,10 +1069,19 @@ class PlaylistSearchCard extends HTMLElement {
               vertical-align: text-top;
             }
 
-            .search-grid {
+            .search-grid-list {
               display: grid;
               column-gap:10px;
+              margin-top: 20px;
+              margin-bottom: 20px;
+              margin-left: 10px;
+              margin-right: 10px;
+            }
+
+            .search-grid-repeat{
               row-gap:10px;
+              display: grid;
+              column-gap:10px;
               margin-top: 20px;
               margin-bottom: 20px;
               margin-left: 10px;
@@ -1149,9 +1164,10 @@ class PlaylistSearchCard extends HTMLElement {
 
           .search-album-artist{
             grid-column: 1 / 3;
-            grid-row: 3;
+            grid-row: 3 / 4;
             vertical-align: text-top;
           }
+
 
           .search-album-cover-image{
             width: ${this.ALBUM_THUMBNAIL_WIDTH};

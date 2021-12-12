@@ -263,19 +263,25 @@ class PlaylistSearchCard extends HTMLElement {
   }
 
   fillSongs(items, resultDiv) {
-    let songsDiv = document.createElement("div");
-
+    let rowsDiv = document.createElement("div");
     let mediaTypeDiv = document.createElement("div");
     mediaTypeDiv.setAttribute("class", "media-type-div");
     mediaTypeDiv.innerHTML = 'Songs <ha-icon icon="mdi:music"></ha-icon>';
-    songsDiv.appendChild(mediaTypeDiv);
+    rowsDiv.appendChild(mediaTypeDiv);
+
+    let songsDiv = document.createElement("div");
+    songsDiv.setAttribute(
+      "class",
+      "search-songs-grid search-grid search-item-container-grid"
+    );
+    rowsDiv.appendChild(songsDiv);
 
     let max = items.length;
 
     for (let count = 0; count < max; count++) {
       const item = items[count];
       let songDiv = document.createElement("div");
-      songDiv.setAttribute("class", "search-song-grid search-grid-list");
+      songDiv.setAttribute("class", "search-song-grid");
       songsDiv.appendChild(songDiv);
 
       let cover = item["thumbnail"];
@@ -309,10 +315,10 @@ class PlaylistSearchCard extends HTMLElement {
       durationDiv.setAttribute("class", "search-song-duration search-duration");
       durationDiv.innerHTML = new Date(item["duration"] * 1000)
         .toISOString()
-        .substr(11, 8);
+        .substring(11, 19);
       songDiv.appendChild(durationDiv);
     }
-    resultDiv.appendChild(songsDiv);
+    resultDiv.appendChild(rowsDiv);
   }
 
   fillAlbums(items, resultDiv) {
@@ -323,7 +329,10 @@ class PlaylistSearchCard extends HTMLElement {
     rowsDiv.appendChild(mediaTypeDiv);
 
     let albumsDiv = document.createElement("div");
-    albumsDiv.setAttribute("class", "search-albums-grid search-grid-repeat");
+    albumsDiv.setAttribute(
+      "class",
+      "search-albums-grid search-grid search-item-container-grid"
+    );
     rowsDiv.appendChild(albumsDiv);
 
     let max = items.length;
@@ -368,7 +377,10 @@ class PlaylistSearchCard extends HTMLElement {
     rowsDiv.appendChild(mediaTypeDiv);
 
     let artistsDiv = document.createElement("div");
-    artistsDiv.setAttribute("class", "search-artists-grid  search-grid-repeat");
+    artistsDiv.setAttribute(
+      "class",
+      "search-artists-grid  search-grid search-item-container-grid"
+    );
     rowsDiv.appendChild(artistsDiv);
 
     let max = items.length;
@@ -406,7 +418,10 @@ class PlaylistSearchCard extends HTMLElement {
     rowsDiv.appendChild(mediaTypeDiv);
 
     let moviesDiv = document.createElement("div");
-    moviesDiv.setAttribute("class", "search-movies-grid  search-grid-repeat");
+    moviesDiv.setAttribute(
+      "class",
+      "search-movies-grid  search-grid search-item-container-grid"
+    );
     rowsDiv.appendChild(moviesDiv);
 
     let max = items.length;
@@ -456,7 +471,7 @@ class PlaylistSearchCard extends HTMLElement {
     let episodesDiv = document.createElement("div");
     episodesDiv.setAttribute(
       "class",
-      "search-episodes-grid  search-grid-repeat"
+      "search-episodes-grid  search-grid search-item-container-grid"
     );
     rowsDiv.appendChild(episodesDiv);
 
@@ -516,7 +531,10 @@ class PlaylistSearchCard extends HTMLElement {
     rowsDiv.appendChild(mediaTypeDiv);
 
     let tvshowsDiv = document.createElement("div");
-    tvshowsDiv.setAttribute("class", "search-tvshows-grid  search-grid-repeat");
+    tvshowsDiv.setAttribute(
+      "class",
+      "search-tvshows-grid  search-grid search-item-container-grid"
+    );
     rowsDiv.appendChild(tvshowsDiv);
 
     let max = items.length;
@@ -564,7 +582,10 @@ class PlaylistSearchCard extends HTMLElement {
     rowsDiv.appendChild(mediaTypeDiv);
 
     let channelsDiv = document.createElement("div");
-    channelsDiv.setAttribute("class", "search-channel-grid search-grid-repeat");
+    channelsDiv.setAttribute(
+      "class",
+      "search-channel-grid search-grid search-item-container-grid"
+    );
     rowsDiv.appendChild(channelsDiv);
 
     let max = items.length;
@@ -607,6 +628,10 @@ class PlaylistSearchCard extends HTMLElement {
 
   fillAlbumDetails(items, resultDiv) {
     let albumsDiv = document.createElement("div");
+    albumsDiv.setAttribute(
+      "class",
+      "search-albumsdetails-grid search-grid search-item-container-grid"
+    );
 
     let mediaTypeDiv = document.createElement("div");
     mediaTypeDiv.setAttribute("class", "media-type-div");
@@ -619,7 +644,7 @@ class PlaylistSearchCard extends HTMLElement {
       let albumDetailsDiv = document.createElement("div");
       albumDetailsDiv.setAttribute(
         "class",
-        "search-albumdetails-grid  search-grid-repeat"
+        "search-albumdetails-grid  search-grid"
       );
 
       let cover = item["thumbnail"];
@@ -652,10 +677,16 @@ class PlaylistSearchCard extends HTMLElement {
         let songDiv = document.createElement("div");
         songDiv.setAttribute("class", "search-albumdetails-song-grid");
 
+        let trackDiv = document.createElement("div");
+        trackDiv.setAttribute("class", "search-albumdetails-song-track");
+        if (songsItem[idx]["track"]) {
+          trackDiv.innerHTML = songsItem[idx]["track"] + ".";
+        }
+        songDiv.appendChild(trackDiv);
+
         let titleDiv = document.createElement("div");
         titleDiv.setAttribute("class", "search-albumdetails-song-title");
-        titleDiv.innerHTML =
-          songsItem[idx]["track"] + ". " + songsItem[idx]["title"];
+        titleDiv.innerHTML = songsItem[idx]["title"];
         songDiv.appendChild(titleDiv);
 
         let durationDiv = document.createElement("div");
@@ -700,7 +731,7 @@ class PlaylistSearchCard extends HTMLElement {
       let seasonDiv = document.createElement("div");
       seasonDiv.setAttribute(
         "class",
-        "search-seasondetails-grid  search-grid-repeat"
+        "search-seasondetails-grid  search-grid search-item-container-grid"
       );
 
       let cover =
@@ -735,9 +766,21 @@ class PlaylistSearchCard extends HTMLElement {
         let episodeDiv = document.createElement("div");
         episodeDiv.setAttribute("class", "search-seasondetails-episode-grid");
 
+        let trackDiv = document.createElement("div");
+        trackDiv.setAttribute("class", "search-seasondetails-episode-track");
+        if (episodesItem[idx]["season"] && episodesItem[idx]["season"]) {
+          let track =
+            episodesItem[idx]["season"] +
+            "x" +
+            episodesItem[idx]["episode"].toString().padStart(2, "0") +
+            ".";
+          trackDiv.innerHTML = track;
+        }
+        episodeDiv.appendChild(trackDiv);
+
         let titleDiv = document.createElement("div");
         titleDiv.setAttribute("class", "search-seasondetails-episode-title");
-        titleDiv.innerHTML = episodesItem[idx]["label"];
+        titleDiv.innerHTML = episodesItem[idx]["title"];
         episodeDiv.appendChild(titleDiv);
 
         let playDiv = document.createElement("ha-icon");
@@ -1069,34 +1112,37 @@ class PlaylistSearchCard extends HTMLElement {
               vertical-align: text-top;
             }
 
-            .search-grid-list {
+            .search-grid {
               display: grid;
               column-gap:10px;
-              margin-top: 20px;
-              margin-bottom: 20px;
-              margin-left: 10px;
-              margin-right: 10px;
-            }
-
-            .search-grid-repeat{
               row-gap:10px;
-              display: grid;
-              column-gap:10px;
-              margin-top: 20px;
-              margin-bottom: 20px;
-              margin-left: 10px;
-              margin-right: 10px;
+              // margin-top: 20px;
+              // margin-bottom: 20px;
+              // margin-left: 10px;
+              // margin-right: 10px;
             }
 
+            .search-item-container-grid{
+              padding:10px;
+            }
 
             /*
               -----------------
               ----- SONGS -----
               -----------------
             */
+
+            .search-songs-grid{
+                grid-template-columns: auto;
+                grid-template-rows: auto;
+              }
+
+
             .search-song-grid{
+              display: grid;
               grid-template-columns: auto 1fr auto auto;
               grid-auto-rows: auto;
+              column-gap:10px;
             }
 
             .search-song-cover{
@@ -1147,7 +1193,7 @@ class PlaylistSearchCard extends HTMLElement {
           .search-album-grid{
             display: grid;
             grid-template-columns: auto 1fr;
-            grid-template-rows: auto;
+            grid-template-rows: auto auto 1fr;
             row-gap: 3px;
           }
 
@@ -1192,7 +1238,7 @@ class PlaylistSearchCard extends HTMLElement {
         .search-artist-grid{
             display: grid;
             grid-template-columns: auto 1fr;
-            grid-template-rows: auto;
+            grid-template-rows: auto 1fr;
             row-gap: 3px;
         }
 
@@ -1230,7 +1276,7 @@ class PlaylistSearchCard extends HTMLElement {
       .search-movie-grid{
         display: grid;
         grid-template-columns: auto 1fr;
-        grid-template-rows: auto;
+        grid-template-rows: auto auto 1fr;
         row-gap: 3px;
       }
 
@@ -1266,7 +1312,7 @@ class PlaylistSearchCard extends HTMLElement {
       */
       .search-episodes-grid{
         grid-template-columns: repeat(auto-fill, minmax(${this.EPISODE_THUMBNAIL_WIDTH}, 1fr));
-        grid-template-rows: auto;
+        grid-template-rows: auto auto auto 1fr;
       }
 
       .search-episode-grid{
@@ -1319,7 +1365,7 @@ class PlaylistSearchCard extends HTMLElement {
           .search-tvshow-grid{
             display: grid;
             grid-template-columns: auto 1fr;
-            grid-template-rows: auto;
+            grid-template-rows: auto auto 1fr;
             row-gap: 3px;
           }
 
@@ -1362,7 +1408,7 @@ class PlaylistSearchCard extends HTMLElement {
             .search-channel-grid{
               display: grid;
               grid-template-columns: auto 1fr;
-              grid-template-rows: auto;
+              grid-template-rows: auto auto 1fr;
               row-gap: 3px;
             }
 
@@ -1399,6 +1445,12 @@ class PlaylistSearchCard extends HTMLElement {
           ------------------------
           */
 
+          .search-albumsdetails-grid{
+            grid-template-columns: 1fr;
+            grid-auto-rows: auto;
+            // row-gap:20px;
+          }
+
           .search-albumdetails-grid{
             grid-template-columns: auto 1fr auto;
             grid-auto-rows: auto;
@@ -1427,6 +1479,7 @@ class PlaylistSearchCard extends HTMLElement {
           .search-albumdetails-duration{
             grid-column: 3;
             grid-row: 1;
+            font-weight: bold;
           }
 
           .search-albumdetails-songs{
@@ -1436,27 +1489,32 @@ class PlaylistSearchCard extends HTMLElement {
 
           .search-albumdetails-song-grid{
             display: grid;
-            grid-template-columns: 1fr auto 25px;
+            grid-template-columns: auto 1fr auto 25px;
             grid-auto-rows: auto;
-            grid-gap: 3px;
+            grid-gap: 5px;
             margin-top: 5px;
             margin-bottom: 5px;
             margin-left: 10px;
             margin-right: 10px;
           }
 
-          .search-albumdetails-song-title{
+          .search-albumdetails-song-track{
             grid-column: 1;
             grid-row: 1;
           }
 
-          .search-albumdetails-song-duration{
+          .search-albumdetails-song-title{
             grid-column: 2;
             grid-row: 1;
           }
 
-          .search-albumdetails-song-play{
+          .search-albumdetails-song-duration{
             grid-column: 3;
+            grid-row: 1;
+          }
+
+          .search-albumdetails-song-play{
+            grid-column: 4;
             grid-row: 1;
             font-size: 10px;
             text-align: right;
@@ -1493,6 +1551,8 @@ class PlaylistSearchCard extends HTMLElement {
             grid-row: 1;
           }
 
+
+
           .search-seasondetails-episodes{
             grid-column: 2 / 4;
             grid-row: 2 ;
@@ -1500,27 +1560,32 @@ class PlaylistSearchCard extends HTMLElement {
 
           .search-seasondetails-episode-grid{
             display: grid;
-            grid-template-columns: 1fr auto 25px;
+            grid-template-columns: auto 1fr auto 25px;
             grid-auto-rows: auto;
-            grid-gap: 3px;
+            grid-gap: 5px;
             margin-top: 5px;
             margin-bottom: 5px;
             margin-left: 10px;
             margin-right: 10px;
           }
-
-          .search-seasondetails-episode-title{
+          .search-seasondetails-episode-track{
             grid-column: 1;
             grid-row: 1;
           }
 
-          .search-seasondetails-episode-duration{
+          .search-seasondetails-episode-title{
             grid-column: 2;
             grid-row: 1;
           }
 
-          .search-seasondetails-episode-play{
+
+          .search-seasondetails-episode-duration{
             grid-column: 3;
+            grid-row: 1;
+          }
+
+          .search-seasondetails-episode-play{
+            grid-column: 4;
             grid-row: 1;
             font-size: 10px;
             text-align: right;

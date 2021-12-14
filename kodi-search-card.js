@@ -1,9 +1,9 @@
 const DEFAULT_SHOW_THUMBNAIL = true;
 const DEFAULT_SHOW_THUMBNAIL_BORDER = false;
 const DEFAULT_SHOW_THUMBNAIL_OVERLAY = true;
-const DEFAULT_THUMBNAIL_BORDER_COLOR = "white";
+const DEFAULT_OUTLINE_COLOR = "white";
 
-class PlaylistSearchCard extends HTMLElement {
+class SearchSensorCard extends HTMLElement {
   SONG_THUMBNAIL_WIDTH = "65px";
   // the height of the thumbnail of the movie in the search result
   MOVIE_THUMBNAIL_WIDTH = "150px";
@@ -23,7 +23,7 @@ class PlaylistSearchCard extends HTMLElement {
 
   _config_show_thumbnail = DEFAULT_SHOW_THUMBNAIL;
   _config_show_thumbnail_border = DEFAULT_SHOW_THUMBNAIL_BORDER;
-  _config_thumbnail_border_color = DEFAULT_THUMBNAIL_BORDER_COLOR;
+  _config_outline_color = DEFAULT_OUTLINE_COLOR;
   _config_show_thumbnail_overlay = DEFAULT_SHOW_THUMBNAIL_OVERLAY;
 
   static async getConfigElement() {
@@ -33,11 +33,11 @@ class PlaylistSearchCard extends HTMLElement {
 
   static getStubConfig() {
     return {
-      entity: _config.entity,
+      entity: "",
       show_thumbnail: DEFAULT_SHOW_THUMBNAIL,
       show_thumbnail_border: DEFAULT_SHOW_THUMBNAIL_BORDER,
       show_thumbnail_overlay: DEFAULT_SHOW_THUMBNAIL_OVERLAY,
-      thumbnail_border_color: DEFAULT_THUMBNAIL_BORDER_COLOR,
+      outline_color: DEFAULT_OUTLINE_COLOR,
     };
   }
 
@@ -56,8 +56,8 @@ class PlaylistSearchCard extends HTMLElement {
       this._config_show_thumbnail_border = this._config.show_thumbnail_border;
     }
 
-    if (this._config.hasOwnProperty("thumbnail_border_color")) {
-      this._config_thumbnail_border_color = this._config.thumbnail_border_color;
+    if (this._config.hasOwnProperty("outline_color")) {
+      this._config_outline_color = this._config.outline_color;
     }
 
     if (this._config.hasOwnProperty("show_thumbnail_overlay")) {
@@ -256,7 +256,15 @@ class PlaylistSearchCard extends HTMLElement {
 
     filtered = this.filterTypes(json, "channel");
     if (filtered.length > 0) {
-      this.fillChannel(filtered, this.resultDiv);
+      let channels = json.filter((item) => {
+        return item.channeltype == "tv";
+      });
+      this.fillChannel(channels, this.resultDiv, "tv");
+
+      channels = json.filter((item) => {
+        return item.channeltype == "radio";
+      });
+      this.fillChannel(channels, this.resultDiv, "radio");
     }
 
     return this.resultDiv;
@@ -574,11 +582,16 @@ class PlaylistSearchCard extends HTMLElement {
     resultDiv.appendChild(rowsDiv);
   }
 
-  fillChannel(items, resultDiv) {
+  fillChannel(items, resultDiv, type) {
     let rowsDiv = document.createElement("div");
     let mediaTypeDiv = document.createElement("div");
+
+    let iconTitle = type == "tv" ? "mdi:movie" : "mdi:music";
+    let labelTitle = type == "tv" ? "TV Channels" : "Radio Channels";
+
     mediaTypeDiv.setAttribute("class", "media-type-div");
-    mediaTypeDiv.innerHTML = 'Channels <ha-icon icon="mdi:movie"></ha-icon>';
+    mediaTypeDiv.innerHTML =
+      labelTitle + ' <ha-icon icon="' + iconTitle + '"></ha-icon>';
     rowsDiv.appendChild(mediaTypeDiv);
 
     let channelsDiv = document.createElement("div");
@@ -1607,7 +1620,7 @@ class PlaylistSearchCard extends HTMLElement {
         `
            .search-cover-image, .search-cover-image-default{
                   border: 1px solid ` +
-        this._config_thumbnail_border_color +
+        this._config_outline_color +
         `;
       }
       `;
@@ -1616,4 +1629,12 @@ class PlaylistSearchCard extends HTMLElement {
     return css;
   }
 }
-customElements.define("kodi-search-card", PlaylistSearchCard);
+
+customElements.define("kodi-search-card", SearchSensorCard);
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "kodi-search-card",
+  name: "Kodi Search Card",
+  preview: false, // Optional - defaults to false
+  description: "Shows the search of Kodi", // Optional
+});

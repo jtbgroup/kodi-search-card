@@ -44,8 +44,8 @@ export class KodiSearchCardEditor extends LitElement {
     return this._config.show_thumbnail_overlay;
   }
 
-  get _thumbnail_border_color() {
-    return this._config.thumbnail_border_color;
+  get _outline_color() {
+    return this._config.outline_color;
   }
 
   render() {
@@ -77,6 +77,16 @@ export class KodiSearchCardEditor extends LitElement {
         </div>
 
         <div class="config">
+          <span class="config-label">Show thumbnail overlay</span>
+          <ha-switch
+            .checked=${this._config.show_thumbnail_overlay}
+            .configValue="${"show_thumbnail_overlay"}"
+            @change="${this._valueChanged}"
+            class="config-component"
+          ></ha-switch>
+        </div>
+
+        <div class="config">
           <span class="config-label">Show thumbnail border</span>
           <ha-switch
             .checked=${this._config.show_thumbnail_border}
@@ -87,22 +97,12 @@ export class KodiSearchCardEditor extends LitElement {
         </div>
 
         <paper-input
-          label="Thumbnail border color"
-          .configValue="${"thumbnail_border_color"}"
-          .value=${this._config.thumbnail_border_color}
+          label="Outline color"
+          .configValue="${"outline_color"}"
+          .value=${this._config.outline_color}
           @value-changed=${this._valueChanged}
           class="config"
         ></paper-input>
-
-        <div class="config">
-          <span class="config-label">Show thumbnail overlay</span>
-          <ha-switch
-            .checked=${this._config.show_thumbnail_overlay}
-            .configValue="${"show_thumbnail_overlay"}"
-            @change="${this._valueChanged}"
-            class="config-component"
-          ></ha-switch>
-        </div>
       </div>
     `;
   }
@@ -156,11 +156,3 @@ export class KodiSearchCardEditor extends LitElement {
 }
 
 customElements.define("kodi-search-card-editor", KodiSearchCardEditor);
-
-window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "kodi-search-card",
-  name: "Kodi Search Card",
-  preview: false, // Optional - defaults to false
-  description: "Shows the search of Kodi", // Optional
-});

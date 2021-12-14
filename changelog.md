@@ -1,6 +1,6 @@
 # SEARCH CARD - Changelog
 
-## 2.4.0
+## 2.4.1
 
 - css improvements
 - Bugfix : make available in the card chooser (regression)

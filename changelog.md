@@ -3,6 +3,8 @@
 ## 2.4.0
 
 - css improvements
+- Bugfix : make available in the card chooser (regression)
+- order of the properties in the editor
 
 ## 2.3.1
 

@@ -1,7 +1,11 @@
+const SORT_ASC = "Asc";
+const SORT_DESC = "Desc";
+
 const DEFAULT_SHOW_THUMBNAIL = true;
 const DEFAULT_SHOW_THUMBNAIL_BORDER = false;
 const DEFAULT_SHOW_THUMBNAIL_OVERLAY = true;
 const DEFAULT_OUTLINE_COLOR = "white";
+const DEFAULT_ALBUM_DETAILS_SORT = SORT_DESC;
 
 class SearchSensorCard extends HTMLElement {
   SONG_THUMBNAIL_WIDTH = "65px";
@@ -25,6 +29,7 @@ class SearchSensorCard extends HTMLElement {
   _config_show_thumbnail_border = DEFAULT_SHOW_THUMBNAIL_BORDER;
   _config_outline_color = DEFAULT_OUTLINE_COLOR;
   _config_show_thumbnail_overlay = DEFAULT_SHOW_THUMBNAIL_OVERLAY;
+  _config_album_details_sort = DEFAULT_ALBUM_DETAILS_SORT;
 
   static async getConfigElement() {
     await import("./kodi-search-card-editor.js");
@@ -38,6 +43,7 @@ class SearchSensorCard extends HTMLElement {
       show_thumbnail_border: DEFAULT_SHOW_THUMBNAIL_BORDER,
       show_thumbnail_overlay: DEFAULT_SHOW_THUMBNAIL_OVERLAY,
       outline_color: DEFAULT_OUTLINE_COLOR,
+      album_details_sort: DEFAULT_ALBUM_DETAILS_SORT,
     };
   }
 
@@ -62,6 +68,10 @@ class SearchSensorCard extends HTMLElement {
 
     if (this._config.hasOwnProperty("show_thumbnail_overlay")) {
       this._config_show_thumbnail_overlay = this._config.show_thumbnail_overlay;
+    }
+
+    if (this._config.hasOwnProperty("album_details_sort")) {
+      this._config_album_details_sort = this._config.album_details_sort;
     }
 
     // Make sure this only runs once
@@ -640,6 +650,12 @@ class SearchSensorCard extends HTMLElement {
   }
 
   fillAlbumDetails(items, resultDiv) {
+    if (this._config_album_details_sort == SORT_DESC) {
+      items.sort((a, b) => parseFloat(b.year) - parseFloat(a.year));
+    } else {
+      items.sort((a, b) => parseFloat(a.year) - parseFloat(b.year));
+    }
+
     let albumsDiv = document.createElement("div");
     albumsDiv.setAttribute(
       "class",

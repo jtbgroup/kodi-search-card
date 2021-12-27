@@ -1,3 +1,5 @@
+const OptionsSort = ["Asc", "Desc"];
+
 const fireEvent = (node, type, detail, options) => {
   options = options || {};
   detail = detail === null || detail === undefined ? {} : detail;
@@ -46,6 +48,10 @@ export class KodiSearchCardEditor extends LitElement {
 
   get _outline_color() {
     return this._config.outline_color;
+  }
+
+  get _album_details_sort() {
+    return this._config.album_details_sort;
   }
 
   render() {
@@ -103,6 +109,24 @@ export class KodiSearchCardEditor extends LitElement {
           @value-changed=${this._valueChanged}
           class="config"
         ></paper-input>
+
+        <paper-dropdown-menu
+          label="Sort Albums for one artist"
+          .configValue=${"album_details_sort"}
+          @value-changed=${this._valueChanged}
+          class="config"
+        >
+          <paper-listbox
+            slot="dropdown-content"
+            .selected=${Object.values(OptionsSort).indexOf(
+              this._config.album_details_sort
+            )}
+          >
+            ${Object.values(OptionsSort).map(
+              (item) => html` <paper-item>${item}</paper-item> `
+            )}
+          </paper-listbox>
+        </paper-dropdown-menu>
       </div>
     `;
   }

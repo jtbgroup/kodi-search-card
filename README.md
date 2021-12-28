@@ -38,6 +38,7 @@ Manual installation is of course possible, but not explained here as there are p
 | show_thumbnail_overlay| boolean | `true` | v2.1 | When true, adds an lightgrey overlay above the thumbnail; this might be useful to see better the play icon displayed above the thumbnail.
 | show_thumbnail_border | boolean | `false` | v2.1 | When true, adds a 1px border around the thumbanils.
 | outline_color | string | optional<br/>default: `white` | v2.1 | This option is only used when **show_thumbnail_border** is true. The color can be a string (ex: 'white', 'red', 'green', ... ), rgb format (ex: 'rgb(10, 12, 250)') or hexa format (ex: '#EE22FF').
+| album_details_sort | string | Optional<br/> default: 'Desc' | 2.5.0 | After a first search, you can drill down by clicking on an artist to see the all the albums. This list of albums can bes sorted based on the year of the album. Values can be "Asc" or "Desc". |
 
 **No need to pass the entity of the Kodi player as it is embedded in the data of the sensor.**
 

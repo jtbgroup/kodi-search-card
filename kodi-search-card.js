@@ -1494,8 +1494,8 @@ class SearchSensorCard extends HTMLElement {
             width: ${this.ALBUM_THUMBNAIL_WIDTH};
             grid-column: 1;
             grid-row: 2 ;
+            text-align: right;
           }
-
 
           .search-albumdetails-duration{
             width: ${this.ALBUM_THUMBNAIL_WIDTH};
@@ -1568,6 +1568,7 @@ class SearchSensorCard extends HTMLElement {
             width: ${this.ALBUM_THUMBNAIL_WIDTH};
             grid-column: 1;
             grid-row: 2 ;
+            text-align: right;
           }
 
           .search-seasondetails-episodes{

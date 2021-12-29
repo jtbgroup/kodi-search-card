@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 2.5.1
+
+- layout reviewed for Albums and tvshow episodes lists: removed duration ans moved title under the cover
+
 ## 2.5.0
 
 - Sorting Albums option

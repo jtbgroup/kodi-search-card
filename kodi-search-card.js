@@ -693,7 +693,7 @@ class SearchSensorCard extends HTMLElement {
         "class",
         "search-albumdetails-title search-title"
       );
-      albumTitleDiv.innerHTML = item["title"] + " (" + item["year"] + ")";
+      albumTitleDiv.innerHTML = item["year"] + " - " + item["title"];
       albumDetailsDiv.appendChild(albumTitleDiv);
 
       let songsDiv = document.createElement("div");
@@ -717,11 +717,6 @@ class SearchSensorCard extends HTMLElement {
         titleDiv.setAttribute("class", "search-albumdetails-song-title");
         titleDiv.innerHTML = songsItem[idx]["title"];
         songDiv.appendChild(titleDiv);
-
-        let durationDiv = document.createElement("div");
-        durationDiv.innerHTML = this.formatDuration(songDuration);
-        durationDiv.setAttribute("class", "search-albumdetails-song-duration");
-        songDiv.appendChild(durationDiv);
 
         let playDiv = document.createElement("ha-icon");
         playDiv.setAttribute("icon", "mdi:play");
@@ -1145,10 +1140,6 @@ class SearchSensorCard extends HTMLElement {
               display: grid;
               column-gap:10px;
               row-gap:10px;
-              // margin-top: 20px;
-              // margin-bottom: 20px;
-              // margin-left: 10px;
-              // margin-right: 10px;
             }
 
             .search-item-container-grid{
@@ -1477,17 +1468,16 @@ class SearchSensorCard extends HTMLElement {
           .search-albumsdetails-grid{
             grid-template-columns: 1fr;
             grid-auto-rows: auto;
-            // row-gap:20px;
           }
 
           .search-albumdetails-grid{
-            grid-template-columns: auto 1fr auto;
+            grid-template-columns: auto 1fr;
             grid-auto-rows: auto;
           }
 
           .search-albumdetails-cover{
             grid-column: 1 ;
-            grid-row: 1 / 3;
+            grid-row: 1 ;
           }
 
           .search-albumdetails-cover-image{
@@ -1501,24 +1491,28 @@ class SearchSensorCard extends HTMLElement {
           }
 
           .search-albumdetails-title{
-            grid-column: 2;
-            grid-row: 1;
+            width: ${this.ALBUM_THUMBNAIL_WIDTH};
+            grid-column: 1;
+            grid-row: 2 ;
           }
 
+
           .search-albumdetails-duration{
-            grid-column: 3;
-            grid-row: 1;
-            font-weight: bold;
+            width: ${this.ALBUM_THUMBNAIL_WIDTH};
+            grid-column: 1;
+            grid-row: 3;
+            font-style: italic;
+            text-align: right;
           }
 
           .search-albumdetails-songs{
-            grid-column: 2 / 4;
-            grid-row: 2 ;
+            grid-column: 2;
+            grid-row: 1 / 5;
           }
 
           .search-albumdetails-song-grid{
             display: grid;
-            grid-template-columns: auto 1fr auto 25px;
+            grid-template-columns: auto 1fr 25px;
             grid-auto-rows: auto;
             grid-gap: 5px;
             margin-top: 5px;
@@ -1537,13 +1531,8 @@ class SearchSensorCard extends HTMLElement {
             grid-row: 1;
           }
 
-          .search-albumdetails-song-duration{
-            grid-column: 3;
-            grid-row: 1;
-          }
-
           .search-albumdetails-song-play{
-            grid-column: 4;
+            grid-column: 3;
             grid-row: 1;
             font-size: 10px;
             text-align: right;
@@ -1556,13 +1545,13 @@ class SearchSensorCard extends HTMLElement {
               --------------------------------
             */
            .search-seasondetails-grid{
-            grid-template-columns: auto 1fr auto;
+            grid-template-columns: auto 1fr;
             grid-auto-rows: auto;
           }
 
           .search-seasondetails-cover{
             grid-column: 1 ;
-            grid-row: 1 / 3;
+            grid-row: 1 ;
           }
 
           .search-seasondetails-cover-image{
@@ -1576,15 +1565,14 @@ class SearchSensorCard extends HTMLElement {
           }
 
           .search-seasondetails-title{
-            grid-column: 2;
-            grid-row: 1;
+            width: ${this.ALBUM_THUMBNAIL_WIDTH};
+            grid-column: 1;
+            grid-row: 2 ;
           }
 
-
-
           .search-seasondetails-episodes{
-            grid-column: 2 / 4;
-            grid-row: 2 ;
+            grid-column: 2 ;
+            grid-row: 1 / 4 ;
           }
 
           .search-seasondetails-episode-grid{
@@ -1604,12 +1592,6 @@ class SearchSensorCard extends HTMLElement {
 
           .search-seasondetails-episode-title{
             grid-column: 2;
-            grid-row: 1;
-          }
-
-
-          .search-seasondetails-episode-duration{
-            grid-column: 3;
             grid-row: 1;
           }
 

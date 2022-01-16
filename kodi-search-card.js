@@ -1,11 +1,22 @@
+// import "@polymer/paper-radio-button/paper-radio-button";
+
 const SORT_ASC = "Asc";
 const SORT_DESC = "Desc";
+const ACTION_ADD = "Add";
+const ACTION_PLAY = "Play";
+const METHOD_ADD = "add";
+const METHOD_PLAY = "play";
+
+const ACTION_MODES = [ACTION_PLAY, ACTION_ADD];
+const ACTION_METHODES = [METHOD_PLAY, METHOD_ADD];
 
 const DEFAULT_SHOW_THUMBNAIL = true;
 const DEFAULT_SHOW_THUMBNAIL_BORDER = false;
 const DEFAULT_SHOW_THUMBNAIL_OVERLAY = true;
 const DEFAULT_OUTLINE_COLOR = "white";
 const DEFAULT_ALBUM_DETAILS_SORT = SORT_DESC;
+const DEFAULT_ACTION = ACTION_PLAY;
+const DEFAULT_ADD_POSITION = 1;
 
 class SearchSensorCard extends HTMLElement {
   SONG_THUMBNAIL_WIDTH = "65px";
@@ -30,6 +41,8 @@ class SearchSensorCard extends HTMLElement {
   _config_outline_color = DEFAULT_OUTLINE_COLOR;
   _config_show_thumbnail_overlay = DEFAULT_SHOW_THUMBNAIL_OVERLAY;
   _config_album_details_sort = DEFAULT_ALBUM_DETAILS_SORT;
+  _config_action = DEFAULT_ACTION;
+  _config_position = DEFAULT_ADD_POSITION;
 
   static async getConfigElement() {
     await import("./kodi-search-card-editor.js");
@@ -44,6 +57,8 @@ class SearchSensorCard extends HTMLElement {
       show_thumbnail_overlay: DEFAULT_SHOW_THUMBNAIL_OVERLAY,
       outline_color: DEFAULT_OUTLINE_COLOR,
       album_details_sort: DEFAULT_ALBUM_DETAILS_SORT,
+      action: DEFAULT_ACTION,
+      position: DEFAULT_ADD_POSITION,
     };
   }
 
@@ -72,6 +87,14 @@ class SearchSensorCard extends HTMLElement {
 
     if (this._config.hasOwnProperty("album_details_sort")) {
       this._config_album_details_sort = this._config.album_details_sort;
+    }
+
+    if (this._config.hasOwnProperty("action")) {
+      this._config_action = this._config.action;
+    }
+
+    if (this._config.hasOwnProperty("add_position")) {
+      this._config_add_position = this._config.add_position;
     }
 
     // Make sure this only runs once
@@ -134,10 +157,54 @@ class SearchSensorCard extends HTMLElement {
     recentButton.innerHTML = "All recently added";
     recentButton.addEventListener("click", () => this.recent());
 
+    // ATTEMPT LIST
+
+    let actionModes = document.createElement("div");
+    actionModes.setAttribute("id", "form-actions");
+
+    let message = document.createElement("div");
+    message.innerHTML = "Choose your action mode";
+    actionModes.appendChild(message);
+
+    let menu = document.createElement("paper-menu-button");
+    menu.setAttribute("slot", "dropdown-trigger");
+
+    this.actionModeButton = document.createElement("paper-button");
+    this.actionModeButton.setAttribute("slot", "dropdown-trigger");
+    this.renderActionModeButton();
+    menu.appendChild(this.actionModeButton);
+
+    let list = document.createElement("paper-listbox");
+    list.setAttribute("slot", "dropdown-content");
+    list.setAttribute("selected", ACTION_MODES.indexOf(this._config_action));
+    list.addEventListener("click", (e) => this.actionModeChanged(e));
+    menu.appendChild(list);
+
+    for (var i = 0; i < ACTION_MODES.length; i++) {
+      const key = ACTION_MODES[i];
+      let item = document.createElement("paper-item");
+      item.setAttribute("value", key);
+      item.innerHTML = key;
+      list.appendChild(item);
+    }
+    actionModes.appendChild(menu);
+
     this.searchFormDiv.appendChild(this.searchInput);
     this.searchFormDiv.appendChild(searchButton);
     this.searchFormDiv.appendChild(recentButton);
     this.searchFormDiv.appendChild(cancelButton);
+    this.searchFormDiv.appendChild(actionModes);
+  }
+
+  renderActionModeButton() {
+    this.actionModeButton.innerHTML = this._config_action;
+  }
+
+  actionModeChanged(event) {
+    this._config_action = event.target.getAttribute("value");
+    this.renderActionModeButton();
+    this.renderActionModeIcon();
+    this.fillResultContainer();
   }
 
   set hass(hass) {
@@ -147,28 +214,28 @@ class SearchSensorCard extends HTMLElement {
 
     const entity = this._config.entity;
 
-    let state = hass.states[entity];
-    if (!state) {
+    this.state = hass.states[entity];
+    if (!this.state) {
       console.error("no state for the sensor");
       return;
     }
 
-    if (state.state == "off") {
+    if (this.state.state == "off") {
       this.content.innerHTML = ``;
       this.content.appendChild(this.kodiOffMessageDiv);
     } else {
-      let meta = state.attributes.meta;
+      let meta = this.state.attributes.meta;
       if (!meta) {
         console.error("no metadata for the sensor");
         return;
       }
-      const json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
-      if (json_meta.length == 0) {
+      this.json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
+      if (this.json_meta.length == 0) {
         console.error("empty metadata attribute");
         return;
       }
 
-      let update_time = json_meta[0]["update_time"];
+      let update_time = this.json_meta[0]["update_time"];
       if (this.last_update_time && this.last_update_time == update_time) {
         console.log("no update available");
         return;
@@ -187,21 +254,30 @@ class SearchSensorCard extends HTMLElement {
         this.content.appendChild(this.container);
       }
 
-      if (this.resultDiv && this.container.contains(this.resultDiv)) {
-        this.container.removeChild(this.resultDiv);
-      }
-
-      this._service_domain = json_meta[0]["service_domain"];
-
-      let data = state.attributes.data;
-      const json = typeof data == "object" ? data : JSON.parse(data);
-
-      if (json_meta[0]["search"] && json.length == 0) {
-        this.container.appendChild(this.createNoResult());
-      } else {
-        this.container.appendChild(this.createResult(json));
-      }
+      this.fillResultContainer();
     }
+  }
+
+  fillResultContainer() {
+    if (this.resultDiv && this.container.contains(this.resultDiv)) {
+      this.container.removeChild(this.resultDiv);
+    }
+
+    this._service_domain = this.json_meta[0]["service_domain"];
+
+    let data = this.state.attributes.data;
+    const json = typeof data == "object" ? data : JSON.parse(data);
+
+    if (this.json_meta[0]["search"] && json.length == 0) {
+      this.container.appendChild(this.createNoResult());
+    } else {
+      this.container.appendChild(this.createResult(json));
+    }
+  }
+
+  getActionIcon() {
+    if (this._config_action == ACTION_PLAY) return "mdi:play";
+    return "mdi:plus";
   }
 
   filterTypes(json, value) {
@@ -303,14 +379,15 @@ class SearchSensorCard extends HTMLElement {
       songsDiv.appendChild(songDiv);
 
       let cover = item["thumbnail"];
+      let icon = this.getActionIcon();
       let coverDiv = this.prepareCover(
         cover,
         "search-song-cover",
         "search-song-cover-image",
         "search-song-cover-image-default",
-        "mdi:play",
+        icon,
         "mdi:music",
-        () => this.playSong(item["songid"])
+        () => this.addSong(item["songid"])
       );
       songDiv.appendChild(coverDiv);
 
@@ -361,15 +438,17 @@ class SearchSensorCard extends HTMLElement {
       albumDiv.setAttribute("class", "search-album-grid");
       albumsDiv.appendChild(albumDiv);
 
+      let actionIcon = this.getActionIcon();
       let cover = item["thumbnail"];
       let coverDiv = this.prepareCover(
         cover,
         "search-album-cover",
         "search-album-cover-image",
         "search-album-cover-image-default",
-        "mdi:play",
+        actionIcon,
         "mdi:disc",
-        () => this.playAlbum(item["albumid"])
+        // () => this.playAlbum(item["albumid"])
+        () => this.addAlbum(item["albumid"])
       );
       albumDiv.appendChild(coverDiv);
 
@@ -455,14 +534,15 @@ class SearchSensorCard extends HTMLElement {
           ? item["poster"]
           : item["thumbnail"];
 
+      let icon = this.getActionIcon();
       let coverDiv = this.prepareCover(
         cover,
         "search-movie-cover",
         "search-movie-cover-image",
         "search-movie-cover-image-default",
-        "mdi:play",
+        icon,
         "mdi:movie",
-        () => this.playMovie(item["movieid"])
+        () => this.addMovie(item["movieid"])
       );
       movieDiv.appendChild(coverDiv);
 
@@ -501,6 +581,7 @@ class SearchSensorCard extends HTMLElement {
       episodeDiv.setAttribute("class", "search-episode-grid");
       episodesDiv.appendChild(episodeDiv);
 
+      let icon = this.getActionIcon();
       let cover =
         item["poster"] && item["poster"] != ""
           ? item["poster"]
@@ -511,9 +592,9 @@ class SearchSensorCard extends HTMLElement {
         "search-episode-cover",
         "search-episode-cover-image",
         "search-episode-cover-image-default",
-        "mdi:play",
+        icon,
         "mdi:movie",
-        () => this.playEpisode(item["episodeid"])
+        () => this.addEpisode(item["episodeid"])
       );
       episodeDiv.appendChild(coverDiv);
 
@@ -624,14 +705,15 @@ class SearchSensorCard extends HTMLElement {
           ? item["poster"]
           : item["thumbnail"];
 
+      let icon = this.getActionIcon();
       let coverDiv = this.prepareCover(
         cover,
         "search-channel-cover",
         "search-channel-cover-image",
         "search-channel-cover-image-default",
-        "mdi:play",
+        icon,
         "mdi:movie",
-        () => this.playChannel(item["channelid"])
+        () => this.addChannel(item["channelid"])
       );
       channelDiv.appendChild(coverDiv);
 
@@ -676,15 +758,17 @@ class SearchSensorCard extends HTMLElement {
         "search-albumdetails-grid  search-grid"
       );
 
+      let actionIcon = this.getActionIcon();
       let cover = item["thumbnail"];
       let coverDiv = this.prepareCover(
         cover,
         "search-albumdetails-cover",
         "search-albumdetails-cover-image",
         "search-albumdetails-cover-image-default",
-        "mdi:play",
+        actionIcon,
         "mdi:music",
-        () => this.playAlbum(item["albumid"])
+        // () => this.playAlbum(item["albumid"])
+        () => this.addAlbum(item["albumid"])
       );
       albumDetailsDiv.appendChild(coverDiv);
 
@@ -718,11 +802,13 @@ class SearchSensorCard extends HTMLElement {
         titleDiv.innerHTML = songsItem[idx]["title"];
         songDiv.appendChild(titleDiv);
 
+        let actionIcon = this.getActionIcon();
         let playDiv = document.createElement("ha-icon");
-        playDiv.setAttribute("icon", "mdi:play");
+        playDiv.setAttribute("icon", actionIcon);
         playDiv.setAttribute("class", "search-albumdetails-song-play");
         playDiv.addEventListener("click", () =>
-          this.playSong(songsItem[idx]["songid"])
+          // this.playSong(songsItem[idx]["songid"])
+          this.addSong(songsItem[idx]["songid"])
         );
         songDiv.appendChild(playDiv);
 
@@ -764,14 +850,15 @@ class SearchSensorCard extends HTMLElement {
           : item["thumbnail"];
 
       const episodes = item["episodes"].map((x) => x.episodeid);
+      let icon = this.getActionIcon();
       let coverDiv = this.prepareCover(
         cover,
         "search-seasondetails-cover",
         "search-seasondetails-cover-image",
         "search-seasondetails-cover-image-default",
-        "mdi:play",
+        icon,
         "mdi:movie",
-        () => this.playEpisodes(episodes)
+        () => this.addEpisodes(episodes)
       );
       seasonDiv.appendChild(coverDiv);
 
@@ -897,6 +984,7 @@ class SearchSensorCard extends HTMLElement {
     });
     this.searchInput.value = "";
   }
+
   search() {
     let searchText = this.searchInput.value;
     this._hass.callService(this._service_domain, "call_method", {
@@ -945,53 +1033,155 @@ class SearchSensorCard extends HTMLElement {
     });
   }
 
-  playSong(song_id) {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "play",
-      songid: song_id,
-    });
+  addSong(song_id) {
+    if (this._config_action == ACTION_PLAY) {
+      this._hass.callService(this._service_domain, "call_method", {
+        entity_id: this._config.entity,
+        method: METHOD_PLAY,
+        songid: song_id,
+      });
+    } else {
+      this._hass.callService(this._service_domain, "call_method", {
+        entity_id: this._config.entity,
+        method: METHOD_ADD,
+        songid: song_id,
+        position: parseInt(this._config_add_position, 10),
+      });
+    }
   }
 
-  playAlbum(album_id) {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "play",
-      albumid: album_id,
-    });
+  addAlbum(album_id) {
+    if (this._config_action == ACTION_PLAY) {
+      this._hass.callService(this._service_domain, "call_method", {
+        entity_id: this._config.entity,
+        method: METHOD_PLAY,
+        albumid: album_id,
+      });
+    } else {
+      this._hass.callService(this._service_domain, "call_method", {
+        entity_id: this._config.entity,
+        method: METHOD_ADD,
+        albumid: album_id,
+        position: parseInt(this._config_add_position, 10),
+      });
+    }
   }
 
-  playMovie(movie_id) {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "play",
-      movieid: movie_id,
-    });
+  // playSong(song_id) {
+  //   this._hass.callService(this._service_domain, "call_method", {
+  //     entity_id: this._config.entity,
+  //     method: "play",
+  //     songid: song_id,
+  //   });
+  // }
+
+  // playAlbum(album_id) {
+  //   this._hass.callService(this._service_domain, "call_method", {
+  //     entity_id: this._config.entity,
+  //     method: "play",
+  //     albumid: album_id,
+  //   });
+  // }
+
+  addMovie(movie_id) {
+    if (this._config_action == ACTION_PLAY) {
+      this._hass.callService(this._service_domain, "call_method", {
+        entity_id: this._config.entity,
+        method: METHOD_PLAY,
+        movieid: movie_id,
+      });
+    } else {
+      this._hass.callService(this._service_domain, "call_method", {
+        entity_id: this._config.entity,
+        method: METHOD_ADD,
+        movieid: movie_id,
+        position: parseInt(this._config_add_position, 10),
+      });
+    }
   }
 
-  playChannel(channel_id) {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "play",
-      channelid: channel_id,
-    });
+  // playMovie(movie_id) {
+  //   this._hass.callService(this._service_domain, "call_method", {
+  //     entity_id: this._config.entity,
+  //     method: "play",
+  //     movieid: movie_id,
+  //   });
+  // }
+
+  addChannel(channel_id) {
+    if (this._config_action == ACTION_PLAY) {
+      this._hass.callService(this._service_domain, "call_method", {
+        entity_id: this._config.entity,
+        method: METHOD_PLAY,
+        channelid: channel_id,
+      });
+    } else {
+      this._hass.callService(this._service_domain, "call_method", {
+        entity_id: this._config.entity,
+        method: METHOD_ADD,
+        channelid: channel_id,
+        position: parseInt(this._config_add_position, 10),
+      });
+    }
   }
 
-  playEpisode(episode_id) {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "play",
-      episodeid: episode_id,
-    });
+  // playChannel(channel_id) {
+  //   this._hass.callService(this._service_domain, "call_method", {
+  //     entity_id: this._config.entity,
+  //     method: "play",
+  //     channelid: channel_id,
+  //   });
+  // }
+
+  addEpisode(episode_id) {
+    if (this._config_action == ACTION_PLAY) {
+      this._hass.callService(this._service_domain, "call_method", {
+        entity_id: this._config.entity,
+        method: METHOD_PLAY,
+        episodeid: episode_id,
+      });
+    } else {
+      this._hass.callService(this._service_domain, "call_method", {
+        entity_id: this._config.entity,
+        method: METHOD_ADD,
+        episodeid: episode_id,
+        position: parseInt(this._config_add_position, 10),
+      });
+    }
   }
 
-  playEpisodes(episode_ids) {
-    this._hass.callService(this._service_domain, "call_method", {
-      entity_id: this._config.entity,
-      method: "play",
-      episodeid: episode_ids,
-    });
+  // playEpisode(episode_id) {
+  //   this._hass.callService(this._service_domain, "call_method", {
+  //     entity_id: this._config.entity,
+  //     method: "play",
+  //     episodeid: episode_id,
+  //   });
+  // }
+
+  addEpisodes(episode_ids) {
+    if (this._config_action == ACTION_PLAY) {
+      this._hass.callService(this._service_domain, "call_method", {
+        entity_id: this._config.entity,
+        method: METHOD_PLAY,
+        episodeid: episode_ids,
+      });
+    } else {
+      this._hass.callService(this._service_domain, "call_method", {
+        entity_id: this._config.entity,
+        method: METHOD_ADD,
+        episodeid: episode_ids,
+        position: parseInt(this._config_add_position, 10),
+      });
+    }
   }
+
+  // playEpisodes(episode_ids) {
+  //   this._hass.callService(this._service_domain, "call_method", {
+  //     entity_id: this._config.entity,
+  //     method: "play",
+  //     episodeid: episode_ids,
+  //   });
+  // }
 
   getCardSize() {
     // let view = this.config.image_style || "poster";
@@ -1029,7 +1219,7 @@ class SearchSensorCard extends HTMLElement {
           */
             .search-form{
               display: grid;
-              grid-template-columns: 50% 50%;
+              grid-template-columns: 1fr 1fr 100px;
               grid-gap: 3px;
               margin-top: 20px;
               margin-bottom: 20px;
@@ -1038,7 +1228,7 @@ class SearchSensorCard extends HTMLElement {
             }
 
             #kodi_sensor_search_input{
-              grid-column: 1 / 3;
+              grid-column: 1 / 4;
               grid-row: 1;
             }
 
@@ -1048,14 +1238,25 @@ class SearchSensorCard extends HTMLElement {
               margin-bottom: 30px;
             }
 
+
+            #form-btn-recent{
+              grid-column: 1;
+              grid-row: 3;
+            }
+
             #form-btn-cancel{
               grid-column: 2;
               grid-row: 3;
             }
 
-            #form-btn-recent{
-              grid-column: 1;
-              grid-row: 3;
+            #form-actions{
+              grid-column: 3 / 4;
+              grid-row: 2 / 4;
+              border: 1px solid red;
+              display: grid;
+              grid-template-columns: fill;
+              grid template-rows: auto;
+              grid-gap: 3px;
             }
 
             .search-container-grid{

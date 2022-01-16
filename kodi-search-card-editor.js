@@ -1,4 +1,5 @@
 const OptionsSort = ["Asc", "Desc"];
+const OptionsAction = ["Play", "Add"];
 
 const fireEvent = (node, type, detail, options) => {
   options = options || {};
@@ -52,6 +53,14 @@ export class KodiSearchCardEditor extends LitElement {
 
   get _album_details_sort() {
     return this._config.album_details_sort;
+  }
+
+  get _action() {
+    return this._config.action;
+  }
+
+  get _add_position() {
+    return this._config.add_position;
   }
 
   render() {
@@ -127,6 +136,33 @@ export class KodiSearchCardEditor extends LitElement {
             )}
           </paper-listbox>
         </paper-dropdown-menu>
+
+        <paper-dropdown-menu
+          label="Action to do when clicked"
+          .configValue=${"action"}
+          @value-changed=${this._valueChanged}
+          class="config"
+        >
+          <paper-listbox
+            slot="dropdown-content"
+            .selected=${Object.values(OptionsAction).indexOf(
+              this._config.action
+            )}
+          >
+            ${Object.values(OptionsAction).map(
+              (item) => html` <paper-item>${item}</paper-item> `
+            )}
+          </paper-listbox>
+        </paper-dropdown-menu>
+
+        <paper-input
+          type="number"
+          label="Position where to add the item (if action 'Add')"
+          .configValue="${"add_position"}"
+          .value=${this._config.add_position}
+          @value-changed=${this._valueChanged}
+          class="config"
+        ></paper-input>
       </div>
     `;
   }

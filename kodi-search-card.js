@@ -7,8 +7,13 @@ const ACTION_PLAY = "Play";
 const METHOD_ADD = "add";
 const METHOD_PLAY = "play";
 
+const ACTION_MAP = {
+  Play: { icon: "mdi:play", method: "play" },
+  Add: { icon: "mdi:plus", method: "add" },
+};
 const ACTION_MODES = [ACTION_PLAY, ACTION_ADD];
 const ACTION_METHODES = [METHOD_PLAY, METHOD_ADD];
+const ACTION_ICONS = ["mdi:play", "mdi:plus"];
 
 const DEFAULT_SHOW_THUMBNAIL = true;
 const DEFAULT_SHOW_THUMBNAIL_BORDER = false;
@@ -159,51 +164,108 @@ class SearchSensorCard extends HTMLElement {
 
     // ATTEMPT LIST
 
-    let actionModes = document.createElement("div");
-    actionModes.setAttribute("id", "form-actions");
+    this.actionModeIcon = document.createElement("ha-icon");
+    this.renderActionModeIcon();
 
-    let message = document.createElement("div");
-    message.innerHTML = "Choose your action mode";
-    actionModes.appendChild(message);
+    let actionModePaperButton = document.createElement("paper-button");
+    actionModePaperButton.setAttribute(
+      "class",
+      "action_mode_icon_button action_mode_icon_button_selected"
+    );
+    actionModePaperButton.appendChild(this.actionModeIcon);
 
-    let menu = document.createElement("paper-menu-button");
-    menu.setAttribute("slot", "dropdown-trigger");
-
-    this.actionModeButton = document.createElement("paper-button");
-    this.actionModeButton.setAttribute("slot", "dropdown-trigger");
+    this.actionModeLabel = document.createElement("div");
+    this.actionModeLabel.setAttribute("class", "action_button_comp_label");
     this.renderActionModeButton();
-    menu.appendChild(this.actionModeButton);
 
-    let list = document.createElement("paper-listbox");
-    list.setAttribute("slot", "dropdown-content");
-    list.setAttribute("selected", ACTION_MODES.indexOf(this._config_action));
-    list.addEventListener("click", (e) => this.actionModeChanged(e));
-    menu.appendChild(list);
+    let actionModeButtonDiv = document.createElement("div");
+    actionModeButtonDiv.setAttribute("class", "action_button_comp");
+    actionModeButtonDiv.setAttribute("slot", "dropdown-trigger");
+    actionModeButtonDiv.appendChild(actionModePaperButton);
+    actionModeButtonDiv.appendChild(this.actionModeLabel);
 
-    for (var i = 0; i < ACTION_MODES.length; i++) {
-      const key = ACTION_MODES[i];
-      let item = document.createElement("paper-item");
-      item.setAttribute("value", key);
-      item.innerHTML = key;
-      list.appendChild(item);
+    let mapKeys = Object.keys(ACTION_MAP);
+    let actionModelistBox = document.createElement("paper-listbox");
+    actionModelistBox.setAttribute("slot", "dropdown-content");
+    actionModelistBox.setAttribute(
+      "selected",
+      mapKeys.indexOf(this._config_action)
+    );
+    actionModelistBox.addEventListener("iron-select", (e) =>
+      this.actionModeChanged(e)
+    );
+
+    for (var i = 0; i < mapKeys.length; i++) {
+      const key = mapKeys[i];
+      // let item = document.createElement("paper-item");
+      // item.setAttribute("value", key);
+      // item.innerHTML = key;
+      // actionModelistBox.appendChild(item);
+
+      let iconClass = "action_mode_icon_button";
+      if (key == this._config_action) {
+        iconClass = iconClass + " action_mode_icon_button_selected";
+      } else {
+        iconClass = iconClass + " action_mode_icon_button_unselected";
+      }
+
+      let optionModeIcon = document.createElement("ha-icon");
+      // optionModeIcon.setAttribute("value", key);
+      optionModeIcon.setAttribute("icon", ACTION_MAP[key].icon);
+
+      let optionModePaperButton = document.createElement("paper-button");
+      optionModePaperButton.setAttribute("class", iconClass);
+      // optionModePaperButton.setAttribute("value", key);
+      optionModePaperButton.appendChild(optionModeIcon);
+
+      let optionModeLabel = document.createElement("div");
+      optionModeLabel.setAttribute("class", "action_button_comp_label");
+      // optionModeLabel.setAttribute("value", key);
+      optionModeLabel.innerHTML = key;
+
+      let optionItemDiv = document.createElement("div");
+      optionItemDiv.setAttribute("class", "action_button_comp");
+      optionItemDiv.setAttribute("value", key);
+      // optionItemDiv.innerHTML = key;
+      optionItemDiv.appendChild(optionModePaperButton);
+      optionItemDiv.appendChild(optionModeLabel);
+
+      actionModelistBox.appendChild(optionItemDiv);
     }
-    actionModes.appendChild(menu);
+
+    let actionModeMenuButton = document.createElement("paper-menu-button");
+    actionModeMenuButton.setAttribute("aria-haspopup", "true");
+    actionModeMenuButton.appendChild(actionModeButtonDiv);
+    actionModeMenuButton.appendChild(actionModelistBox);
+
+    let actionModemessage = document.createElement("div");
+    actionModemessage.innerHTML = "Choose your action mode";
+
+    let actionModeContainer = document.createElement("div");
+    actionModeContainer.setAttribute("id", "form-actions");
+    actionModeContainer.appendChild(actionModemessage);
+    actionModeContainer.appendChild(actionModeMenuButton);
 
     this.searchFormDiv.appendChild(this.searchInput);
     this.searchFormDiv.appendChild(searchButton);
     this.searchFormDiv.appendChild(recentButton);
     this.searchFormDiv.appendChild(cancelButton);
-    this.searchFormDiv.appendChild(actionModes);
+    this.searchFormDiv.appendChild(actionModeContainer);
   }
 
   renderActionModeButton() {
-    this.actionModeButton.innerHTML = this._config_action;
+    this.actionModeLabel.innerHTML = this._config_action;
+  }
+
+  renderActionModeIcon() {
+    let mapKeys = ACTION_MAP[this._config_action];
+    this.actionModeIcon.setAttribute("icon", mapKeys.icon);
   }
 
   actionModeChanged(event) {
-    this._config_action = event.target.getAttribute("value");
-    this.renderActionModeButton();
+    this._config_action = event.detail.item.getAttribute("value");
     this.renderActionModeIcon();
+    this.renderActionModeButton();
     this.fillResultContainer();
   }
 
@@ -1219,7 +1281,7 @@ class SearchSensorCard extends HTMLElement {
           */
             .search-form{
               display: grid;
-              grid-template-columns: 1fr 1fr 100px;
+              grid-template-columns: 1fr 1fr auto;
               grid-gap: 3px;
               margin-top: 20px;
               margin-bottom: 20px;
@@ -1274,6 +1336,33 @@ class SearchSensorCard extends HTMLElement {
             margin-right: 10px;
           }
 
+          .action_mode_icon_button{
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+
+          .action_mode_icon_button_selected{
+            background-color: var(--slider-color);
+          }
+
+          .action_mode_icon_button_unselected{
+            background-color: var(--slider-secondary-color);
+          }
+
+          .action_button_comp{
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-rows: auto;
+            grid-gap: 10px;
+          }
+          .action_button_comp_label{
+            margin-top: auto;
+            margin-bottom: auto;
+          }
 
           /*
             -----------------

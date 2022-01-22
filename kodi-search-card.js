@@ -10,7 +10,7 @@ const DEFAULT_SHOW_THUMBNAIL_BORDER = false;
 const DEFAULT_SHOW_THUMBNAIL_OVERLAY = true;
 const DEFAULT_OUTLINE_COLOR = "white";
 const DEFAULT_ALBUM_DETAILS_SORT = SORT_DESC;
-const DEFAULT_ACTION = Object.keys(ACTION_MAP)[0];
+const DEFAULT_ACTION_MODE = Object.keys(ACTION_MAP)[0];
 const DEFAULT_ADD_POSITION = 1;
 
 class SearchSensorCard extends HTMLElement {
@@ -36,8 +36,8 @@ class SearchSensorCard extends HTMLElement {
   _config_outline_color = DEFAULT_OUTLINE_COLOR;
   _config_show_thumbnail_overlay = DEFAULT_SHOW_THUMBNAIL_OVERLAY;
   _config_album_details_sort = DEFAULT_ALBUM_DETAILS_SORT;
-  _config_action = DEFAULT_ACTION;
-  _config_position = DEFAULT_ADD_POSITION;
+  _config_action_mode = DEFAULT_ACTION_MODE;
+  _config_add_position = DEFAULT_ADD_POSITION;
 
   static async getConfigElement() {
     await import("./kodi-search-card-editor.js");
@@ -52,8 +52,8 @@ class SearchSensorCard extends HTMLElement {
       show_thumbnail_overlay: DEFAULT_SHOW_THUMBNAIL_OVERLAY,
       outline_color: DEFAULT_OUTLINE_COLOR,
       album_details_sort: DEFAULT_ALBUM_DETAILS_SORT,
-      action: DEFAULT_ACTION,
-      position: DEFAULT_ADD_POSITION,
+      action_mode: DEFAULT_ACTION,
+      add_position: DEFAULT_ADD_POSITION,
     };
   }
 
@@ -84,8 +84,8 @@ class SearchSensorCard extends HTMLElement {
       this._config_album_details_sort = this._config.album_details_sort;
     }
 
-    if (this._config.hasOwnProperty("action")) {
-      this._config_action = this._config.action;
+    if (this._config.hasOwnProperty("action_mode")) {
+      this._config_action_mode = this._config.action_mode;
     }
 
     if (this._config.hasOwnProperty("add_position")) {
@@ -174,7 +174,7 @@ class SearchSensorCard extends HTMLElement {
 
     let mapKeyz = Object.keys(ACTION_MAP);
     let lb = document.createElement("paper-listbox");
-    lb.setAttribute("selected", mapKeyz.indexOf(this._config_action));
+    lb.setAttribute("selected", mapKeyz.indexOf(this._config_action_mode));
     lb.setAttribute("slot", "dropdown-content");
     lb.addEventListener("iron-select", (e) => this.actionModeChanged(e));
     pb.appendChild(lb);
@@ -195,16 +195,16 @@ class SearchSensorCard extends HTMLElement {
   }
 
   renderActionModeButton() {
-    this.actionModeLabel.innerHTML = this._config_action;
+    this.actionModeLabel.innerHTML = this._config_action_mode;
   }
 
   renderActionModeIcon() {
-    let mapKeys = ACTION_MAP[this._config_action];
+    let mapKeys = ACTION_MAP[this._config_action_mode];
     this.actionModeIcon.setAttribute("icon", mapKeys.icon);
   }
 
   actionModeChanged(event) {
-    this._config_action = event.detail.item.getAttribute("value");
+    this._config_action_mode = event.detail.item.getAttribute("value");
     this.fillResultContainer();
   }
 
@@ -277,7 +277,7 @@ class SearchSensorCard extends HTMLElement {
   }
 
   getActionIcon() {
-    return ACTION_MAP[this._config_action].icon;
+    return ACTION_MAP[this._config_action_mode].icon;
   }
 
   filterTypes(json, value) {
@@ -1034,7 +1034,7 @@ class SearchSensorCard extends HTMLElement {
   }
 
   addItem(item_key, item_id) {
-    let meth = ACTION_MAP[this._config_action].method;
+    let meth = ACTION_MAP[this._config_action_mode].method;
     let params = {
       entity_id: this._config.entity,
       method: meth,

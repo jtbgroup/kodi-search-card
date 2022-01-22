@@ -1,8 +1,12 @@
 # SEARCH CARD - Changelog
 
+## 2.6.0
+
+- added the action mode option to choose between add and play
+
 ## 2.5.1
 
-- layout reviewed for Albums and tvshow episodes lists: removed duration ans moved title under the cover
+- layout reviewed for Albums and tvshow episodes lists: removed duration and moved title under the cover
 
 ## 2.5.0
 

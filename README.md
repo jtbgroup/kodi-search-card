@@ -6,7 +6,7 @@ This card is intented to be an alternative to an iframe containing Chorus.
 
 | Search Form |
 | ---- |
-<img src="https://raw.githubusercontent.com/jtbgroup/kodi-search-card/master/assets/search_result_v3.1.png" alt="Search Form" width="400"/> 
+| ![Kodi Search Card](./assets/search_result_v2.1.png) |
 
 ## Requirements
 
@@ -39,6 +39,8 @@ Manual installation is of course possible, but not explained here as there are p
 | show_thumbnail_border | boolean | `false` | v2.1 | When true, adds a 1px border around the thumbanils.
 | outline_color | string | optional<br/>default: `white` | v2.1 | This option is only used when **show_thumbnail_border** is true. The color can be a string (ex: 'white', 'red', 'green', ... ), rgb format (ex: 'rgb(10, 12, 250)') or hexa format (ex: '#EE22FF').
 | album_details_sort | string | Optional<br/> default: 'Desc' | 2.5.0 | After a first search, you can drill down by clicking on an artist to see the all the albums. This list of albums can bes sorted based on the year of the album. Values can be "Asc" or "Desc". |
+| action_mode | string | Optional <br /> default: 'Play'| 2.6.0 | This property allows to choose between 'Add' ou 'Play' as action when clicking on an item. The value is overridden by the value of the Action Mode component in the search form of the card. |
+| add_position | integer | Optional<br /> default: 1 | 2.6.0 | This value indicates where to add an item in the playlist.<br/>0 = first position, 1 = second position, 1000 = 1001th position. To add an item as last position, use a value that is > than the size of the playlist.<br/> This parameters is only useful when selecting 'Add' as action mode (card configuration and/or search form of the card) |
 
 **No need to pass the entity of the Kodi player as it is embedded in the data of the sensor.**
 

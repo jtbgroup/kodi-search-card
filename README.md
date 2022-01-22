@@ -4,9 +4,9 @@ This card displays a search form to query the kodi entity.
 
 This card is intented to be an alternative to an iframe containing Chorus.
 
-| Search Form |
-| ---- |
-| ![Kodi Search Card](./assets/search_result_v2.1.png) |
+| Search Form | Search Form | 
+| ---- | ---- |
+| ![Kodi Search Card](./assets/search_result_v2.6_1.png) | ![Kodi Search Card](./assets/search_result_v2.6_2.png) |
 
 ## Requirements
 

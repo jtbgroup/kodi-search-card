@@ -152,8 +152,6 @@ class SearchSensorCard extends HTMLElement {
     recentButton.innerHTML = "All recently added";
     recentButton.addEventListener("click", () => this.recent());
 
-    // ATTEMPT LIST
-
     let actionModeContainerOut = document.createElement("div");
     actionModeContainerOut.setAttribute("class", "action-mode-container-out");
 
@@ -170,6 +168,7 @@ class SearchSensorCard extends HTMLElement {
     actionModeContainer.appendChild(tst);
 
     let pb = document.createElement("paper-dropdown-menu-light");
+    pb.setAttribute("class", "action-mode-dropdown");
     pb.setAttribute("label", "Choose the action mode");
     tst.appendChild(pb);
 
@@ -195,45 +194,6 @@ class SearchSensorCard extends HTMLElement {
     this.searchFormDiv.appendChild(actionModeContainerOut);
   }
 
-  renderListBox() {
-    this.actionModelistBox.innerHTML = "";
-    let mapKeys = Object.keys(ACTION_MAP);
-    for (var i = 0; i < mapKeys.length; i++) {
-      const key = mapKeys[i];
-
-      let optionItemDiv = document.createElement("div");
-      optionItemDiv.setAttribute("value", key);
-
-      let optionItemDiv2 = document.createElement("div");
-      optionItemDiv2.setAttribute("class", "action-button-comp");
-      optionItemDiv.appendChild(optionItemDiv2);
-
-      let iconClass = "action-mode-icon-button";
-      if (key == this._config_action) {
-        iconClass = iconClass + " action-mode-icon-button-selected";
-      } else {
-        iconClass = iconClass + " action-mode-icon-button-unselected";
-      }
-
-      let optionModeIcon = document.createElement("ha-icon");
-      optionModeIcon.setAttribute("icon", ACTION_MAP[key].icon);
-
-      let optionItemDiv3 = document.createElement("div");
-      optionItemDiv2.appendChild(optionItemDiv3);
-
-      let optionModePaperButton = document.createElement("paper-button");
-      optionModePaperButton.setAttribute("class", iconClass);
-      optionModePaperButton.appendChild(optionModeIcon);
-      optionItemDiv3.appendChild(optionModePaperButton);
-
-      let optionModeLabel = document.createElement("div");
-      optionModeLabel.setAttribute("class", "action_button_comp_label");
-      optionModeLabel.innerHTML = key;
-      optionItemDiv2.appendChild(optionModeLabel);
-
-      this.actionModelistBox.appendChild(optionItemDiv);
-    }
-  }
   renderActionModeButton() {
     this.actionModeLabel.innerHTML = this._config_action;
   }
@@ -1089,104 +1049,27 @@ class SearchSensorCard extends HTMLElement {
   }
 
   addSong(song_id) {
-    let meth = ACTION_MAP[this._config_action].method;
-    let params = {
-      entity_id: this._config.entity,
-      method: meth,
-      songid: song_id,
-    };
-
-    if (meth == "add") {
-      params.position = parseInt(this._config_add_position, 10);
-    }
-
-    this._hass.callService(this._service_domain, "call_method", params);
-    // this.addItem("song_id", song_id);
+    this.addItem("songid", song_id);
   }
 
   addAlbum(album_id) {
-    if (this._config_action == Object.keys(ACTION_MAP)[0]) {
-      this._hass.callService(this._service_domain, "call_method", {
-        entity_id: this._config.entity,
-        method: METHOD_PLAY,
-        albumid: album_id,
-      });
-    } else {
-      this._hass.callService(this._service_domain, "call_method", {
-        entity_id: this._config.entity,
-        method: METHOD_ADD,
-        albumid: album_id,
-        position: parseInt(this._config_add_position, 10),
-      });
-    }
+    this.addItem("albumid", album_id);
   }
 
   addMovie(movie_id) {
-    if (this._config_action == Object.keys(ACTION_MAP)[0]) {
-      this._hass.callService(this._service_domain, "call_method", {
-        entity_id: this._config.entity,
-        method: METHOD_PLAY,
-        movieid: movie_id,
-      });
-    } else {
-      this._hass.callService(this._service_domain, "call_method", {
-        entity_id: this._config.entity,
-        method: METHOD_ADD,
-        movieid: movie_id,
-        position: parseInt(this._config_add_position, 10),
-      });
-    }
+    this.addItem("movieid", movie_id);
   }
 
   addChannel(channel_id) {
-    if (this._config_action == Object.keys(ACTION_MAP)[0]) {
-      this._hass.callService(this._service_domain, "call_method", {
-        entity_id: this._config.entity,
-        method: METHOD_PLAY,
-        channelid: channel_id,
-      });
-    } else {
-      this._hass.callService(this._service_domain, "call_method", {
-        entity_id: this._config.entity,
-        method: METHOD_ADD,
-        channelid: channel_id,
-        position: parseInt(this._config_add_position, 10),
-      });
-    }
+    this.addItem("channelid", channel_id);
   }
 
   addEpisode(episode_id) {
-    if (this._config_action == Object.keys(ACTION_MAP)[0]) {
-      this._hass.callService(this._service_domain, "call_method", {
-        entity_id: this._config.entity,
-        method: METHOD_PLAY,
-        episodeid: episode_id,
-      });
-    } else {
-      this._hass.callService(this._service_domain, "call_method", {
-        entity_id: this._config.entity,
-        method: METHOD_ADD,
-        episodeid: episode_id,
-        position: parseInt(this._config_add_position, 10),
-      });
-    }
+    this.addItem("episodeid", episode_id);
   }
 
   addEpisodes(episode_ids) {
-    if (this._config_action == Object.keys(ACTION_MAP)[0]) {
-      this._hass.callService(this._service_domain, "call_method", {
-        entity_id: this._config.entity,
-        method: METHOD_PLAY,
-        episodeid: episode_ids,
-      });
-    } else {
-      this._hass.callService(this._service_domain, "call_method", {
-        entity_id: this._config.entity,
-        method: METHOD_ADD,
-        episodeid: episode_ids,
-        position: parseInt(this._config_add_position, 10),
-      });
-    }
+    this.addItem("episodeid", episode_ids);
   }
 
   getCardSize() {
@@ -1226,7 +1109,8 @@ class SearchSensorCard extends HTMLElement {
             .search-form{
               display: grid;
               grid-template-columns: 1fr 1fr auto;
-              grid-gap: 3px;
+              column-gap: 3px;
+              row-gap: 10px;
               margin-top: 20px;
               margin-bottom: 20px;
               margin-left: 10px;
@@ -1241,7 +1125,6 @@ class SearchSensorCard extends HTMLElement {
             #form-btn-search{
               grid-column: 1 / 3;
               grid-row: 2;
-              margin-bottom: 30px;
             }
 
 
@@ -1283,44 +1166,9 @@ class SearchSensorCard extends HTMLElement {
             margin-right: 10px;
           }
 
-          .action-mode-icon-button{
-            width: 50px;
-            height: 50px;
-            border-radius: 25px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
 
-          .action-mode-icon-button-selected{
-            background-color: var(--slider-color);
-          }
-
-          .action-mode-icon-button-unselected{
-            background-color: var(--slider-secondary-color);
-            color: var(--secondary-text-color);
-          }
-
-          .action-button-comp{
-            display: inline-flex;
-            gap: 10px;
-            width: 100%;
-          }
-
-          .action-mode-message{
-          }
-
-          .action-mode-button{
-            padding: 0px;
-            width: 100%;
-          }
-          .action_button_comp_label{
-            margin-top: auto;
-            margin-bottom: auto;
-          }
-
-          .action-mode-listbox{
-            padding: 0px;
+          .action-mode-dropdown{
+            width: 150px;
           }
 
           /*

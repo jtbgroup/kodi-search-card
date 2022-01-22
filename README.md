@@ -42,8 +42,6 @@ Manual installation is of course possible, but not explained here as there are p
 | action_mode | string | Optional <br /> default: 'Play'| 2.6.0 | This property allows to choose between 'Add' ou 'Play' as action when clicking on an item. The value is overridden by the value of the Action Mode component in the search form of the card. |
 | add_position | integer | Optional<br /> default: 1 | 2.6.0 | This value indicates where to add an item in the playlist.<br/>0 = first position, 1 = second position, 1000 = 1001th position. To add an item as last position, use a value that is > than the size of the playlist.<br/> This parameters is only useful when selecting 'Add' as action mode (card configuration and/or search form of the card) |
 
-**No need to pass the entity of the Kodi player as it is embedded in the data of the sensor.**
-
 Example:
 
 ``` yaml

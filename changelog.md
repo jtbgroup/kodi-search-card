@@ -2,7 +2,7 @@
 
 ## 2.6.0
 
-- added the action mode option to choose between add and play
+- added the action mode option to choose between add and play (see [issue #6](https://github.com/jtbgroup/kodi-search-card/issues/6))
 
 ## 2.5.1
 

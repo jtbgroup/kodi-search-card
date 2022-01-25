@@ -55,8 +55,12 @@ export class KodiSearchCardEditor extends LitElement {
     return this._config.album_details_sort;
   }
 
+  get _show_action_mode() {
+    return this._config.show_action_mode;
+  }
+
   get _action_mode() {
-    return this._config._action_mode;
+    return this._config.action_mode;
   }
 
   get _add_position() {
@@ -137,6 +141,16 @@ export class KodiSearchCardEditor extends LitElement {
           </paper-listbox>
         </paper-dropdown-menu>
 
+        <div class="config">
+          <span class="config-label">Show Action Mode Component</span>
+          <ha-switch
+            .checked=${this._config.show_action_mode}
+            .configValue="${"show_action_mode"}"
+            @change="${this._valueChanged}"
+            class="config-component"
+          ></ha-switch>
+        </div>
+
         <paper-dropdown-menu
           label="Action to do when clicked"
           .configValue=${"action_mode"}
@@ -172,9 +186,9 @@ export class KodiSearchCardEditor extends LitElement {
       return;
     }
     const target = ev.target;
-    if (this[`_${target.configValue}`] === target.value) {
-      return;
-    }
+    // if (this[`_${target.configValue}`] === target.value) {
+    //   return;
+    // }
     if (target.configValue) {
       if (target.value === "") {
         delete this._config[target.configValue];

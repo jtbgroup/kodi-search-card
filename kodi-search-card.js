@@ -10,6 +10,7 @@ const DEFAULT_SHOW_THUMBNAIL_BORDER = false;
 const DEFAULT_SHOW_THUMBNAIL_OVERLAY = true;
 const DEFAULT_OUTLINE_COLOR = "white";
 const DEFAULT_ALBUM_DETAILS_SORT = SORT_DESC;
+const DEFAULT_SHOW_ACTION_MODE = false;
 const DEFAULT_ACTION_MODE = Object.keys(ACTION_MAP)[0];
 const DEFAULT_ADD_POSITION = 1;
 
@@ -36,6 +37,7 @@ class SearchSensorCard extends HTMLElement {
   _config_outline_color = DEFAULT_OUTLINE_COLOR;
   _config_show_thumbnail_overlay = DEFAULT_SHOW_THUMBNAIL_OVERLAY;
   _config_album_details_sort = DEFAULT_ALBUM_DETAILS_SORT;
+  _config_show_action_mode = DEFAULT_SHOW_ACTION_MODE;
   _config_action_mode = DEFAULT_ACTION_MODE;
   _config_add_position = DEFAULT_ADD_POSITION;
 
@@ -52,6 +54,7 @@ class SearchSensorCard extends HTMLElement {
       show_thumbnail_overlay: DEFAULT_SHOW_THUMBNAIL_OVERLAY,
       outline_color: DEFAULT_OUTLINE_COLOR,
       album_details_sort: DEFAULT_ALBUM_DETAILS_SORT,
+      show_action_mode: DEFAULT_SHOW_ACTION_MODE,
       action_mode: DEFAULT_ACTION,
       add_position: DEFAULT_ADD_POSITION,
     };
@@ -84,6 +87,10 @@ class SearchSensorCard extends HTMLElement {
       this._config_album_details_sort = this._config.album_details_sort;
     }
 
+    if (this._config.hasOwnProperty("show_action_mode")) {
+      this._config_show_action_mode = this._config.show_action_mode;
+    }
+
     if (this._config.hasOwnProperty("action_mode")) {
       this._config_action_mode = this._config.action_mode;
     }
@@ -108,10 +115,9 @@ class SearchSensorCard extends HTMLElement {
 
       this.appendChild(card);
       this.setupComplete = true;
-
-      this.createForm();
-      this.createMessageKodiOff();
     }
+    this.createForm();
+    this.createMessageKodiOff();
   }
 
   createMessageKodiOff() {
@@ -152,6 +158,16 @@ class SearchSensorCard extends HTMLElement {
     recentButton.innerHTML = "All recently added";
     recentButton.addEventListener("click", () => this.recent());
 
+    this.searchFormDiv.appendChild(this.searchInput);
+    this.searchFormDiv.appendChild(searchButton);
+    this.searchFormDiv.appendChild(recentButton);
+    this.searchFormDiv.appendChild(cancelButton);
+    if (this._config_show_action_mode) {
+      this.createActionModeComponent();
+    }
+  }
+
+  createActionModeComponent() {
     let actionModeContainerOut = document.createElement("div");
     actionModeContainerOut.setAttribute("class", "action-mode-container-out");
 
@@ -186,14 +202,8 @@ class SearchSensorCard extends HTMLElement {
       it.innerHTML = key;
       lb.appendChild(it);
     }
-
-    this.searchFormDiv.appendChild(this.searchInput);
-    this.searchFormDiv.appendChild(searchButton);
-    this.searchFormDiv.appendChild(recentButton);
-    this.searchFormDiv.appendChild(cancelButton);
     this.searchFormDiv.appendChild(actionModeContainerOut);
   }
-
   renderActionModeButton() {
     this.actionModeLabel.innerHTML = this._config_action_mode;
   }

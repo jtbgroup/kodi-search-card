@@ -139,6 +139,9 @@ class SearchSensorCard extends HTMLElement {
       }
     });
 
+    let divBtns = document.createElement("div");
+    divBtns.setAttribute("id", "form-btns");
+
     let searchButton = document.createElement("mwc-button");
     searchButton.setAttribute("id", "form-btn-search");
     searchButton.innerHTML = "Search";
@@ -157,11 +160,12 @@ class SearchSensorCard extends HTMLElement {
     recentButton.setAttribute("raised", "");
     recentButton.innerHTML = "All recently added";
     recentButton.addEventListener("click", () => this.recent());
+    divBtns.appendChild(searchButton);
+    divBtns.appendChild(recentButton);
+    divBtns.appendChild(cancelButton);
 
     this.searchFormDiv.appendChild(this.searchInput);
-    this.searchFormDiv.appendChild(searchButton);
-    this.searchFormDiv.appendChild(recentButton);
-    this.searchFormDiv.appendChild(cancelButton);
+    this.searchFormDiv.appendChild(divBtns);
     if (this._config_show_action_mode) {
       this.createActionModeComponent();
     }
@@ -1118,7 +1122,7 @@ class SearchSensorCard extends HTMLElement {
           */
             .search-form{
               display: grid;
-              grid-template-columns: 1fr 1fr auto;
+              grid-template-columns: 1fr auto;
               column-gap: 3px;
               row-gap: 10px;
               margin-top: 20px;
@@ -1132,25 +1136,37 @@ class SearchSensorCard extends HTMLElement {
               grid-row: 1;
             }
 
+            #form-btns{
+              display: grid;
+              grid-template-columns: 1fr auto;
+              grid-template-rows: 1fr 1fr;
+              align-items: center;
+              column-gap: 10px;
+              padding: 5px;
+
+              grid-column: 1 ;
+              grid-row: 2;
+            }
+
             #form-btn-search{
+              grid-column: 1 ;
+              grid-row: 1;
+            }
+
+            #form-btn-cancel{
+              grid-column: 2;
+              grid-row: 1;
+            }
+
+            #form-btn-recent{
               grid-column: 1 / 3;
               grid-row: 2;
             }
 
 
-            #form-btn-recent{
-              grid-column: 1;
-              grid-row: 3;
-            }
-
-            #form-btn-cancel{
-              grid-column: 2;
-              grid-row: 3;
-            }
-
             .action-mode-container-out{
-              grid-column: 3 / 4;
-              grid-row: 2 / 4;
+              grid-column: 2;
+              grid-row: 2;
               border: 1px solid var(--slider-color);
               border-radius: 10px;
               padding: 10px;
@@ -1163,7 +1179,7 @@ class SearchSensorCard extends HTMLElement {
 
             .search-container-grid{
               display: grid;
-              grid-gap: 50px;
+              grid-gap: 10px;
             }
 
 

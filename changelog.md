@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 2.6.2
+
+- Changed layout a little bit to fit smartphone's screen
+
 ## 2.6.1
 
 - Added config property to display or not the Action Mode component

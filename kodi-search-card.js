@@ -1,4 +1,13 @@
 const SORT_DESC = "Desc";
+const MEDIA_TYPE_ALBUM = "album";
+const MEDIA_TYPE_ARTIST = "artist";
+const MEDIA_TYPE_SONG = "song";
+const MEDIA_TYPE_MOVIE = "movie";
+const MEDIA_TYPE_TV_SHOW = "tvshow";
+const MEDIA_TYPE_EPISODE = "episode";
+const MEDIA_TYPE_CHANNEL = "channel";
+const MEDIA_TYPE_TV_SHOW_SEASON_DETAILS = "seasondetail";
+const MEDIA_TYPE_ALBUM_DETAILS = "albumdetail";
 
 const ACTION_MAP = {
   Play: { icon: "mdi:play", method: "play" },
@@ -13,6 +22,14 @@ const DEFAULT_ALBUM_DETAILS_SORT = SORT_DESC;
 const DEFAULT_SHOW_ACTION_MODE = false;
 const DEFAULT_ACTION_MODE = Object.keys(ACTION_MAP)[0];
 const DEFAULT_ADD_POSITION = 1;
+const DEFAULT_ORDER = [
+  MEDIA_TYPE_SONG,
+  MEDIA_TYPE_ALBUM,
+  MEDIA_TYPE_ARTIST,
+  MEDIA_TYPE_MOVIE,
+  MEDIA_TYPE_TV_SHOW,
+  MEDIA_TYPE_CHANNEL,
+];
 
 class SearchSensorCard extends HTMLElement {
   SONG_THUMBNAIL_WIDTH = "65px";
@@ -314,32 +331,40 @@ class SearchSensorCard extends HTMLElement {
     this.resultDiv.setAttribute("class", "search-result-grid");
     this.resultDiv.innerHTML = "";
 
-    let filtered = this.filterTypes(json, "song");
-    if (filtered.length > 0) {
-      this.fillSongs(filtered, this.resultDiv);
+    for (let index = 0; index < DEFAULT_ORDER.length; index++) {
+      const media_type = DEFAULT_ORDER[index];
+      let filtered = this.filterTypes(json, media_type);
+      if (filtered.length > 0) {
+        this.fillItems(media_type, filtered, this.resultDiv);
+      }
     }
 
-    filtered = this.filterTypes(json, "album");
-    if (filtered.length > 0) {
-      this.fillAlbums(filtered, this.resultDiv);
-    }
+    // let filtered = this.filterTypes(json, "song");
+    // if (filtered.length > 0) {
+    //   this.fillSongs(filtered, this.resultDiv);
+    // }
 
-    filtered = this.filterTypes(json, "artist");
-    if (filtered.length > 0) {
-      this.fillArtists(filtered, this.resultDiv);
-    }
+    // filtered = this.filterTypes(json, "album");
+    // if (filtered.length > 0) {
+    //   this.fillAlbums(filtered, this.resultDiv);
+    // }
 
-    filtered = this.filterTypes(json, "movie");
-    if (filtered.length > 0) {
-      this.fillMovies(filtered, this.resultDiv);
-    }
+    // filtered = this.filterTypes(json, "artist");
+    // if (filtered.length > 0) {
+    //   this.fillArtists(filtered, this.resultDiv);
+    // }
 
-    filtered = this.filterTypes(json, "tvshow");
-    if (filtered.length > 0) {
-      this.fillTvShows(filtered, this.resultDiv);
-    }
+    // filtered = this.filterTypes(json, "movie");
+    // if (filtered.length > 0) {
+    //   this.fillMovies(filtered, this.resultDiv);
+    // }
 
-    filtered = this.filterTypes(json, "albumdetail");
+    // filtered = this.filterTypes(json, "tvshow");
+    // if (filtered.length > 0) {
+    //   this.fillTvShows(filtered, this.resultDiv);
+    // }
+
+    let filtered = this.filterTypes(json, "albumdetail");
     if (filtered.length > 0) {
       this.fillAlbumDetails(filtered, this.resultDiv);
     }
@@ -349,25 +374,66 @@ class SearchSensorCard extends HTMLElement {
       this.fillTVShowSeasonDetails(filtered, this.resultDiv);
     }
 
-    filtered = this.filterTypes(json, "episode");
-    if (filtered.length > 0) {
-      this.fillEpisode(filtered, this.resultDiv);
-    }
+    // filtered = this.filterTypes(json, "episode");
+    // if (filtered.length > 0) {
+    //   this.fillEpisode(filtered, this.resultDiv);
+    // }
 
-    filtered = this.filterTypes(json, "channel");
-    if (filtered.length > 0) {
-      let channels = json.filter((item) => {
-        return item.channeltype == "tv";
-      });
-      this.fillChannel(channels, this.resultDiv, "tv");
+    // filtered = this.filterTypes(json, "channel");
+    // if (filtered.length > 0) {
+    //   let channels = json.filter((item) => {
+    //     return item.channeltype == "tv";
+    //   });
+    //   this.fillChannel(channels, this.resultDiv, "tv");
 
-      channels = json.filter((item) => {
-        return item.channeltype == "radio";
-      });
-      this.fillChannel(channels, this.resultDiv, "radio");
-    }
+    //   channels = json.filter((item) => {
+    //     return item.channeltype == "radio";
+    //   });
+    //   this.fillChannel(channels, this.resultDiv, "radio");
+    // }
 
     return this.resultDiv;
+  }
+
+  fillItems(media_type, items, resultDiv) {
+    switch (media_type) {
+      case MEDIA_TYPE_SONG:
+        this.fillSongs(items, resultDiv);
+        break;
+      case MEDIA_TYPE_ALBUM:
+        this.fillAlbums(items, resultDiv);
+        break;
+      case MEDIA_TYPE_ARTIST:
+        this.fillArtists(items, resultDiv);
+        break;
+      case MEDIA_TYPE_CHANNEL:
+        // this.fillChannel(items, resultDiv);
+        let channels = json.filter((item) => {
+          return item.channeltype == "tv";
+        });
+        this.fillChannel(channels, this.resultDiv, "tv");
+
+        channels = json.filter((item) => {
+          return item.channeltype == "radio";
+        });
+        this.fillChannel(channels, this.resultDiv, "radio");
+        break;
+      case MEDIA_TYPE_EPISODE:
+        this.fillEpisode(items, resultDiv);
+        break;
+      case MEDIA_TYPE_MOVIE:
+        this.fillMovies(items, resultDiv);
+        break;
+      case MEDIA_TYPE_TV_SHOW:
+        this.fillTvShows(items, resultDiv);
+        break;
+      case MEDIA_TYPE_TV_SHOW_SEASON_DETAILS:
+        this.fillTVShowSeasonDetails(items, resultDiv);
+        break;
+      case MEDIA_TYPE_ALBUM_DETAILS:
+        this.fillAlbumDetails(items, resultDiv);
+        break;
+    }
   }
 
   fillSongs(items, resultDiv) {

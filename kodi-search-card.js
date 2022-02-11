@@ -58,6 +58,7 @@ class SearchSensorCard extends HTMLElement {
   _config_show_action_mode = DEFAULT_SHOW_ACTION_MODE;
   _config_action_mode = DEFAULT_ACTION_MODE;
   _config_add_position = DEFAULT_ADD_POSITION;
+  _config_order = DEFAULT_ORDER;
 
   static async getConfigElement() {
     await import("./kodi-search-card-editor.js");
@@ -75,6 +76,7 @@ class SearchSensorCard extends HTMLElement {
       show_action_mode: DEFAULT_SHOW_ACTION_MODE,
       action_mode: DEFAULT_ACTION,
       add_position: DEFAULT_ADD_POSITION,
+      order: DEFAULT_ORDER,
     };
   }
 
@@ -115,6 +117,10 @@ class SearchSensorCard extends HTMLElement {
 
     if (this._config.hasOwnProperty("add_position")) {
       this._config_add_position = this._config.add_position;
+    }
+
+    if (this._config.hasOwnProperty("order")) {
+      this._config_order = this._config.order;
     }
 
     // Make sure this only runs once
@@ -332,38 +338,13 @@ class SearchSensorCard extends HTMLElement {
     this.resultDiv.setAttribute("class", "search-result-grid");
     this.resultDiv.innerHTML = "";
 
-    for (let index = 0; index < DEFAULT_ORDER.length; index++) {
-      const media_type = DEFAULT_ORDER[index];
+    for (let index = 0; index < _config_order.length; index++) {
+      const media_type = _config_order[index];
       let filtered = this.filterTypes(json, media_type);
       if (filtered.length > 0) {
         this.fillItems(media_type, filtered, this.resultDiv);
       }
     }
-
-    // let filtered = this.filterTypes(json, "song");
-    // if (filtered.length > 0) {
-    //   this.fillSongs(filtered, this.resultDiv);
-    // }
-
-    // filtered = this.filterTypes(json, "album");
-    // if (filtered.length > 0) {
-    //   this.fillAlbums(filtered, this.resultDiv);
-    // }
-
-    // filtered = this.filterTypes(json, "artist");
-    // if (filtered.length > 0) {
-    //   this.fillArtists(filtered, this.resultDiv);
-    // }
-
-    // filtered = this.filterTypes(json, "movie");
-    // if (filtered.length > 0) {
-    //   this.fillMovies(filtered, this.resultDiv);
-    // }
-
-    // filtered = this.filterTypes(json, "tvshow");
-    // if (filtered.length > 0) {
-    //   this.fillTvShows(filtered, this.resultDiv);
-    // }
 
     let filtered = this.filterTypes(json, "albumdetail");
     if (filtered.length > 0) {
@@ -374,24 +355,6 @@ class SearchSensorCard extends HTMLElement {
     if (filtered.length > 0) {
       this.fillTVShowSeasonDetails(filtered, this.resultDiv);
     }
-
-    // filtered = this.filterTypes(json, "episode");
-    // if (filtered.length > 0) {
-    //   this.fillEpisode(filtered, this.resultDiv);
-    // }
-
-    // filtered = this.filterTypes(json, "channel");
-    // if (filtered.length > 0) {
-    //   let channels = json.filter((item) => {
-    //     return item.channeltype == "tv";
-    //   });
-    //   this.fillChannel(channels, this.resultDiv, "tv");
-
-    //   channels = json.filter((item) => {
-    //     return item.channeltype == "radio";
-    //   });
-    //   this.fillChannel(channels, this.resultDiv, "radio");
-    // }
 
     return this.resultDiv;
   }

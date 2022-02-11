@@ -42,6 +42,7 @@ Manual installation is of course possible, but not explained here as there are p
 | show_action_mode | boolean | `false` | 2.6.0 | This property tells whether or not to display the action mode component. If not visible, the default action mode will be used. |
 | action_mode | string | Optional <br /> default: 'Play'| 2.6.0 | This property allows to choose between 'Add' ou 'Play' as action when clicking on an item. The value is overridden by the value of the Action Mode component in the search form of the card. |
 | add_position | integer | Optional<br /> default: 1 | 2.6.0 | This value indicates where to add an item in the playlist.<br/>0 = first position, 1 = second position, 1000 = 1001th position. To add an item as last position, use a value that is > than the size of the playlist.<br/> This parameters is only useful when selecting 'Add' as action mode (card configuration and/or search form of the card) |
+| order | List | Optional | 2.7.0 | This list allows you to change the order of media types in the resultset. The resultset is of course dependent on the configuration of the Integration (cfr configuration of the Kodi Media Sensors). The possible values are `song`, `album`, `artist`, `movie`, `tvshow`, `episode`, `channel` (this is the default order).<br /> The 2 types `episodedetails` and `albumdetails` are always shown at the end, but are not directly accessible when querying Kodi, but only via drill-down. So, no need to add them in the list. |
 
 Example:
 
@@ -52,4 +53,9 @@ Example:
     show_thumbnail_border: true
     show_thumbnail_overlay: true
     outline_color: rgb(74,200,50)
+    order:
+        - movie
+        - album
+        - song
+        - episode
 ```

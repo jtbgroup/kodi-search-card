@@ -1,5 +1,8 @@
 # SEARCH CARD - Changelog
 
+## 2.7.0
+- Option to change the order of media types (see [issue #8](https://github.com/jtbgroup/kodi-search-card/issues/8))
+
 ## 2.6.2
 
 - Changed layout a little bit to fit smartphone's screen

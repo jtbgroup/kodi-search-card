@@ -28,6 +28,7 @@ const DEFAULT_ORDER = [
   MEDIA_TYPE_ARTIST,
   MEDIA_TYPE_MOVIE,
   MEDIA_TYPE_TV_SHOW,
+  MEDIA_TYPE_EPISODE,
   MEDIA_TYPE_CHANNEL,
 ];
 
@@ -1204,7 +1205,7 @@ class SearchSensorCard extends HTMLElement {
 
             #form-btns{
               display: grid;
-              grid-template-columns: 1fr auto;
+              grid-template-columns: 1fr 1fr;
               grid-template-rows: 1fr 1fr;
               align-items: center;
               column-gap: 10px;

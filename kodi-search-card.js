@@ -338,8 +338,8 @@ class SearchSensorCard extends HTMLElement {
     this.resultDiv.setAttribute("class", "search-result-grid");
     this.resultDiv.innerHTML = "";
 
-    for (let index = 0; index < _config_order.length; index++) {
-      const media_type = _config_order[index];
+    for (let index = 0; index < this._config_order.length; index++) {
+      const media_type = this._config_order[index];
       let filtered = this.filterTypes(json, media_type);
       if (filtered.length > 0) {
         this.fillItems(media_type, filtered, this.resultDiv);

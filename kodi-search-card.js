@@ -938,12 +938,22 @@ class SearchSensorCard extends HTMLElement {
         titleDiv.innerHTML = episodesItem[idx]["title"];
         episodeDiv.appendChild(titleDiv);
 
+        // let playDiv = document.createElement("ha-icon");
+        // playDiv.setAttribute("icon", "mdi:play");
+        // playDiv.setAttribute("class", "search-seasondetails-episode-play");
+        // playDiv.addEventListener("click", () =>
+        //   this.playEpisode(episodesItem[idx]["episodeid"])
+        // );
+
+        let actionIcon = this.getActionIcon();
         let playDiv = document.createElement("ha-icon");
-        playDiv.setAttribute("icon", "mdi:play");
-        playDiv.setAttribute("class", "search-seasondetails-episode-play");
+        playDiv.setAttribute("icon", actionIcon);
+        playDiv.setAttribute("class", "search-albumdetails-song-play");
         playDiv.addEventListener("click", () =>
-          this.playEpisode(episodesItem[idx]["episodeid"])
+          // this.playSong(songsItem[idx]["songid"])
+          this.addEpisodes(episodesItem[idx]["episodeid"])
         );
+
         episodeDiv.appendChild(playDiv);
 
         episodesDiv.appendChild(episodeDiv);

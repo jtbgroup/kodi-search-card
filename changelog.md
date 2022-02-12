@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 2.7.1
+
+- Bugfix: choose the right playlist when playing or adding an item (id of the player isn't constant in rpc methods) (see [issue#9](https://github.com/jtbgroup/kodi-search-card/issues/9))
+
 ## 2.7.0
 
 - Option to change the order of media types (see [issue #8](https://github.com/jtbgroup/kodi-search-card/issues/8))

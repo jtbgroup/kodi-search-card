@@ -14,12 +14,13 @@ const ACTION_MAP = {
   Add: { icon: "mdi:plus", method: "add" },
 };
 
+const DEFAULT_ENTITY_NAME = "sensor.kodi_media_sensor_search";
 const DEFAULT_SHOW_THUMBNAIL = true;
 const DEFAULT_SHOW_THUMBNAIL_BORDER = false;
 const DEFAULT_SHOW_THUMBNAIL_OVERLAY = true;
 const DEFAULT_OUTLINE_COLOR = "white";
 const DEFAULT_ALBUM_DETAILS_SORT = SORT_DESC;
-const DEFAULT_SHOW_ACTION_MODE = false;
+const DEFAULT_SHOW_ACTION_MODE = true;
 const DEFAULT_ACTION_MODE = Object.keys(ACTION_MAP)[0];
 const DEFAULT_ADD_POSITION = 1;
 const DEFAULT_ORDER = [
@@ -67,14 +68,14 @@ class SearchSensorCard extends HTMLElement {
 
   static getStubConfig() {
     return {
-      entity: "",
+      entity: DEFAULT_ENTITY_NAME,
       show_thumbnail: DEFAULT_SHOW_THUMBNAIL,
       show_thumbnail_border: DEFAULT_SHOW_THUMBNAIL_BORDER,
       show_thumbnail_overlay: DEFAULT_SHOW_THUMBNAIL_OVERLAY,
       outline_color: DEFAULT_OUTLINE_COLOR,
       album_details_sort: DEFAULT_ALBUM_DETAILS_SORT,
       show_action_mode: DEFAULT_SHOW_ACTION_MODE,
-      action_mode: DEFAULT_ACTION,
+      action_mode: DEFAULT_ACTION_MODE,
       add_position: DEFAULT_ADD_POSITION,
       order: DEFAULT_ORDER,
     };
@@ -1169,6 +1170,7 @@ class SearchSensorCard extends HTMLElement {
               margin-bottom: 20px;
               margin-left: 10px;
               margin-right: 10px;
+              align-items: center;
             }
 
             #kodi_sensor_search_input{
@@ -1181,7 +1183,7 @@ class SearchSensorCard extends HTMLElement {
               grid-template-columns: 1fr 1fr;
               grid-template-rows: 1fr 1fr;
               align-items: center;
-              column-gap: 10px;
+              gap: 10px;
               padding: 5px;
 
               grid-column: 1 ;
@@ -1791,7 +1793,6 @@ class SearchSensorCard extends HTMLElement {
     return css;
   }
 }
-
 customElements.define("kodi-search-card", SearchSensorCard);
 window.customCards = window.customCards || [];
 window.customCards.push({

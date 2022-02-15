@@ -1,5 +1,10 @@
 # SEARCH CARD - Changelog
 
+## 2.7.2
+
+- Bugfix: card is again visible in the card chooser (see [issue#10](https://github.com/jtbgroup/kodi-search-card/issues/10))
+- Bugfix: buttons layout is now correct when hiding the action mode component
+
 ## 2.7.1
 
 - Bugfix: choose the right playlist when playing or adding an item (id of the player isn't constant in rpc methods) (see [issue#9](https://github.com/jtbgroup/kodi-search-card/issues/9))

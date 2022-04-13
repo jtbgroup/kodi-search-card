@@ -2,11 +2,11 @@
 
 ## 2.8.0
 
-- Entries in album and tvshow details are highlighted in bold when mouse over the action button
+- Entries in album and tvshow details are highlighted in bold when mouse over the action button (see [issue #11](https://github.com/jtbgroup/kodi-search-card/issues/11)). Thanks to [Roumano](https://github.com/roumano)
 
 ## 2.7.2
 
-- Bugfix: card is again visible in the card chooser (see [issue#10](https://github.com/jtbgroup/kodi-search-card/issues/10))
+- Bugfix: card is again visible in the card chooser (see [issue #10](https://github.com/jtbgroup/kodi-search-card/issues/10))
 - Bugfix: buttons layout is now correct when hiding the action mode component
 
 ## 2.7.1

@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 2.8.0
+
+- Entries in album and tvshow details are highlighted in bold when mouse over the action button
+
 ## 2.7.2
 
 - Bugfix: card is again visible in the card chooser (see [issue#10](https://github.com/jtbgroup/kodi-search-card/issues/10))

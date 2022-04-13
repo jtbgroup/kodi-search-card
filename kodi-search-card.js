@@ -253,7 +253,6 @@ class SearchSensorCard extends HTMLElement {
     if (!this._config) return; // Can't assume setConfig is called before hass is set
 
     const entity = this._config.entity;
-
     this.state = hass.states[entity];
     if (!this.state) {
       console.error("no state for the sensor");
@@ -812,7 +811,6 @@ class SearchSensorCard extends HTMLElement {
         "search-albumdetails-cover-image-default",
         actionIcon,
         "mdi:music",
-        // () => this.playAlbum(item["albumid"])
         () => this.addAlbum(item["albumid"])
       );
       albumDetailsDiv.appendChild(coverDiv);
@@ -830,6 +828,7 @@ class SearchSensorCard extends HTMLElement {
       let songsItem = item["songs"];
       let albumDuration = 0;
       for (let idx = 0; idx < songsItem.length; idx++) {
+        var songId = "song-title-" + songsItem[idx]["songid"];
         let songDuration = songsItem[idx]["duration"];
         albumDuration += songDuration;
         let songDiv = document.createElement("div");
@@ -844,6 +843,7 @@ class SearchSensorCard extends HTMLElement {
 
         let titleDiv = document.createElement("div");
         titleDiv.setAttribute("class", "search-albumdetails-song-title");
+        titleDiv.setAttribute("id", songId);
         titleDiv.innerHTML = songsItem[idx]["title"];
         songDiv.appendChild(titleDiv);
 
@@ -851,9 +851,17 @@ class SearchSensorCard extends HTMLElement {
         let playDiv = document.createElement("ha-icon");
         playDiv.setAttribute("icon", actionIcon);
         playDiv.setAttribute("class", "search-albumdetails-song-play");
+
         playDiv.addEventListener("click", () =>
-          // this.playSong(songsItem[idx]["songid"])
           this.addSong(songsItem[idx]["songid"])
+        );
+
+        let els = [titleDiv, trackDiv];
+        playDiv.addEventListener("mouseover", () =>
+          this.highlightOver(els, true)
+        );
+        playDiv.addEventListener("mouseout", () =>
+          this.highlightOver(els, false)
         );
         songDiv.appendChild(playDiv);
 
@@ -869,6 +877,22 @@ class SearchSensorCard extends HTMLElement {
       albumsDiv.appendChild(albumDetailsDiv);
     }
     resultDiv.appendChild(albumsDiv);
+  }
+
+  highlightOver(els, enabled) {
+    for (let index = 0; index < els.length; index++) {
+      const div = els[index];
+
+      var color = "var(--paper-item-icon-color, #44739e)";
+      var weight = "bold";
+      if (!enabled) {
+        color = "";
+        weight = "normal";
+      }
+      // div.style.color = color;
+      // div.style.backgroundColor = color;
+      div.style.fontWeight = weight;
+    }
   }
 
   fillTVShowSeasonDetails(items, resultDiv) {
@@ -939,20 +963,20 @@ class SearchSensorCard extends HTMLElement {
         titleDiv.innerHTML = episodesItem[idx]["title"];
         episodeDiv.appendChild(titleDiv);
 
-        // let playDiv = document.createElement("ha-icon");
-        // playDiv.setAttribute("icon", "mdi:play");
-        // playDiv.setAttribute("class", "search-seasondetails-episode-play");
-        // playDiv.addEventListener("click", () =>
-        //   this.playEpisode(episodesItem[idx]["episodeid"])
-        // );
-
         let actionIcon = this.getActionIcon();
         let playDiv = document.createElement("ha-icon");
         playDiv.setAttribute("icon", actionIcon);
         playDiv.setAttribute("class", "search-albumdetails-song-play");
         playDiv.addEventListener("click", () =>
-          // this.playSong(songsItem[idx]["songid"])
           this.addEpisodes(episodesItem[idx]["episodeid"])
+        );
+
+        let els = [titleDiv, trackDiv];
+        playDiv.addEventListener("mouseover", () =>
+          this.highlightOver(els, true)
+        );
+        playDiv.addEventListener("mouseout", () =>
+          this.highlightOver(els, false)
         );
 
         episodeDiv.appendChild(playDiv);
@@ -1311,6 +1335,15 @@ class SearchSensorCard extends HTMLElement {
               padding:10px;
             }
 
+
+            .search-detail-highlighted{
+              background: red;
+            }
+
+            .search-detail-normal{
+              background: green;
+            }
+
             /*
               -----------------
               ----- SONGS -----
@@ -1581,7 +1614,7 @@ class SearchSensorCard extends HTMLElement {
 
 
           /*
-          --------------------
+            --------------------
             ----- CHANNEL -----
             --------------------
           */

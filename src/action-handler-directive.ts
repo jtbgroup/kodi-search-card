@@ -163,15 +163,15 @@ class ActionHandler extends HTMLElement implements ActionHandler {
 }
 
 // TODO You need to replace all instances of "action-handler-boilerplate" with "action-handler-<your card name>"
-customElements.define('action-handler-kodi-search-card', ActionHandler);
+customElements.define('action-handler-boilerplate', ActionHandler);
 
 const getActionHandler = (): ActionHandler => {
   const body = document.body;
-  if (body.querySelector('action-handler-kodi-search-card')) {
-    return body.querySelector('action-handler-kodi-search-card') as ActionHandler;
+  if (body.querySelector('action-handler-boilerplate')) {
+    return body.querySelector('action-handler-boilerplate') as ActionHandler;
   }
 
-  const actionhandler = document.createElement('action-handler-kodi-search-card');
+  const actionhandler = document.createElement('action-handler-boilerplate');
   body.appendChild(actionhandler);
 
   return actionhandler as ActionHandler;

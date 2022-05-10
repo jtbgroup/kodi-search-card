@@ -1,4 +1,5 @@
 {
-  "name": "Kodi Search Card",
-  "render_readme": true
+    "name": "Kodi Search Card",
+    "render_readme": true,
+    "filename": "kodi-search-card.js"
 }

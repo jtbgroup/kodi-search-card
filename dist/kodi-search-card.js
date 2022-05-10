@@ -1,1 +1,1 @@
-export{L as KodiSearchCard}from"./kodi-search-card-7d4c7266.js";
+export{L as BoilerplateCard}from"./kodi-search-card-8c91eb04.js";

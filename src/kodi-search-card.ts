@@ -1,54 +1,48 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  LitElement,
-  html,
-  TemplateResult,
-  css,
-  PropertyValues,
-  CSSResultGroup,
-} from "lit";
-import { customElement, property, state } from "lit/decorators";
-import "@material/mwc-list/mwc-list-item.js";
-import "@material/mwc-select/mwc-select.js";
-import "@material/mwc-textfield/mwc-textfield.js";
+import { LitElement, html, TemplateResult, css, PropertyValues, CSSResultGroup } from 'lit';
+import { customElement, property, state } from 'lit/decorators';
 import {
   HomeAssistant,
   hasConfigOrEntityChanged,
-  // hasAction,
+  hasAction,
   ActionHandlerEvent,
   handleAction,
   LovelaceCardEditor,
   getLovelace,
-} from "custom-card-helpers"; // This is a community maintained npm module with common helper functions/types. https://github.com/custom-cards/custom-card-helpers
-import type { KodiSearchCardConfig } from "./types";
-// import { actionHandler } from "./action-handler-directive";
-import { CARD_VERSION } from "./const";
-import { localize } from "./localize/localize";
+} from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types. https://github.com/custom-cards/custom-card-helpers
+
+import type { BoilerplateCardConfig } from './types';
+import { actionHandler } from './action-handler-directive';
+import { CARD_VERSION } from './const';
+import { localize } from './localize/localize';
+import '@material/mwc-list/mwc-list-item.js';
+import '@material/mwc-select/mwc-select.js';
+import '@material/mwc-textfield/mwc-textfield.js';
 
 /* eslint no-console: 0 */
 console.info(
-  `%c  KodiSearchCard-CARD\n%c  ${localize("common.version")} ${CARD_VERSION}    `,
-  "color: orange; font-weight: bold; background: black",
-  "color: white; font-weight: bold; background: dimgray"
+  `%c  BOILERPLATE-CARD\n%c  ${localize('common.version')} ${CARD_VERSION}    `,
+  'color: orange; font-weight: bold; background: black',
+  'color: white; font-weight: bold; background: dimgray',
 );
 
 // This puts your card into the UI card picker dialog
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
-  type: "kodi-search-card",
-  name: "kodi Search Card",
-  description: "A template custom card for you to create something awesome",
+  type: 'kodi-search-card',
+  name: 'Kodi Search Card',
+  description: 'A template custom card for you to create something awesome',
 });
 
 // TODO Name your custom element
-@customElement("kodi-search-card")
-export class KodiSearchCard extends LitElement {
+@customElement('kodi-search-card')
+export class BoilerplateCard extends LitElement {
   private _service_domain;
   private _searchInput;
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    await import("./editor");
-    return document.createElement("kodi-search-card-editor");
+    await import('./editor');
+    return document.createElement('boilerplate-card-editor');
   }
 
   public static getStubConfig(): Record<string, unknown> {
@@ -57,25 +51,22 @@ export class KodiSearchCard extends LitElement {
 
   // TODO Add any properities that should cause your element to re-render here
   // https://lit.dev/docs/components/properties/
-  @property({ attribute: false })
-  public hass!: HomeAssistant;
+  @property({ attribute: false }) public hass!: HomeAssistant;
 
-  @property({ attribute: false })
-  @state()
-  private config!: KodiSearchCardConfig;
+  @state() private config!: BoilerplateCardConfig;
 
   // https://lit.dev/docs/components/properties/#accessors-custom
-  public setConfig(config: KodiSearchCardConfig): void {
+  public setConfig(config: BoilerplateCardConfig): void {
     // TODO Check for required fields and that they are of the proper format
     if (!config) {
-      throw new Error(localize("common.invalid_configuration"));
+      throw new Error(localize('common.invalid_configuration'));
     }
 
     if (config.test_gui) {
       getLovelace().setEditMode(true);
     }
 
-    this.config = { name: "Test", ...config };
+    this.config = { name: 'Test', ...config };
   }
 
   // https://lit.dev/docs/components/lifecycle/#reactive-update-cycle-performing
@@ -101,29 +92,29 @@ export class KodiSearchCard extends LitElement {
     let errorCardMessage;
     const entity = this.config.entity;
     if (!entity) {
-      errorCardMessage = "No Entity defined";
+      errorCardMessage = 'No Entity defined';
       console.error(errorCardMessage);
     } else {
       const entityState = this.hass.states[entity];
       if (!entityState) {
-        errorCardMessage = "No State for the sensor";
+        errorCardMessage = 'No State for the sensor';
         console.error(errorCardMessage);
       } else {
-        if (entityState.state == "off") {
-          errorCardMessage = "Kodi is off";
+        if (entityState.state == 'off') {
+          errorCardMessage = 'Kodi is off';
           console.error(errorCardMessage);
         } else {
           const meta = entityState.attributes.meta;
           if (!meta) {
-            console.error("no metadata for the sensor");
+            console.error('no metadata for the sensor');
             return;
           }
-          const json_meta = typeof meta == "object" ? meta : JSON.parse(meta);
+          const json_meta = typeof meta == 'object' ? meta : JSON.parse(meta);
           if (json_meta.length == 0) {
-            console.error("empty metadata attribute");
+            console.error('empty metadata attribute');
             return;
           }
-          this._service_domain = json_meta[0]["service_domain"];
+          this._service_domain = json_meta[0]['service_domain'];
         }
       }
     }
@@ -132,44 +123,26 @@ export class KodiSearchCard extends LitElement {
       <ha-card
         .header=${this.config.name}
         tabindex="0"
-        .label=${`Kodi Search ${this.config.entity || "No Entity Defined"}`}
+        .label=${`Kodi Search ${this.config.entity || 'No Entity Defined'}`}
       >
-        ${errorCardMessage
-          ? html`<div>${errorCardMessage}</div>`
-          : this._buildSearchForm()}
+        ${errorCardMessage ? html`<div>${errorCardMessage}</div>` : this._buildSearchForm()}
       </ha-card>
     `;
   }
 
   private _buildSearchForm() {
-    this._searchInput = document.createElement("mwc-textfield");
-    this._searchInput.setAttribute("id", "form_input_search");
-    this._searchInput.setAttribute("outlined", "");
-    this._searchInput.setAttribute("label", "Search criteria");
+    this._searchInput = document.createElement('mwc-textfield');
+    this._searchInput.setAttribute('id', 'form_input_search');
+    this._searchInput.setAttribute('outlined', '');
+    this._searchInput.setAttribute('label', 'Search criteria');
 
     return html`
       <div id="search-form">
         ${this._searchInput}
         <div id="form-btns">
-          <mwc-button
-            id="form-btn-search"
-            label="Search"
-            raised
-            @click="${this._search}"
-            }
-          ></mwc-button>
-          <mwc-button
-            id="form-btn-clear"
-            label="Clear"
-            raised
-            @click="${this._clear}"
-          ></mwc-button>
-          <mwc-button
-            id="form-btn-recent"
-            label="Recent"
-            raised
-            @click="${this._recent}"
-          ></mwc-button>
+          <mwc-button id="form-btn-search" label="Searchhhhhh" raised @click="${this._search}" }></mwc-button>
+          <mwc-button id="form-btn-clear" label="Clear" raised @click="${this._clear}"></mwc-button>
+          <mwc-button id="form-btn-recent" label="Recent" raised @click="${this._recent}"></mwc-button>
         </div>
         <mwc-select id="form-select-action" label="Action mode">
           <mwc-list-item></mwc-list-item>
@@ -193,9 +166,9 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _showError(error: string): TemplateResult {
-    const errorCard = document.createElement("hui-error-card");
+    const errorCard = document.createElement('hui-error-card');
     errorCard.setConfig({
-      type: "error",
+      type: 'error',
       error,
       origConfig: this.config,
     });
@@ -271,12 +244,12 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _clear() {
-    this.hass.callService(this._service_domain, "call_method", {
+    this.hass.callService(this._service_domain, 'call_method', {
       entity_id: this.config.entity,
-      method: "clear",
+      method: 'clear',
     });
     if (this._searchInput) {
-      this._searchInput.value="";
+      this._searchInput.value = '';
     }
   }
 
@@ -284,12 +257,12 @@ export class KodiSearchCard extends LitElement {
     let searchText;
     if (this._searchInput) {
       searchText = this._searchInput.value;
-      this._searchInput.value = "";
-      this.hass.callService(this._service_domain, "call_method", {
+      this._searchInput.value = '';
+      this.hass.callService(this._service_domain, 'call_method', {
         entity_id: this.config.entity,
-        method: "search",
+        method: 'search',
         item: {
-          media_type: "all",
+          media_type: 'all',
           value: searchText,
         },
       });
@@ -297,15 +270,15 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _recent() {
-    this.hass.callService(this._service_domain, "call_method", {
+    this.hass.callService(this._service_domain, 'call_method', {
       entity_id: this.config.entity,
-      method: "search",
+      method: 'search',
       item: {
-        media_type: "recent",
+        media_type: 'recent',
       },
     });
     if (this._searchInput) {
-      this._searchInput.value="";
+      this._searchInput.value = '';
     }
   }
 }

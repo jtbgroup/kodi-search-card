@@ -1,6 +1,6 @@
 // See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
-  "name": "Boilerplate Card Development",
+  "name": "Kodi Search Card Development",
   "image": "ludeeus/container:monster",
   "context": "..",
   "appPort": ["5009:5009", "9123:8123"],

@@ -1,6 +1,6 @@
 {
   "name": "kodi-search-card",
-  "version": "3.0.0",
+  "version": "1.4.1",
   "description": "Lovelace kodi-search-card",
   "keywords": [
     "home-assistant",
@@ -23,7 +23,7 @@
     "@material/mwc-ripple": "^0.25.3",
     "@material/mwc-select": "^0.25.3",
     "@material/mwc-switch": "^0.25.3",
-    "@material/mwc-textfield": "^0.26.0",
+    "@material/mwc-textfield": "^0.25.3",
     "custom-card-helpers": "^1.7.2",
     "home-assistant-js-websocket": "^5.11.1",
     "lit": "^2.0.0"

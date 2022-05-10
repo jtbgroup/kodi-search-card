@@ -1,2 +1,4 @@
 node_modules
-.history
+/.history
+package-lock.json
+/dist

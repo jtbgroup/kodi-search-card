@@ -265,7 +265,7 @@ class SearchSensorCard extends HTMLElement {
     } else {
       let meta = this.state.attributes.meta;
       if (!meta) {
-        console.error("no metadata for the sensor");
+        console.error("no metadata for the sensor");sear
         return;
       }
       this.json_meta = typeof meta == "object" ? meta : JSON.parse(meta);

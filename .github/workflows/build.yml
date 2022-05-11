@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - master
+      - dev
+      - liteelement
   pull_request:
     branches:
       - master
+      - dev
+      - liteelement
 
 jobs:
   build:

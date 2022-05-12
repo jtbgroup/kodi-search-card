@@ -18,6 +18,7 @@ import { localize } from './localize/localize';
 import '@material/mwc-list/mwc-list-item.js';
 import '@material/mwc-select/mwc-select.js';
 import '@material/mwc-textfield/mwc-textfield.js';
+import './editor';
 
 /* eslint no-console: 0 */
 console.info(
@@ -41,7 +42,6 @@ export class BoilerplateCard extends LitElement {
   private _searchInput;
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    await import('./editor');
     return document.createElement('boilerplate-card-editor');
   }
 

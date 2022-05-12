@@ -34,12 +34,42 @@ console.info(
   name: 'Kodi Search Card',
   description: 'A template custom card for you to create something awesome',
 });
+const MEDIA_TYPE_ALBUM = 'album';
+const MEDIA_TYPE_ARTIST = 'artist';
+const MEDIA_TYPE_SONG = 'song';
+const MEDIA_TYPE_MOVIE = 'movie';
+const MEDIA_TYPE_TV_SHOW = 'tvshow';
+const MEDIA_TYPE_EPISODE = 'episode';
+const MEDIA_TYPE_CHANNEL = 'channel';
+const MEDIA_TYPE_TV_SHOW_SEASON_DETAILS = 'seasondetail';
+const MEDIA_TYPE_ALBUM_DETAILS = 'albumdetail';
+
+const MEDIA_TYPE_PARAMS = {
+  album: ['Albums', 'mdi:music'],
+  artist: ['Artists', 'mdi:music'],
+  song: ['Songs', 'mdi:music'],
+  movie: ['Movies', 'mdi:movie'],
+  tvshow: ['TV Shows', 'mdi:movie'],
+  episode: ['Episodes', 'mdi:movie'],
+  channel: ['Channels', 'mdi:movie'],
+};
+
+const DEFAULT_ORDER = [
+  MEDIA_TYPE_SONG,
+  MEDIA_TYPE_ALBUM,
+  MEDIA_TYPE_ARTIST,
+  MEDIA_TYPE_MOVIE,
+  MEDIA_TYPE_TV_SHOW,
+  MEDIA_TYPE_EPISODE,
+  MEDIA_TYPE_CHANNEL,
+];
 
 // TODO Name your custom element
 @customElement('kodi-search-card')
 export class BoilerplateCard extends LitElement {
   private _service_domain;
   private _searchInput;
+  private _config_order = DEFAULT_ORDER;
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     return document.createElement('boilerplate-card-editor');
@@ -90,6 +120,7 @@ export class BoilerplateCard extends LitElement {
     // }
 
     let errorCardMessage;
+    let json;
     const entity = this.config.entity;
     if (!entity) {
       errorCardMessage = 'No Entity defined';
@@ -115,6 +146,8 @@ export class BoilerplateCard extends LitElement {
             return;
           }
           this._service_domain = json_meta[0]['service_domain'];
+          const data = entityState.attributes.data;
+          json = typeof data == 'object' ? data : JSON.parse(data);
         }
       }
     }
@@ -125,9 +158,54 @@ export class BoilerplateCard extends LitElement {
         tabindex="0"
         .label=${`Kodi Search ${this.config.entity || 'No Entity Defined'}`}
       >
-        ${errorCardMessage ? html`<div>${errorCardMessage}</div>` : this._buildSearchForm()}
+        ${errorCardMessage ? html`<div>${errorCardMessage}</div>` : this._buildCardContainer(json)}
       </ha-card>
     `;
+  }
+
+  private _buildCardContainer(json) {
+    return html`<div>
+      <div>${this._buildSearchForm()}</div>
+      <div class="bordered">${this._buildResultContainer(json)}</div>
+    </div>`;
+  }
+
+  private _buildResultContainer(json) {
+    return html` ${this._config_order.map((media_type) => this._fillMediaItems(media_type, json))} `;
+    // return html`
+    // ${ for (let index = 0; index < this._config_order.length; index++) {
+    //   const media_type = this._config_order[index];
+    //   const filtered = this.filterTypes(json, media_type);
+    //   if (filtered.length > 0) {
+    //     this.fillItems(media_type, filtered, this.resultDiv);
+    //   }
+    // }
+    // }`;
+  }
+  private _fillMediaItems(media_type, json) {
+    const filtered = this._filterTypes(json, media_type);
+    if (filtered.length > 0) {
+      // this._fillMediaItems(media_type, filtered);
+      return html`<div class="media-type-div">
+        ${this._getMediaTypeLabel(media_type)}<ha-icon icon=${this._getMediaTypeIcon(media_type)}></ha-icon>
+      </div>`;
+    }
+    return html``;
+  }
+
+  private _getMediaTypeIcon(media_type) {
+    return MEDIA_TYPE_PARAMS[media_type][1];
+  }
+  private _getMediaTypeLabel(media_type) {
+    return MEDIA_TYPE_PARAMS[media_type][0];
+  }
+
+  private _filterTypes(json, value) {
+    const result = json.filter((item) => {
+      return item.type == value;
+    });
+
+    return result;
   }
 
   private _buildSearchForm() {
@@ -179,6 +257,18 @@ export class BoilerplateCard extends LitElement {
   // https://lit.dev/docs/components/styles/
   static get styles(): CSSResultGroup {
     return css`
+      .bordered {
+        border: 1px solid red;
+      }
+
+      .media-type-div,
+      .result-div-noresult {
+        font-weight: bold;
+        font-size: 18px;
+        text-align: right;
+        border-bottom: solid;
+      }
+
       /*
             -----------------
             ----- FORM -----

@@ -34,6 +34,22 @@ console.info(
   name: 'Kodi Search Card',
   description: 'A template custom card for you to create something awesome',
 });
+
+const SONG_THUMBNAIL_WIDTH = '65px';
+// the height of the thumbnail of the movie in the search result
+const MOVIE_THUMBNAIL_WIDTH = '150px';
+const MOVIE_THUMBNAIL_RATIO = 0.8;
+// the height of the epthumbnailsode of the episode in the search result
+const EPISODE_THUMBNAIL_WIDTH = '180px';
+const EPISODE_THUMBNAIL_RATIO = 1.5;
+// the height and width of the thumbnail of the artist in the search result
+const ARTIST_THUMBNAIL_WIDTH = '130px';
+// the height and width of the thumbnail of the album in the search result
+const ALBUM_THUMBNAIL_WIDTH = '130px';
+
+const CHANNEL_THUMBNAIL_WIDTH = '180px';
+const CHANNEL_THUMBNAIL_RATIO = 1.5;
+
 const MEDIA_TYPE_ALBUM = 'album';
 const MEDIA_TYPE_ARTIST = 'artist';
 const MEDIA_TYPE_SONG = 'song';
@@ -187,10 +203,40 @@ export class BoilerplateCard extends LitElement {
     if (filtered.length > 0) {
       // this._fillMediaItems(media_type, filtered);
       return html`<div class="media-type-div">
-        ${this._getMediaTypeLabel(media_type)}<ha-icon icon=${this._getMediaTypeIcon(media_type)}></ha-icon>
-      </div>`;
+          ${this._getMediaTypeLabel(media_type)}<ha-icon icon=${this._getMediaTypeIcon(media_type)}></ha-icon>
+        </div>
+        <div>${this._fillMediaItemData(media_type, filtered)}</div>`;
     }
     return html``;
+  }
+
+  private _fillMediaItemData(media_type, items) {
+    switch (media_type) {
+      case MEDIA_TYPE_SONG:
+        return this._fillSongs(items);
+      case MEDIA_TYPE_ALBUM:
+        return this._fillAlbums(items);
+    }
+    return html``;
+  }
+
+  private _fillSongs(items) {
+    return html`
+      ${items.map((item) => html`<div class="search-song-grid bordered"><div>${item['title']}</div></div>`)}
+    `;
+  }
+
+  private _fillAlbums(items) {
+    console.info(items);
+    return html`
+      ${items.map(
+        (item) =>
+          html`<div class="search-album-grid">
+            <div class="search-album-title search-title">${item['title']}</div>
+            <div class="search-album-artist search-artist">${item['artist'] + '(' + item['year'] + ')'}</div>
+          </div>`,
+      )}
+    `;
   }
 
   private _getMediaTypeIcon(media_type) {
@@ -261,6 +307,11 @@ export class BoilerplateCard extends LitElement {
         border: 1px solid red;
       }
 
+      /*
+            -----------------
+            ----- COMMON -----
+            -----------------
+          */
       .media-type-div,
       .result-div-noresult {
         font-weight: bold;
@@ -269,6 +320,25 @@ export class BoilerplateCard extends LitElement {
         border-bottom: solid;
       }
 
+      .search-title {
+        font-weight: bold;
+        font-size: 14px;
+        vertical-align: text-top;
+      }
+
+      .search-duration {
+        text-align: right;
+      }
+      .search-genre {
+        font-style: italic;
+        vertical-align: text-top;
+      }
+
+      .search-grid {
+        display: grid;
+        column-gap: 10px;
+        row-gap: 10px;
+      }
       /*
             -----------------
             ----- FORM -----
@@ -329,6 +399,50 @@ export class BoilerplateCard extends LitElement {
       #form-btn-recent {
         grid-column: 1 / 3;
         grid-row: 2;
+      }
+
+      /*
+            ------------------
+            ----- ALBUMS -----
+            ------------------
+            */
+      .search-albums-grid {
+        grid-template-columns: repeat(auto-fill, minmax(${this.ALBUM_THUMBNAIL_WIDTH}, 1fr));
+        grid-template-rows: auto;
+      }
+
+      .search-album-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto 1fr;
+        row-gap: 3px;
+      }
+
+      .search-album-cover {
+        grid-column: 1 / 2;
+        grid-row: 1;
+      }
+
+      .search-album-title {
+        grid-column: 1 / 3;
+        grid-row: 2;
+        vertical-align: text-top;
+      }
+
+      .search-album-artist {
+        grid-column: 1 / 3;
+        grid-row: 3 / 4;
+        vertical-align: text-top;
+      }
+
+      .search-album-cover-image {
+        width: ${this.ALBUM_THUMBNAIL_WIDTH};
+      }
+
+      .search-album-cover-image-default {
+        width: ${this.ALBUM_THUMBNAIL_WIDTH};
+        height: ${this.ALBUM_THUMBNAIL_WIDTH};
+        --mdc-icon-size: calc(${this.ALBUM_THUMBNAIL_WIDTH} - 30px);
       }
     `;
   }

@@ -157,7 +157,6 @@ export class KodiSearchCard extends LitElement {
     //   return this._showError(localize('common.show_error'));
     // }
     this._render_finished = false;
-    console.info('render');
     let errorCardMessage;
     let json;
     const entity = this.config.entity;
@@ -215,12 +214,9 @@ export class KodiSearchCard extends LitElement {
     const data = this._entityState.attributes.data;
     const json = typeof data == 'object' ? data : JSON.parse(data);
 
-    console.info('building result');
     if (this._json_meta[0]['search'] && json.length == 0) {
-      console.info('no result');
       return html` <div id="card-container-result">${this._buildNoResultContainer()}</div>`;
     } else {
-      console.info('result found');
       return html` <div id="card-container-result">${this._buildDataResultContainer(json)}</div>`;
     }
   }
@@ -249,9 +245,7 @@ export class KodiSearchCard extends LitElement {
     // }`;
   }
   private _fillMediaItems(media_type, json) {
-    console.info('filter media type ' + media_type);
     const filtered = this._filterTypes(json, media_type);
-    console.info(filtered);
     if (filtered.length > 0) {
       // this._fillMediaItems(media_type, filtered);
       return html`<div class="card-container-item">
@@ -265,7 +259,6 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _fillMediaItemData(media_type, items) {
-    console.info('------ ' + media_type);
     switch (media_type) {
       case MEDIA_TYPE_SONG:
         return this._fillSongs(items);
@@ -296,7 +289,6 @@ export class KodiSearchCard extends LitElement {
       //   this.fillTVShowSeasonDetails(items, resultDiv);
       //   break;
       case MEDIA_TYPE_ALBUM_DETAILS:
-        console.info('88888888888888888888888888888888888888888888');
         return this._fillAlbumDetails(items);
     }
     return html``;
@@ -329,7 +321,6 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _fillArtists(items) {
-    console.info('fill artists');
     return html`<div class="search-artists-grid search-grid search-item-container-grid">
       ${items.map(
         (item) =>
@@ -351,7 +342,6 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _fillAlbums(items) {
-    console.info('fill artists');
     return html`<div class="search-albums-grid search-grid search-item-container-grid">
       ${items.map(
         (item) =>
@@ -374,7 +364,6 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _fillMovies(items) {
-    console.info('fill movies');
     return html`<div class="search-movies-grid search-grid search-item-container-grid">
       ${items.map(
         (item) =>
@@ -396,7 +385,6 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _fillEpisodes(items) {
-    console.info('fill episodes');
     return html`<div class="search-episodes-grid search-grid search-item-container-grid">
       ${items.map(
         (item) =>
@@ -422,7 +410,6 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _fillTvShows(items) {
-    console.info('fill tv shows');
     return html`<div class="search-tvshows-grid search-grid search-item-container-grid">
       ${items.map(
         (item) =>
@@ -444,32 +431,40 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _fillAlbumDetails(items) {
-    console.info('fill album details');
     if (this._config_album_details_sort == SORT_DESC) {
       items.sort((a, b) => parseFloat(b.year) - parseFloat(a.year));
     } else {
       items.sort((a, b) => parseFloat(a.year) - parseFloat(b.year));
     }
 
-    const albumDuration = 0;
+    const albumDurations = {};
+    let albumDuration = 0;
+    items.map((album) => {
+      album['songs'].map((song) => {
+        albumDuration += song['duration'];
+      });
+      albumDurations[album['albumid']] = albumDuration;
+      albumDuration = 0;
+    });
+
     return html`
       <div class="search-albumsdetails-grid search-grid search-item-container-grid">
         <div class="media-type-div">Album Details<ha-icon icon="mdi:disc"></ha-icon></div>
         ${items.map(
-          (item) =>
+          (album) =>
             html`<div class="search-albumdetails-grid  search-grid">
               ${this._prepareCover(
-                item['thumbnail'],
+                album['thumbnail'],
                 'search-albumdetails-cover',
                 'search-albumdetails-cover-image',
                 'search-albumdetails-cover-image-default',
                 this._getActionIcon(),
                 'mdi:music',
-                () => this._addAlbum(item['albumid']),
+                () => this._addAlbum(album['albumid']),
               )}
-              <div class="search-albumdetails-title search-title">${item['year']} - ${item['title']}</div>
+              <div class="search-albumdetails-title search-title">${album['year']} - ${album['title']}</div>
               <div class="search-albumdetails-songs">
-                ${item['songs'].map(
+                ${album['songs'].map(
                   (song) => html` <div class="search-albumdetails-song-grid">
                     <div class="search-albumdetails-song-track" id="song-track-${song['songid']}">
                       ${song['track'] ? song['track'] : ''}
@@ -482,16 +477,14 @@ export class KodiSearchCard extends LitElement {
                     )}
                   </div>`,
                 )}
-
-                <div class="search-albumdetails-duration">${this._formatDuration(albumDuration)}</div>
               </div>
+              <div class="search-albumdetails-duration">${this._formatDuration(albumDurations[album['albumid']])}</div>
             </div>`,
         )}
       </div>
     `;
   }
   private _createAlbumDetailsActionIcon(song, titleDivId, trackDivId) {
-    console.info('>>>>>>> ' + titleDivId);
     const playDiv = document.createElement('ha-icon');
     playDiv.setAttribute('icon', this._getActionIcon());
     playDiv.setAttribute('class', 'search-albumdetails-song-play');
@@ -547,7 +540,6 @@ export class KodiSearchCard extends LitElement {
     const coverContainer = document.createElement('div');
     coverContainer.setAttribute('class', 'search-cover-container');
     coverDiv.appendChild(coverContainer);
-    console.info('1');
     if (this._config_show_thumbnail && cover && cover != '') {
       const coverImg = document.createElement('img');
       coverImg.setAttribute('src', cover);
@@ -561,13 +553,11 @@ export class KodiSearchCard extends LitElement {
       };
       coverImg.setAttribute('class', class_cover_image + ' search-cover-image');
       coverContainer.appendChild(coverImg);
-      console.info('2');
     } else {
       const coverImgDefault = document.createElement('ha-icon');
       coverImgDefault.setAttribute('class', 'search-cover-image-default ' + class_cover_image_default);
       coverImgDefault.setAttribute('icon', icon_default);
       coverContainer.appendChild(coverImgDefault);
-      console.info('3');
     }
 
     if (!this._config_show_thumbnail_overlay) {
@@ -579,13 +569,11 @@ export class KodiSearchCard extends LitElement {
       overlayImg.addEventListener('click', action_click);
       coverContainer.appendChild(overlayImg);
     }
-    console.info('4');
 
     return html`${coverDiv}`;
   }
 
   private _getActionIcon() {
-    console.info(ACTION_MAP[this._config_action_mode].icon);
     return ACTION_MAP[this._config_action_mode].icon;
   }
 
@@ -597,8 +585,6 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _filterTypes(json, value) {
-    console.info('filtering ' + value);
-    console.info(json);
     const result = json.filter((item) => {
       return item.type == value;
     });
@@ -611,8 +597,6 @@ export class KodiSearchCard extends LitElement {
     this._searchInput.setAttribute('id', 'form_input_search');
     this._searchInput.setAttribute('outlined', '');
     this._searchInput.setAttribute('label', 'Search criteria');
-    console.info('building search form');
-    console.info('action is ' + this._config_action_mode);
     return html`
       <div id="search-form">
         ${this._searchInput}
@@ -638,7 +622,6 @@ export class KodiSearchCard extends LitElement {
       const value = event.originalTarget.items_[idx].value;
       this._config_action_mode = value;
       // this.fillResultContainer();
-      console.info('action changed to ' + value);
       this.render();
       this.requestUpdate();
     }

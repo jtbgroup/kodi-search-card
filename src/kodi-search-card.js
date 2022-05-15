@@ -396,7 +396,7 @@ class SearchSensorCard extends HTMLElement {
         this.fillTVShowSeasonDetails(items, resultDiv);
         break;
       case MEDIA_TYPE_ALBUM_DETAILS:
-        this.fillAlbumDetails(items, resultDiv);
+        this.fillAlbumDefillAlbumDetails(items, resultDiv);
         break;
     }
   }

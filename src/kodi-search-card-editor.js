@@ -1,5 +1,5 @@
-const OptionsSort = ["Asc", "Desc"];
-const OptionsActionMode = ["Play", "Add"];
+const OptionsSort = ['Asc', 'Desc'];
+const OptionsActionMode = ['Play', 'Add'];
 
 const fireEvent = (node, type, detail, options) => {
   options = options || {};
@@ -14,9 +14,9 @@ const fireEvent = (node, type, detail, options) => {
   return event;
 };
 
-const LitElement = customElements.get("hui-masonry-view")
-  ? Object.getPrototypeOf(customElements.get("hui-masonry-view"))
-  : Object.getPrototypeOf(customElements.get("hui-view"));
+const LitElement = customElements.get('hui-masonry-view')
+  ? Object.getPrototypeOf(customElements.get('hui-masonry-view'))
+  : Object.getPrototypeOf(customElements.get('hui-view'));
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
@@ -78,7 +78,7 @@ export class KodiSearchCardEditor extends LitElement {
           label="Playlist sensor entity"
           .hass="${this.hass}"
           .value="${this._config.entity}"
-          .configValue=${"entity"}
+          .configValue=${'entity'}
           domain-filter="sensor"
           @change="${this._valueChanged}"
           allow-custom-entity
@@ -89,7 +89,7 @@ export class KodiSearchCardEditor extends LitElement {
           <span class="config-label">Show thumbnail</span>
           <ha-switch
             .checked=${this._config.show_thumbnail}
-            .configValue="${"show_thumbnail"}"
+            .configValue="${'show_thumbnail'}"
             @change="${this._valueChanged}"
             class="config-component"
           ></ha-switch>
@@ -99,7 +99,7 @@ export class KodiSearchCardEditor extends LitElement {
           <span class="config-label">Show thumbnail overlay</span>
           <ha-switch
             .checked=${this._config.show_thumbnail_overlay}
-            .configValue="${"show_thumbnail_overlay"}"
+            .configValue="${'show_thumbnail_overlay'}"
             @change="${this._valueChanged}"
             class="config-component"
           ></ha-switch>
@@ -109,7 +109,7 @@ export class KodiSearchCardEditor extends LitElement {
           <span class="config-label">Show thumbnail border</span>
           <ha-switch
             .checked=${this._config.show_thumbnail_border}
-            .configValue="${"show_thumbnail_border"}"
+            .configValue="${'show_thumbnail_border'}"
             @change="${this._valueChanged}"
             class="config-component"
           ></ha-switch>
@@ -117,7 +117,7 @@ export class KodiSearchCardEditor extends LitElement {
 
         <paper-input
           label="Outline color"
-          .configValue="${"outline_color"}"
+          .configValue="${'outline_color'}"
           .value=${this._config.outline_color}
           @value-changed=${this._valueChanged}
           class="config"
@@ -125,19 +125,15 @@ export class KodiSearchCardEditor extends LitElement {
 
         <paper-dropdown-menu
           label="Sort Albums for one artist"
-          .configValue=${"album_details_sort"}
+          .configValue=${'album_details_sort'}
           @value-changed=${this._valueChanged}
           class="config"
         >
           <paper-listbox
             slot="dropdown-content"
-            .selected=${Object.values(OptionsSort).indexOf(
-              this._config.album_details_sort
-            )}
+            .selected=${Object.values(OptionsSort).indexOf(this._config.album_details_sort)}
           >
-            ${Object.values(OptionsSort).map(
-              (item) => html` <paper-item>${item}</paper-item> `
-            )}
+            ${Object.values(OptionsSort).map((item) => html` <paper-item>${item}</paper-item> `)}
           </paper-listbox>
         </paper-dropdown-menu>
 
@@ -145,7 +141,7 @@ export class KodiSearchCardEditor extends LitElement {
           <span class="config-label">Show Action Mode Component</span>
           <ha-switch
             .checked=${this._config.show_action_mode}
-            .configValue="${"show_action_mode"}"
+            .configValue="${'show_action_mode'}"
             @change="${this._valueChanged}"
             class="config-component"
           ></ha-switch>
@@ -153,26 +149,22 @@ export class KodiSearchCardEditor extends LitElement {
 
         <paper-dropdown-menu
           label="Action to do when clicked"
-          .configValue=${"action_mode"}
+          .configValue=${'action_mode'}
           @value-changed=${this._valueChanged}
           class="config"
         >
           <paper-listbox
             slot="dropdown-content"
-            .selected=${Object.values(OptionsActionMode).indexOf(
-              this._config.action_mode
-            )}
+            .selected=${Object.values(OptionsActionMode).indexOf(this._config.action_mode)}
           >
-            ${Object.values(OptionsActionMode).map(
-              (item) => html` <paper-item>${item}</paper-item> `
-            )}
+            ${Object.values(OptionsActionMode).map((item) => html` <paper-item>${item}</paper-item> `)}
           </paper-listbox>
         </paper-dropdown-menu>
 
         <paper-input
           type="number"
           label="Position where to add the item (if action 'Add')"
-          .configValue="${"add_position"}"
+          .configValue="${'add_position'}"
           .value=${this._config.add_position}
           @value-changed=${this._valueChanged}
           class="config"
@@ -190,17 +182,16 @@ export class KodiSearchCardEditor extends LitElement {
     //   return;
     // }
     if (target.configValue) {
-      if (target.value === "") {
+      if (target.value === '') {
         delete this._config[target.configValue];
       } else {
         this._config = {
           ...this._config,
-          [target.configValue]:
-            target.checked !== undefined ? target.checked : target.value,
+          [target.configValue]: target.checked !== undefined ? target.checked : target.value,
         };
       }
     }
-    fireEvent(this, "config-changed", { config: this._config });
+    fireEvent(this, 'config-changed', { config: this._config });
   }
 
   static get styles() {
@@ -229,4 +220,4 @@ export class KodiSearchCardEditor extends LitElement {
   }
 }
 
-customElements.define("kodi-search-card-editor", KodiSearchCardEditor);
+customElements.define('kodi-search-card-editor', KodiSearchCardEditor);

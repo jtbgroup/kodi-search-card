@@ -78,17 +78,10 @@ export class KodiSearchCardEditor extends ScopedRegistryHost(LitElement) impleme
     return this._config?.action_mode || '';
   }
 
-  get _add_position(): number {
-    return this._config?.add_position || 0;
+  get _add_position(): string {
+    return this._config?.add_position || '0';
   }
 
-  // get _show_warning(): boolean {
-  //   return this._config?.show_warning || false;
-  // }
-
-  // get _show_error(): boolean {
-  //   return this._config?.show_error || false;
-  // }
 
   protected render(): TemplateResult | void {
     if (!this.hass || !this._helpers) {
@@ -202,7 +195,7 @@ export class KodiSearchCardEditor extends ScopedRegistryHost(LitElement) impleme
           <mwc-textfield
             label="Position where to add the item (if action 'Add')"
             type="number"
-            .configValue=${this._add_position}
+            .value=${this._add_position}
             .configValue=${'add_position'}
             @input=${this._valueChanged}
           ></mwc-textfield>

@@ -51,13 +51,8 @@ export class KodiSearchCard extends LitElement {
   private _entityState;
   private _json_meta;
   private _service_domain;
-  // private _config_order = DEFAULT_MEDIA_TYPE_ORDER;
+  // this is the only config property to be kept because we do not want to change the configuration when switching the action mode in the card (only in the editor)
   private _config_action_mode = DEFAULT_ACTION_MODE;
-  // private _config_show_action_mode = DEFAULT_SHOW_ACTION_MODE;
-  // private _config_add_position = DEFAULT_ADD_POSITION;
-  // private _config_show_thumbnail = DEFAULT_SHOW_THUMBNAIL;
-  // private _config_show_thumbnail_overlay = DEFAULT_SHOW_THUMBNAIL_OVERLAY;
-  // private _config_album_details_sort = DEFAULT_ALBUM_DETAILS_SORT;
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     return document.createElement('kodi-search-card-editor');
@@ -101,41 +96,7 @@ export class KodiSearchCard extends LitElement {
     };
 
     this._config_action_mode = this.config.action_mode;
-    // if (this.config.hasOwnProperty('show_thumbnail')) {
-    //   this._config_show_thumbnail = this.config.show_thumbnail;
-    // }
-
-    // if (this._config.hasOwnProperty('show_thumbnail_border')) {
-    //   this._config_show_thumbnail_border = this._config.show_thumbnail_border;
-    // }
-
-    // if (this._config.hasOwnProperty('outline_color')) {
-    //   this._config_outline_color = this._config.outline_color;
-    // }
-
-    // if (this._config.hasOwnProperty('show_thumbnail_overlay')) {
-    //   this._config_show_thumbnail_overlay = this._config.show_thumbnail_overlay;
-    // }
-
-    // if (this._config.hasOwnProperty('album_details_sort')) {
-    //   this._config_album_details_sort = this._config.album_details_sort;
-    // }
-
-    // if (this._config.hasOwnProperty('show_action_mode')) {
-    //   this._config_show_action_mode = this._config.show_action_mode;
-    // }
-
-    // if (this._config.hasOwnProperty('action_mode')) {
-    //   this._config_action_mode = this._config.action_mode;
-    // }
-
-    // if (this._config.hasOwnProperty('add_position')) {
-    //   this._config_add_position = this._config.add_position;
-    // }
-
-    // if (this._config.hasOwnProperty('order')) {
-    //   this._config_order = this._config.order;
-    // }
+    document.documentElement.style.setProperty(`--outline_color`, this.config.outline_color);
   }
 
   // https://lit.dev/docs/components/lifecycle/#reactive-update-cycle-performing
@@ -587,6 +548,8 @@ export class KodiSearchCard extends LitElement {
     icon_default,
     action_click,
   ) {
+
+    const border = this.config.outline_color?'cover-image-outline-border':'';
     const coverDiv = document.createElement('div');
     coverDiv.setAttribute('class', class_cover);
 
@@ -600,15 +563,15 @@ export class KodiSearchCard extends LitElement {
         coverImg.remove();
 
         const coverImgDefault = document.createElement('ha-icon');
-        coverImgDefault.setAttribute('class', 'search-cover-image-default ' + class_cover_image_default);
+        coverImgDefault.setAttribute('class', 'search-cover-image-default ' + class_cover_image_default + ' ' + border);
         coverImgDefault.setAttribute('icon', icon_default);
         coverContainer.appendChild(coverImgDefault);
       };
-      coverImg.setAttribute('class', class_cover_image + ' search-cover-image');
+      coverImg.setAttribute('class', class_cover_image + ' search-cover-image' + ' ' + border);
       coverContainer.appendChild(coverImg);
     } else {
       const coverImgDefault = document.createElement('ha-icon');
-      coverImgDefault.setAttribute('class', 'search-cover-image-default ' + class_cover_image_default);
+      coverImgDefault.setAttribute('class', 'search-cover-image-default ' + class_cover_image_default + ' ' + border);
       coverImgDefault.setAttribute('icon', icon_default);
       coverContainer.appendChild(coverImgDefault);
     }
@@ -694,8 +657,11 @@ export class KodiSearchCard extends LitElement {
   // https://lit.dev/docs/components/styles/
   static get styles(): CSSResultGroup {
     return css`
+      :root{
+        --outline_color: '-----';
+      }
+
       :host {
-        --custom-color: red;
         --album-thumbnail-width: 130px;
         --song-thumbnail-width: 65px;
         --movie-thumbnail-width: 150px;
@@ -1349,6 +1315,11 @@ export class KodiSearchCard extends LitElement {
       channel-play:hover {
         color: red;
       }
+
+      .cover-image-outline-border{
+        border: 1px solid var(--outline_color)
+      }
+      
     `;
   }
 
@@ -1445,7 +1416,7 @@ export class KodiSearchCard extends LitElement {
     params[item_key.toString()] = item_id;
 
     if (meth == 'add') {
-      params.position = this.config.add_position ? this.config.add_position : 0;
+      params.position = this.config.add_position ? parseInt(this.config.add_position) : 0;
     }
 
     this.hass.callService(this._service_domain, 'call_method', params);

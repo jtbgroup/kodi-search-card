@@ -15,11 +15,11 @@ export interface KodiSearchCardConfig extends LovelaceCardConfig {
   show_thumbnail?: boolean;
   show_thumbnail_overlay?: boolean;
   show_thumbnail_border?: boolean;
-  outline_color?: string;
+  outline_color: string;
   album_details_sort: string;
   show_action_mode?: boolean;
   action_mode: string;
-  add_position?: number;
+  add_position: string;
   // media_type_order;
   // show_warning?: boolean;
   // show_error?: boolean;

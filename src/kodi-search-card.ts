@@ -200,7 +200,7 @@ export class KodiSearchCard extends LitElement {
     if (filtered.length > 0) {
       return html`<div>
         <div class="media-type-div">
-          ${this._getMediaTypeLabel(media_type)}<ha-icon icon=${this._getMediaTypeIcon(media_type)}></ha-icon>
+          ${this._getMediaTypeLabel(media_type)} <ha-icon icon=${this._getMediaTypeIcon(media_type)}></ha-icon>
         </div>
         ${this._fillMediaItemData(media_type, filtered)}
       </div>`;
@@ -410,7 +410,7 @@ export class KodiSearchCard extends LitElement {
   private _fillTVShowSeasonDetails(items) {
     return html`
       <div>
-        <div class="media-type-div">Season Details<ha-icon icon="mdi:movie"></ha-icon></div>
+        <!-- <div class="media-type-div">Season Details<ha-icon icon="mdi:movie"></ha-icon></div> -->
         ${items.map(
           (season) =>
             html`<div class="search-seasondetails-grid  search-grid search-item-container-grid">
@@ -442,8 +442,8 @@ export class KodiSearchCard extends LitElement {
                       () => this._addEpisodes(episode['episodeid']),
                       'search-seasondetails-episode-play',
                       [
-                        this.shadowRoot?.getElementById('episode-title-' + episode['episodeid']),
-                        this.shadowRoot?.getElementById('episode-track-' + episode['episodeid']),
+                        'episode-title-' + episode['episodeid'],
+                        'episode-track-' + episode['episodeid'],
                       ],
                     )}
                   </div>`,
@@ -474,7 +474,7 @@ export class KodiSearchCard extends LitElement {
 
     return html`
       <div class="search-albumsdetails-grid search-grid search-item-container-grid">
-        <div class="media-type-div">Album Details<ha-icon icon="mdi:disc"></ha-icon></div>
+        <!-- <div class="media-type-div">Album Details<ha-icon icon="mdi:disc"></ha-icon></div> -->
         ${items.map(
           (album) =>
             html`<div class="search-albumdetails-grid  search-grid">
@@ -499,8 +499,7 @@ export class KodiSearchCard extends LitElement {
                       () => this._addSong(song['songid']),
                       'search-albumdetails-song-play',
                       [
-                        this.shadowRoot?.getElementById('song-title-' + song['songid']),
-                        this.shadowRoot?.getElementById('song-track-' + song['songid']),
+                        'song-title-' + song['songid'], 'song-track-' + song['songid'],
                       ],
                     )}
                   </div>`,
@@ -527,15 +526,19 @@ export class KodiSearchCard extends LitElement {
 
   private _highlightOver(els, enabled) {
     for (let index = 0; index < els.length; index++) {
-      const div = els[index];
+      const div = this.shadowRoot?.getElementById(els[index]);
 
-      let color = 'var(--paper-item-icon-color, #44739e)';
-      let weight = 'bold';
-      if (!enabled) {
-        color = '';
-        weight = 'normal';
+      if(div){
+        let color = 'var(--paper-item-icon-color, #44739e)';
+        let weight = 'bold';
+        if (!enabled) {
+          color = '';
+          weight = 'normal';
+        }
+        div.style.fontWeight = weight;
+      }else{
+        console.error("can't find element "+ els[index] )
       }
-      div.style.fontWeight = weight;
     }
   }
 
@@ -673,6 +676,7 @@ export class KodiSearchCard extends LitElement {
         --episode-thumbnail-ratio: 1.5;
         --background-basic-color: #9b9595;
         --container-rows-gap: 10px;
+        --mdc-select-fill-color: rgba(0,0,0,0);
       }
 
       /*
@@ -1155,10 +1159,11 @@ export class KodiSearchCard extends LitElement {
         grid-template-columns: 1fr;
         grid-auto-rows: auto;
       }
-
+      
       .search-albumdetails-grid {
         grid-template-columns: auto 1fr;
         grid-auto-rows: auto;
+        border-bottom: solid;
       }
 
       .search-albumdetails-cover {
@@ -1231,7 +1236,8 @@ export class KodiSearchCard extends LitElement {
             */
       .search-seasondetails-grid {
         grid-template-columns: auto 1fr;
-        grid-auto-rows: auto;
+        grid-auto-rows: auto; 
+        border-bottom: solid;
       }
 
       .search-seasondetails-cover {

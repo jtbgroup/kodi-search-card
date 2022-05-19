@@ -1,6 +1,6 @@
 {
   "common": {
     "version": "Version",
-    "invalid_configuration": "Invalid configuration",
+    "invalid_configuration": "Invalid configuration"
   }
 }

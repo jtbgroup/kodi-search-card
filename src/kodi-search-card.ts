@@ -95,7 +95,7 @@ export class KodiSearchCard extends LitElement {
       ...config,
     };
 
-    if(this.config.action_mode){
+    if (this.config.action_mode) {
       this._config_action_mode = this.config.action_mode;
     }
     document.documentElement.style.setProperty(`--outline_color`, this.config.outline_color);
@@ -443,10 +443,7 @@ export class KodiSearchCard extends LitElement {
                     ${this._createItemDetailsActionIcon(
                       () => this._addEpisodes(episode['episodeid']),
                       'search-seasondetails-episode-play',
-                      [
-                        'episode-title-' + episode['episodeid'],
-                        'episode-track-' + episode['episodeid'],
-                      ],
+                      ['episode-title-' + episode['episodeid'], 'episode-track-' + episode['episodeid']],
                     )}
                   </div>`,
                 )}
@@ -500,9 +497,7 @@ export class KodiSearchCard extends LitElement {
                     ${this._createItemDetailsActionIcon(
                       () => this._addSong(song['songid']),
                       'search-albumdetails-song-play',
-                      [
-                        'song-title-' + song['songid'], 'song-track-' + song['songid'],
-                      ],
+                      ['song-title-' + song['songid'], 'song-track-' + song['songid']],
                     )}
                   </div>`,
                 )}
@@ -530,7 +525,7 @@ export class KodiSearchCard extends LitElement {
     for (let index = 0; index < els.length; index++) {
       const div = this.shadowRoot?.getElementById(els[index]);
 
-      if(div){
+      if (div) {
         let color = 'var(--paper-item-icon-color, #44739e)';
         let weight = 'bold';
         if (!enabled) {
@@ -538,8 +533,8 @@ export class KodiSearchCard extends LitElement {
           weight = 'normal';
         }
         div.style.fontWeight = weight;
-      }else{
-        console.error("can't find element "+ els[index] )
+      } else {
+        console.error("can't find element " + els[index]);
       }
     }
   }
@@ -553,8 +548,7 @@ export class KodiSearchCard extends LitElement {
     icon_default,
     action_click,
   ) {
-
-    const border = this.config.outline_color?'cover-image-outline-border':'';
+    const border = this.config.outline_color ? 'cover-image-outline-border' : '';
     const coverDiv = document.createElement('div');
     coverDiv.setAttribute('class', class_cover);
 
@@ -662,7 +656,7 @@ export class KodiSearchCard extends LitElement {
   // https://lit.dev/docs/components/styles/
   static get styles(): CSSResultGroup {
     return css`
-      :root{
+      :root {
         --outline_color: '-----';
       }
 
@@ -678,7 +672,7 @@ export class KodiSearchCard extends LitElement {
         --episode-thumbnail-ratio: 1.5;
         --background-basic-color: #9b9595;
         --container-rows-gap: 10px;
-        --mdc-select-fill-color: rgba(0,0,0,0);
+        --mdc-select-fill-color: rgba(0, 0, 0, 0);
       }
 
       /*
@@ -1161,7 +1155,7 @@ export class KodiSearchCard extends LitElement {
         grid-template-columns: 1fr;
         grid-auto-rows: auto;
       }
-      
+
       .search-albumdetails-grid {
         grid-template-columns: auto 1fr;
         grid-auto-rows: auto;
@@ -1238,7 +1232,7 @@ export class KodiSearchCard extends LitElement {
             */
       .search-seasondetails-grid {
         grid-template-columns: auto 1fr;
-        grid-auto-rows: auto; 
+        grid-auto-rows: auto;
         border-bottom: solid;
       }
 
@@ -1324,10 +1318,9 @@ export class KodiSearchCard extends LitElement {
         color: red;
       }
 
-      .cover-image-outline-border{
-        border: 1px solid var(--outline_color)
+      .cover-image-outline-border {
+        border: 1px solid var(--outline_color);
       }
-      
     `;
   }
 

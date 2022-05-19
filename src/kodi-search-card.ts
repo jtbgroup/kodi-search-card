@@ -95,9 +95,14 @@ export class KodiSearchCard extends LitElement {
       ...config,
     };
 
+    if (!this.config.outline_color) {
+      this.config.outline_color = DEFAULT_OUTLINE_COLOR;
+    }
+
     if (this.config.action_mode) {
       this._config_action_mode = this.config.action_mode;
     }
+    console.info(this.config.outline_color);
     document.documentElement.style.setProperty(`--outline_color`, this.config.outline_color);
   }
 

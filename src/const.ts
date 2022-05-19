@@ -31,10 +31,10 @@ export const DEFAULT_ADD_POSITION = 1;
 export const DEFAULT_SHOW_THUMBNAIL = true;
 export const DEFAULT_SHOW_THUMBNAIL_OVERLAY = true;
 export const DEFAULT_SHOW_ACTION_MODE = true;
-export const DEFAULT_ACTION_MODE = Object.keys(ACTION_MAP)[0];
+export const DEFAULT_ACTION_MODE = 'play';
 export const DEFAULT_ALBUM_DETAILS_SORT = SORT_DESC;
 export const DEFAULT_SHOW_THUMBNAIL_BORDER = false;
-export const DEFAULT_OUTLINE_COLOR = 'white';
+export const DEFAULT_OUTLINE_COLOR = 'var(--primary-text-color)';
 export const DEFAULT_MEDIA_TYPE_ORDER = MEDIA_TYPES.filter((type) => MEDIA_TYPE_PARAMS[type].order >= 0).sort(
   (a, b) => MEDIA_TYPE_PARAMS[a].order - MEDIA_TYPE_PARAMS[b].order,
 );

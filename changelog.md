@@ -1,5 +1,10 @@
 # SEARCH CARD - Changelog
 
+## 3.0.0
+
+- Migration to LiteElement and standardisation of the components (mwc)
+- New project structure to use the builder from the boilerplate
+
 ## 2.8.0
 
 - Entries in album and tvshow details are highlighted in bold when mouse over the action button (see [issue #11](https://github.com/jtbgroup/kodi-search-card/issues/11)). Thanks to [Roumano](https://github.com/roumano)

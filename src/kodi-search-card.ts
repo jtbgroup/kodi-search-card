@@ -90,20 +90,15 @@ export class KodiSearchCard extends LitElement {
       getLovelace().setEditMode(true);
     }
 
-    this.config = {
-      media_type_order: DEFAULT_MEDIA_TYPE_ORDER,
-      ...config,
-    };
-
-    if (!this.config.outline_color) {
-      this.config.outline_color = DEFAULT_OUTLINE_COLOR;
-    }
+    this.config = config;
 
     if (this.config.action_mode) {
       this._config_action_mode = this.config.action_mode;
     }
-    console.info(this.config.outline_color);
-    document.documentElement.style.setProperty(`--outline_color`, this.config.outline_color);
+    document.documentElement.style.setProperty(
+      `--outline_color`,
+      this.config.outline_color ? this.config.outline_color : DEFAULT_OUTLINE_COLOR,
+    );
   }
 
   // https://lit.dev/docs/components/lifecycle/#reactive-update-cycle-performing
@@ -117,15 +112,6 @@ export class KodiSearchCard extends LitElement {
 
   // https://lit.dev/docs/components/rendering/
   protected render(): TemplateResult | void {
-    // TODO Check for stateObj or other necessary things and render a warning if missing
-    // if (this.config.show_warning) {
-    //   return this._showWarning(localize('common.show_warning'));
-    // }
-
-    // if (this.config.show_error) {
-    //   return this._showError(localize('common.show_error'));
-    // }
-
     this._render_finished = false;
     let errorCardMessage;
     let json;
@@ -162,7 +148,7 @@ export class KodiSearchCard extends LitElement {
 
     const card = html`
       <ha-card
-        .header=${this.config.title}
+        .header=${this.config.title ? this.config.title : ''}
         tabindex="0"
         .label=${`Kodi Search ${this.config.entity || 'No Entity Defined'}`}
       >
@@ -196,8 +182,9 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _buildDataResultContainer(json) {
+    const media_order = this.config.order ? this.config.order : DEFAULT_MEDIA_TYPE_ORDER;
     return html`
-      ${this.config.media_type_order.map((media_type) => this._fillMediaItems(media_type, json))}
+      ${media_order.map((media_type) => this._fillMediaItems(media_type, json))}
       ${MEDIA_TYPES_SINGLE_DISPLAY.map((media_type) => this._fillMediaItems(media_type, json))}
     `;
   }
@@ -553,7 +540,7 @@ export class KodiSearchCard extends LitElement {
     icon_default,
     action_click,
   ) {
-    const border = this.config.outline_color ? 'cover-image-outline-border' : '';
+    const border = this.config.show_thumbnail_border ? 'cover-image-outline-border' : '';
     const coverDiv = document.createElement('div');
     coverDiv.setAttribute('class', class_cover);
 
@@ -582,7 +569,7 @@ export class KodiSearchCard extends LitElement {
 
     if (!this.config.show_thumbnail_overlay) {
       coverContainer.addEventListener('click', action_click);
-    } else if (this.config.show_thumbnail_overlay) {
+    } else {
       const overlayImg = document.createElement('ha-icon');
       overlayImg.setAttribute('class', 'overlay-play');
       overlayImg.setAttribute('icon', icon_overlay);
@@ -1422,7 +1409,7 @@ export class KodiSearchCard extends LitElement {
     params[item_key.toString()] = item_id;
 
     if (meth == 'add') {
-      params.position = this.config.add_position ? parseInt(this.config.add_position) : 0;
+      params.position = this.config.add_position ? this.config.add_position : '0';
     }
 
     this.hass.callService(this._service_domain, 'call_method', params);

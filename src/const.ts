@@ -20,14 +20,14 @@ export const ACTION_MAP = {
   add: { id: 'add', label: 'Add', icon: 'mdi:plus', method: 'add' },
 };
 
-export const SORT_DESC = 'Desc';
+export const SORT_DESC = 'desc';
 export const ALBUM_SORT = {
   asc: { label: 'Ascending' },
   desc: { label: 'Descending' },
 };
 
 export const DEFAULT_ENTITY_NAME = 'sensor.kodi_media_sensor_search';
-export const DEFAULT_ADD_POSITION = 1;
+export const DEFAULT_ADD_POSITION = '1';
 export const DEFAULT_SHOW_THUMBNAIL = true;
 export const DEFAULT_SHOW_THUMBNAIL_OVERLAY = true;
 export const DEFAULT_SHOW_ACTION_MODE = true;

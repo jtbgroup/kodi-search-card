@@ -20,6 +20,7 @@ export interface KodiSearchCardConfig extends LovelaceCardConfig {
   show_action_mode?: boolean;
   action_mode: string;
   add_position: string;
+  order: string[];
   // media_type_order;
   // show_warning?: boolean;
   // show_error?: boolean;

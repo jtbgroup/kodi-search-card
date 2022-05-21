@@ -78,10 +78,9 @@ export class KodiSearchCardEditor extends ScopedRegistryHost(LitElement) impleme
     return this._config?.action_mode || '';
   }
 
-  get _add_position(): string {
-    return this._config?.add_position || '0';
+  get _add_position(): number {
+    return this._config?.add_position || 0;
   }
-
 
   protected render(): TemplateResult | void {
     if (!this.hass || !this._helpers) {
@@ -162,7 +161,7 @@ export class KodiSearchCardEditor extends ScopedRegistryHost(LitElement) impleme
             .value=${this._album_details_sort}
           >
             ${Object.keys(ALBUM_SORT).map((sort) => {
-              return html` <mwc-list-item .value="${sort}">${ALBUM_SORT[sort].label}</mwc-list-item> `;
+              return html` <mwc-list-item .value="${ALBUM_SORT[sort].id}">${ALBUM_SORT[sort].label}</mwc-list-item> `;
             })}
           </mwc-select>
         </div>
@@ -233,9 +232,17 @@ export class KodiSearchCardEditor extends ScopedRegistryHost(LitElement) impleme
         delete tmpConfig[target.configValue];
         this._config = tmpConfig;
       } else {
+        let endvalue = target.value;
+        if (target.checked !== undefined) {
+          endvalue = target.checked;
+        }
+        if (target.type == 'number') {
+          endvalue = Number(endvalue);
+        }
+
         this._config = {
           ...this._config,
-          [target.configValue]: target.checked !== undefined ? target.checked : target.value,
+          [target.configValue]: endvalue,
         };
       }
     }

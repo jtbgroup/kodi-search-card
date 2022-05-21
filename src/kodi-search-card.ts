@@ -8,8 +8,8 @@ import {
   CARD_VERSION,
   MEDIA_TYPE_PARAMS,
   MEDIA_TYPES_SINGLE_DISPLAY,
+  ALBUM_SORT,
   ACTION_MAP,
-  SORT_DESC,
   DEFAULT_ADD_POSITION,
   DEFAULT_SHOW_THUMBNAIL,
   DEFAULT_SHOW_THUMBNAIL_OVERLAY,
@@ -182,9 +182,9 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _buildDataResultContainer(json) {
-    const media_order = this.config.order ? this.config.order : DEFAULT_MEDIA_TYPE_ORDER;
+    const media_type_order = this.config.media_type_order ? this.config.media_type_order : DEFAULT_MEDIA_TYPE_ORDER;
     return html`
-      ${media_order.map((media_type) => this._fillMediaItems(media_type, json))}
+      ${media_type_order.map((media_type) => this._fillMediaItems(media_type, json))}
       ${MEDIA_TYPES_SINGLE_DISPLAY.map((media_type) => this._fillMediaItems(media_type, json))}
     `;
   }
@@ -447,10 +447,19 @@ export class KodiSearchCard extends LitElement {
   }
 
   private _fillAlbumDetails(items) {
-    if (this.config.album_details_sort == SORT_DESC) {
-      items.sort((a, b) => parseFloat(b.year) - parseFloat(a.year));
-    } else {
-      items.sort((a, b) => parseFloat(a.year) - parseFloat(b.year));
+    const sortMethod = this.config.album_details_sort;
+    switch (sortMethod) {
+      case ALBUM_SORT.date_desc.id:
+        items.sort((a, b) => parseFloat(b.year) - parseFloat(a.year));
+        break;
+      case ALBUM_SORT.date_asc.id:
+        items.sort((a, b) => parseFloat(a.year) - parseFloat(b.year));
+        break;
+      case ALBUM_SORT.title_asc.id:
+        items.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case ALBUM_SORT.title_desc.id:
+        items.sort((a, b) => b.title.localeCompare(a.title));
     }
 
     const albumDurations = {};
@@ -1409,7 +1418,7 @@ export class KodiSearchCard extends LitElement {
     params[item_key.toString()] = item_id;
 
     if (meth == 'add') {
-      params.position = this.config.add_position ? this.config.add_position : '0';
+      params.position = this.config.add_position ? this.config.add_position : 0;
     }
 
     this.hass.callService(this._service_domain, 'call_method', params);

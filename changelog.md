@@ -4,7 +4,13 @@
 
 - Migration to LiteElement and standardisation of the components (mwc)
 - New project structure to use the builder from the boilerplate
+- Modifications in the config: rename of the 'order' property, added 2 sort options for the album details
 
+    **BREAKING CHANGES**
+    - Config property `order` is no longer available and must be renamed by `media_type_order`
+    - Config property `album_details_sort` uses new values; old ones are not valid anymore
+
+    Check the Readme for new config properties
 ## 2.8.0
 
 - Entries in album and tvshow details are highlighted in bold when mouse over the action button (see [issue #11](https://github.com/jtbgroup/kodi-search-card/issues/11)). Thanks to [Roumano](https://github.com/roumano)

@@ -39,7 +39,7 @@ console.info(
 (window as any).customCards.push({
   type: 'kodi-search-card',
   name: 'Kodi Search Card',
-  description: 'A template custom card for you to create something awesome',
+  description: 'This custom card allows you to search for media from your kodi libraries',
 });
 
 // TODO Name your custom element
@@ -114,7 +114,6 @@ export class KodiSearchCard extends LitElement {
   protected render(): TemplateResult | void {
     this._render_finished = false;
     let errorCardMessage;
-    let json;
     const entity = this.config.entity;
     if (!entity) {
       errorCardMessage = 'No Entity defined';
@@ -140,8 +139,6 @@ export class KodiSearchCard extends LitElement {
             return;
           }
           this._service_domain = this._json_meta[0]['service_domain'];
-          const data = this._entityState.attributes.data;
-          json = typeof data == 'object' ? data : JSON.parse(data);
         }
       }
     }
@@ -527,10 +524,10 @@ export class KodiSearchCard extends LitElement {
       const div = this.shadowRoot?.getElementById(els[index]);
 
       if (div) {
-        let color = 'var(--paper-item-icon-color, #44739e)';
+        // let color = 'var(--paper-item-icon-color, #44739e)';
         let weight = 'bold';
         if (!enabled) {
-          color = '';
+          // color = '';
           weight = 'normal';
         }
         div.style.fontWeight = weight;

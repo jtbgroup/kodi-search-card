@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 3.1.0
+
+- Structure changed to remove all the unused stuff
+- Update rollup plugin
 ## 3.0.0
 
 - Migration to LiteElement and standardisation of the components (mwc)

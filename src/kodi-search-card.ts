@@ -809,7 +809,7 @@ export class KodiSearchCard extends LitElement {
               */
             #search-form {
                 display: grid;
-                grid-template-columns: 1fr auto;
+                grid-template-columns: 1fr minmax(130px, auto);
                 column-gap: 10px;
                 row-gap: 10px;
             }

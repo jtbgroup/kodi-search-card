@@ -4,6 +4,3 @@ resources:
 views:
   - cards:
       - type: custom:kodi-search-card
-        name: Kodi Search Card Development
-        entity: sun.sun
-        test_gui: true

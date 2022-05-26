@@ -630,7 +630,7 @@ export class KodiSearchCard extends LitElement {
     }
 
     private _buildSearchForm() {
-        this._searchInput = document.createElement("mwc-textfield");
+        this._searchInput = document.createElement("ha-textfield");
         this._searchInput.setAttribute("id", "form_input_search");
         this._searchInput.setAttribute("outlined", "");
         this._searchInput.setAttribute("label", "Search criteria");

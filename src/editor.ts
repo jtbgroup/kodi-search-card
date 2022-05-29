@@ -140,6 +140,7 @@ export class KodiSearchCardEditor extends LitElement implements LovelaceCardEdit
                         fixedMenuPosition
                         label="Sort Albums for one artist"
                         @selected=${this._entityChanged}
+                        @closed=${ev => ev.stopPropagation()}
                         .configValue=${"album_details_sort"}
                         .value=${this._album_details_sort}>
                         ${Object.keys(ALBUM_SORT).map(sort => {
@@ -164,15 +165,15 @@ export class KodiSearchCardEditor extends LitElement implements LovelaceCardEdit
                         naturalMenuWidth
                         fixedMenuPosition
                         label="Action to do when clicked"
-                        .configValue=${"action_mode"}
                         @selected=${this._entityChanged}
+                        @closed=${ev => ev.stopPropagation()}
+                        .configValue=${"action_mode"}
                         .value=${this._action_mode}>
-                        ${Object.keys(ACTION_MAP).map(
-                            action =>
-                                html`<mwc-list-item .selected=${this._action_mode == action} value=${action}
-                                    >${ACTION_MAP[action].label}</mwc-list-item
-                                >`,
-                        )}
+                        ${Object.keys(ACTION_MAP).map(action => {
+                            return html`
+                                <mwc-list-item .value="${action}">${ACTION_MAP[action].label}</mwc-list-item>
+                            `;
+                        })}
                     </ha-select>
                 </div>
 

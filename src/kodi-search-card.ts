@@ -650,16 +650,14 @@ export class KodiSearchCard extends LitElement {
                 ${this.config.show_action_mode
                     ? html`
                           <ha-select
-                              @selected=${e => this._actionModeChanged(e)}
+                              @selected=${this._actionModeChanged}
+                              @closed=${ev => ev.stopPropagation()}
                               id="form-select-action"
-                              label="Action mode">
+                              label="Action mode"
+                              .value=${this._config_action_mode}>
                               ${Object.keys(ACTION_MAP).map(
                                   action =>
-                                      html`<mwc-list-item
-                                          .selected=${this._config_action_mode == action}
-                                          value=${action}
-                                          >${ACTION_MAP[action].label}</mwc-list-item
-                                      >`,
+                                      html`<mwc-list-item value=${action}>${ACTION_MAP[action].label}</mwc-list-item>`,
                               )}
                           </ha-select>
                       `
@@ -670,9 +668,8 @@ export class KodiSearchCard extends LitElement {
 
     private _actionModeChanged(event) {
         if (this._render_finished) {
-            const idx = event.detail.index;
-            if (event.originalTarget.items_[idx]) {
-                const value = event.originalTarget.items_[idx].value;
+            if (event.target.value) {
+                const value = event.target.value;
                 this._config_action_mode = value;
                 this.render();
                 this.requestUpdate();

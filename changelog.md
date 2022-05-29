@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 3.1.2
+
+- Bugfix: switching action mode in the card caused errors in Chrome and the Mobile App
+
 ## 3.1.1
 
 - Small layout issue

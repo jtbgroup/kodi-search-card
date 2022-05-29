@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 3.1.1
+
+- Small layout issue
+
 ## 3.1.0
 
 - Structure changed to remove all the unused stuff

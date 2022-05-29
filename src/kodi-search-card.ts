@@ -324,7 +324,7 @@ export class KodiSearchCard extends LitElement {
                     () => this._addAlbum(item["albumid"]),
                 )}
                 <div class="search-album-title search-title">${item["title"]}</div>
-                <div class="search-album-artist search-artist">${item["artist"] + "(" + item["year"] + ")"}</div>
+                <div class="search-album-artist search-artist">${item["artist"] + " (" + item["year"] + ")"}</div>
                 </div>
               </div>`,
             )}

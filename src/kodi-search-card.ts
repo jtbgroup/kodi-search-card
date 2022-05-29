@@ -277,7 +277,7 @@ export class KodiSearchCard extends LitElement {
                     )}
                     <div class="search-song-title search-title">${item["artist"]} - ${item["title"]}</div>
                     <div class="search-song-genre search-genre">${item["genre"] ? item["genre"] : "undefined"}</div>
-                    <div class="search-song-album search-album">${item["album"]} (${item["year"]}</div>
+                    <div class="search-song-album search-album">${item["album"]} (${item["year"]})</div>
                     <div class="search-song-duration search-duration">${this._formatDuration(item["duration"])}</div>
                 </div>`,
             )}

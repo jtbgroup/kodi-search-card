@@ -1,5 +1,10 @@
 # SEARCH CARD - Changelog
 
+
+## 3.1.3
+
+- Bugfix: layout problem when hiding the action mode selector (see [issue #13](https://github.com/jtbgroup/kodi-search-card/issues/13)). Thanks to [Stooovie](https://github.com/Stooovie)
+
 ## 3.1.2
 
 - Bugfix: switching action mode in the card caused errors in Chrome and the Mobile App

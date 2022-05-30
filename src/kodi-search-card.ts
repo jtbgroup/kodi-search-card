@@ -639,8 +639,10 @@ export class KodiSearchCard extends LitElement {
                 this._search();
             }
         });
+
+        const formCss = this.config.show_action_mode ? "search-form-action-mode" : "search-form-no-action-mode";
         return html`
-            <div id="search-form">
+            <div id=${formCss}>
                 ${this._searchInput}
                 <div id="form-btns">
                     <mwc-button id="form-btn-search" label="Search" raised @click="${this._search}" }></mwc-button>
@@ -804,11 +806,18 @@ export class KodiSearchCard extends LitElement {
                 ----- FORM -----
                 -----------------
               */
-            #search-form {
+            #search-form-action-mode,
+            #search-form-no-action-mode {
                 display: grid;
-                grid-template-columns: 1fr minmax(130px, auto);
                 column-gap: 10px;
                 row-gap: 10px;
+            }
+            #search-form-no-action-mode {
+                grid-template-columns: 1fr;
+            }
+
+            #search-form-action-mode {
+                grid-template-columns: 1fr minmax(130px, auto);
             }
 
             #form_input_search {

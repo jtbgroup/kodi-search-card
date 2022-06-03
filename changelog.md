@@ -1,6 +1,10 @@
 # SEARCH CARD - Changelog
 
 
+## 3.1.4
+
+- Bugfix: syntax error in the CSS causing issue in the _add_album method of the album details
+
 ## 3.1.3
 
 - Bugfix: layout problem when hiding the action mode selector (see [issue #13](https://github.com/jtbgroup/kodi-search-card/issues/13)). Thanks to [Stooovie](https://github.com/Stooovie)

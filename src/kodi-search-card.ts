@@ -409,9 +409,9 @@ export class KodiSearchCard extends LitElement {
                         html`<div class="search-seasondetails-grid  search-grid search-item-container-grid">
                             ${this._prepareCover(
                                 season["poster"] && season["poster"] != "" ? season["poster"] : season["thumbnail"],
-                                "search-albumdetails-cover",
-                                "search-albumdetails-cover-image",
-                                "search-albumdetails-cover-image-default",
+                                "search-seasondetails-cover",
+                                "search-seasondetails-cover-image",
+                                "search-seasondetails-cover-image-default",
                                 this._getActionIcon(),
                                 "mdi:music",
                                 () => this._addEpisodes(season["episodes"].map(x => x.episodeid)),
@@ -493,9 +493,10 @@ export class KodiSearchCard extends LitElement {
                                 "search-albumdetails-cover-image",
                                 "search-albumdetails-cover-image-default",
                                 this._getActionIcon(),
-                                "mdi:music",
+                                "mdi:disc",
                                 () => this._addAlbum(album["albumid"]),
                             )}
+
                             <div class="search-albumdetails-title search-title">
                                 ${album["year"]} - ${album["title"]}
                             </div>
@@ -961,6 +962,9 @@ export class KodiSearchCard extends LitElement {
                 --mdc-icon-size: calc(var(--album-thumbnail-width) - 30px);
             }
 
+            .search-albumdetails-cover-image-default {
+            }
+
             /*
               -------------------
               ----- ARTISTS -----
@@ -1207,7 +1211,7 @@ export class KodiSearchCard extends LitElement {
             .search-albumdetails-cover-image-default {
                 width: var(--album-thumbnail-width);
                 height: var(--album-thumbnail-width);
-                --mdc-icon-size: calc(var(--album-thumbnail-width)- 30px);
+                --mdc-icon-size: calc(var(--album-thumbnail-width) - 30px);
             }
 
             .search-albumdetails-title {

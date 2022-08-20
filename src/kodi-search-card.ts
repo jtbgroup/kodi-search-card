@@ -641,15 +641,24 @@ export class KodiSearchCard extends LitElement {
             }
         });
 
-        const formCss = this.config.show_action_mode ? "search-form-action-mode" : "search-form-no-action-mode";
         return html`
-            <div id=${formCss}>
+            <div id="search-form-controls-grid">
                 ${this._searchInput}
+                <mwc-button id="form-btn-search" label="Search" raised @click="${this._search}" }></mwc-button>
+                <mwc-button id="form-btn-clear" label="Clear" raised @click="${this._clear}"></mwc-button>
                 <div id="form-btns">
-                    <mwc-button id="form-btn-search" label="Search" raised @click="${this._search}" }></mwc-button>
-                    <mwc-button id="form-btn-clear" label="Clear" raised @click="${this._clear}"></mwc-button>
-                    <mwc-button id="form-btn-recent" label="Recent" raised @click="${this._recent}"></mwc-button>
+                    <mwc-button
+                        id="form-btn-recently_added"
+                        label="Recently added"
+                        raised
+                        @click="${this._recently_added}"></mwc-button>
+                    <mwc-button
+                        id="form-btn-recently_played"
+                        label="Recently played"
+                        raised
+                        @click="${this._recently_played}"></mwc-button>
                 </div>
+
                 ${this.config.show_action_mode
                     ? html`
                           <ha-select
@@ -807,41 +816,55 @@ export class KodiSearchCard extends LitElement {
                 ----- FORM -----
                 -----------------
               */
-            #search-form-action-mode,
-            #search-form-no-action-mode {
+            #search-form-controls-grid {
                 display: grid;
                 column-gap: 10px;
                 row-gap: 10px;
+                grid-template-columns: 1fr auto auto;
             }
-            #search-form-no-action-mode {
+            /* #search-form-no-action-mode {
                 grid-template-columns: 1fr;
             }
 
             #search-form-action-mode {
                 grid-template-columns: 1fr minmax(130px, auto);
-            }
+            } */
 
             #form_input_search {
-                grid-column: 1 / 3;
+                grid-column: 1;
                 grid-row: 1;
             }
 
-            #form_select_action {
-                grid-column: 4;
-                grid-row: 2 / 3;
-                align-items: center;
+            #form-btn-search {
+                grid-column: 2;
+                grid-row: 1;
+                color: var(--mdc-theme-on-primary);
+            }
+
+            #form-btn-clear {
+                grid-column: 3;
+                grid-row: 1;
             }
 
             #form-btns {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                grid-template-rows: 1fr 1fr;
                 align-items: center;
                 gap: 10px;
                 padding: 5px;
 
-                grid-column: 1;
+                grid-column: 1 / 4;
                 grid-row: 2;
+            }
+
+            #form-btn-recently_added {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            #form-btn-recently_played {
+                grid-column: 2;
+                grid-row: 1;
             }
 
             mwc-button[raised] {
@@ -849,20 +872,10 @@ export class KodiSearchCard extends LitElement {
                 --mdc-theme-on-primary: var(--text-primary-color);
             }
 
-            #form-btn-search {
+            #form-select-action {
                 grid-column: 1;
-                grid-row: 1;
-                color: var(--mdc-theme-on-primary);
-            }
-
-            #form-btn-clear {
-                grid-column: 2;
-                grid-row: 1;
-            }
-
-            #form-btn-recent {
-                grid-column: 1 / 3;
-                grid-row: 2;
+                grid-row: 3;
+                align-items: center;
             }
 
             /*
@@ -1387,12 +1400,25 @@ export class KodiSearchCard extends LitElement {
         }
     }
 
-    private _recent() {
+    private _recently_added() {
         this.hass.callService(this._service_domain, "call_method", {
             entity_id: this.config.entity,
             method: "search",
             item: {
-                media_type: "recent",
+                media_type: "recently_added",
+            },
+        });
+        if (this._searchInput) {
+            this._searchInput.value = "";
+        }
+    }
+
+    private _recently_played() {
+        this.hass.callService(this._service_domain, "call_method", {
+            entity_id: this.config.entity,
+            method: "search",
+            item: {
+                media_type: "recently_played",
             },
         });
         if (this._searchInput) {

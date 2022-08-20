@@ -1,5 +1,8 @@
 # SEARCH CARD - Changelog
 
+## 3.2.0
+
+- new feature added to explore the recently played items (songs and albums)
 
 ## 3.1.4
 

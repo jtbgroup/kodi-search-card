@@ -1,5 +1,10 @@
 # SEARCH CARD - Changelog
 
+
+## 3.2.1
+
+- Small layout modification to fit to smartphones
+
 ## 3.2.0
 
 - new feature added to explore the recently played items (songs and albums)

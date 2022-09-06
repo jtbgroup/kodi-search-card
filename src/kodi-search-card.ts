@@ -211,6 +211,8 @@ export class KodiSearchCard extends LitElement {
                 return this._fillEpisodes(items);
             case MEDIA_TYPE_PARAMS.movie.id:
                 return this._fillMovies(items);
+            case MEDIA_TYPE_PARAMS.musicvideo.id:
+                return this._fillMusicVideos(items);
             case MEDIA_TYPE_PARAMS.tvshow.id:
                 return this._fillTvShows(items);
             case MEDIA_TYPE_PARAMS.seasondetail.id:
@@ -347,6 +349,27 @@ export class KodiSearchCard extends LitElement {
                         )}
                         <div class="search-movie-title search-title">${item["title"]}</div>
                         <div class="search-movie-genre search-genre">${item["genre"]} (${item["year"]})</div>
+                    </div>`,
+            )}
+        </div> `;
+    }
+
+    private _fillMusicVideos(items) {
+        return html`<div class="search-musicvideos-grid search-grid search-item-container-grid">
+            ${items.map(
+                item =>
+                    html`<div class="search-musicvideo-grid">
+                        ${this._prepareCover(
+                            item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"],
+                            "search-musicvideo-cover",
+                            "search-musicvideo-cover-image",
+                            "search-musicvideo-cover-image-default",
+                            this._getActionIcon(),
+                            "mdi:movie",
+                            () => this._addMusicVideo(item["musicvideoid"]),
+                        )}
+                        <div class="search-musicvideo-artist search-title">${item["artist"]}</div>
+                        <div class="search-musicvideo-title">${item["title"]} (${item["year"]})</div>
                     </div>`,
             )}
         </div> `;
@@ -696,6 +719,8 @@ export class KodiSearchCard extends LitElement {
                 --song-thumbnail-width: 65px;
                 --movie-thumbnail-width: 150px;
                 --movie-thumbnail-ratio: 0.8;
+                --musicvideo-thumbnail-width: 120px;
+                --musicvideo-thumbnail-ratio: 1;
                 --channel-thumbnail-width: 180px;
                 --channel-thumbnail-ratio: 1.5;
                 --artist-thumbnail-width: 130px;
@@ -1051,6 +1076,53 @@ export class KodiSearchCard extends LitElement {
                 width: var(--movie-thumbnail-width);
                 height: calc(var(--movie-thumbnail-width) / var(--movie-thumbnail-ratio));
                 --mdc-icon-size: calc(var(--movie-thumbnail-width) - 30px);
+            }
+
+            /*
+                -----------------------
+                ----- MUSIC VIDEO -----
+                -----------------------
+              */
+            .search-musicvideos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(var(--musicvideo-thumbnail-width), 1fr));
+                grid-template-rows: auto;
+            }
+
+            .search-musicvideo-grid {
+                display: grid;
+                grid-template-columns: auto 1fr;
+                grid-template-rows: auto auto 1fr;
+                row-gap: 3px;
+            }
+
+            .search-musicvideo-cover {
+                grid-column: 1 / 2;
+                grid-row: 1;
+            }
+
+            .search-musicvideo-artist {
+                grid-column: 1 / 3;
+                grid-row: 2;
+            }
+
+            .search-musicvideo-title {
+                grid-column: 1 / 3;
+                grid-row: 3;
+            }
+
+            .search-musicvideo-genre {
+                grid-column: 1 / 3;
+                grid-row: 4;
+            }
+
+            .search-musicvideo-cover-image {
+                width: var(--musicvideo-thumbnail-width);
+            }
+
+            .search-musicvideo-cover-image-default {
+                width: var(--musicvideo-thumbnail-width);
+                height: calc(var(--musicvideo-thumbnail-width) / var(--musicvideo-thumbnail-ratio));
+                --mdc-icon-size: calc(var(--musicvideo-thumbnail-width) - 30px);
             }
 
             /*
@@ -1431,6 +1503,9 @@ export class KodiSearchCard extends LitElement {
     }
     private _addMovie(movie_id) {
         this._addItem("movieid", movie_id);
+    }
+    private _addMusicVideo(musicvideo_id) {
+        this._addItem("musicvideoid", musicvideo_id);
     }
     private _addEpisode(episode_id) {
         this._addItem("episodeid", episode_id);

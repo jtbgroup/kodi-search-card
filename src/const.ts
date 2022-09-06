@@ -6,9 +6,10 @@ export const MEDIA_TYPE_PARAMS = {
     album: { id: "album", label: "Albums", icon: "mdi:disc", order: 1 },
     artist: { id: "artist", label: "Artists", icon: "mdi:account-circle", order: 2 },
     movie: { id: "movie", label: "Movies", icon: "mdi:movie", order: 3 },
-    tvshow: { id: "tvshow", label: "TV Shows", icon: "mdi:movie", order: 4 },
-    episode: { id: "episode", label: "Episodes", icon: "mdi:movie", order: 5 },
-    channel: { id: "channel", label: "Channels", icon: "mdi:movie", order: 6 },
+    musicvideo: { id: "musicvideo", label: "Music Videos", icon: "mdi:movie", order: 4 },
+    tvshow: { id: "tvshow", label: "TV Shows", icon: "mdi:movie", order: 5 },
+    episode: { id: "episode", label: "Episodes", icon: "mdi:movie", order: 6 },
+    channel: { id: "channel", label: "Channels", icon: "mdi:movie", order: 7 },
     seasondetail: { id: "seasondetail", label: "Season Detail", icon: "mdi:movie", order: -1 },
     albumdetail: { id: "albumdetail", label: "Album Detail", icon: "mdi:music", order: -1 },
 };

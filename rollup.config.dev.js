@@ -6,7 +6,7 @@ import serve from "rollup-plugin-serve";
 import { terser } from "rollup-plugin-terser";
 import json from "@rollup/plugin-json";
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 
 export default {
     input: ["src/kodi-search-card.ts"],

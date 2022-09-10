@@ -681,6 +681,7 @@ export class KodiSearchCard extends LitElement {
                               @selected=${this._actionModeChanged}
                               @closed=${ev => ev.stopPropagation()}
                               id="form-select-action"
+                              outlined
                               label="Action mode"
                               .value=${this._config_action_mode}>
                               ${Object.keys(ACTION_MAP).map(
@@ -728,6 +729,7 @@ export class KodiSearchCard extends LitElement {
                 --episode-thumbnail-ratio: 1.5;
                 --background-basic-color: #9b9595;
                 --container-rows-gap: 10px;
+                --container-main-rows-gap: 30px;
                 --mdc-select-fill-color: rgba(0, 0, 0, 0);
             }
 
@@ -821,7 +823,8 @@ export class KodiSearchCard extends LitElement {
                 display: grid;
                 grid-template-rows: auto;
                 grid-template-columns: auto;
-                row-gap: var(--container-rows-gap);
+                row-gap: var(--container-main-rows-gap);
+                /* row-gap: var(--container-rows-gap); */
             }
 
             #card-container-result {
@@ -839,7 +842,7 @@ export class KodiSearchCard extends LitElement {
             #search-form-controls-grid {
                 display: grid;
                 column-gap: 10px;
-                row-gap: 10px;
+                row-gap: 20px;
                 grid-template-columns: auto auto;
             }
 
@@ -862,16 +865,6 @@ export class KodiSearchCard extends LitElement {
                 column-gap: 10px;
             }
 
-            /* #form-btn-recently-added {
-                grid-column: 1;
-                grid-row: 2;
-            }
-
-            #form-btn-recently-played {
-                grid-column: 2 / 4;
-                grid-row: 2;
-            } */
-
             #form-select-action {
                 grid-column: 1;
                 grid-row: 3;
@@ -881,22 +874,7 @@ export class KodiSearchCard extends LitElement {
             #form-btn-clear {
                 grid-column: 2;
                 grid-row: 3;
-            }
-            /*
-            #form-btns {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                align-items: center;
-                gap: 10px;
-                padding: 5px;
-
-                grid-column: 1 / 4;
-                grid-row: 2;
-            } */
-
-            mwc-button[raised] {
-                --mdc-theme-primary: var(--primary-color);
-                --mdc-theme-on-primary: var(--text-primary-color);
+                align-self: end;
             }
 
             /*

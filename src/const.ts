@@ -1,4 +1,4 @@
-export const CARD_VERSION = "3.2.1";
+export const CARD_VERSION = "3.3.0";
 
 // order : must be >= 0 to be taken in consideration. -1, means single displayable
 export const MEDIA_TYPE_PARAMS = {

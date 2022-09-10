@@ -15,7 +15,7 @@ This card is intented to be an alternative to an iframe containing Chorus.
 
 | Search Form | Search Form |
 | ---- | ---- |
-| ![Kodi Search Card](./assets/search_result_v2.1.png) | ![Kodi Search Card](./assets/search_result_v2.6_2.png) |
+| ![Kodi Search Card](./assets/search_result_v3.3_1.png) | ![Kodi Search Card](./assets/search_result_v3.3_2.png) |
 
 ## Requirements
 

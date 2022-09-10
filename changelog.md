@@ -1,5 +1,8 @@
 # SEARCH CARD - Changelog
 
+## 3.3.0
+
+- Includes the music video result
 
 ## 3.2.1
 

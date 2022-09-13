@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 3.4.0
+
+- Added option to display / hide the recent buttons (see [issue #17](https://github.com/jtbgroup/kodi-search-card/issues/17)). Thanks to [Stooovie](https://github.com/Stooovie)
+
 ## 3.3.0
 
 - Includes the music video result

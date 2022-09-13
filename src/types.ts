@@ -19,6 +19,8 @@ export interface KodiSearchCardConfig extends LovelaceCardConfig {
     show_thumbnail_overlay?: boolean;
     show_thumbnail_border?: boolean;
     show_action_mode?: boolean;
+    show_recently_added?: boolean;
+    show_recently_played?: boolean;
     title?: string;
 }
 

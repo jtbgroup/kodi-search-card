@@ -59,6 +59,12 @@ export class KodiSearchCardEditor extends LitElement implements LovelaceCardEdit
         return this._config?.show_action_mode || false;
     }
 
+    get _show_recently_added(): boolean {
+        return this._config?.show_recently_added || true;
+    }
+    get _show_recently_played(): boolean {
+        return this._config?.show_recently_played || true;
+    }
     get _action_mode(): string {
         return this._config?.action_mode || "";
     }
@@ -156,6 +162,24 @@ export class KodiSearchCardEditor extends LitElement implements LovelaceCardEdit
                         <ha-switch
                             .checked=${this._show_action_mode !== false}
                             .configValue=${"show_action_mode"}
+                            @change=${this._valueChanged}></ha-switch>
+                    </ha-formfield>
+                </div>
+
+                <div class="config">
+                    <ha-formfield class="switch-wrapper" label="Show Recently Added Component">
+                        <ha-switch
+                            .checked=${this._show_recently_added !== false}
+                            .configValue=${"show_recently_added"}
+                            @change=${this._valueChanged}></ha-switch>
+                    </ha-formfield>
+                </div>
+
+                <div class="config">
+                    <ha-formfield class="switch-wrapper" label="Show Recently Played Component">
+                        <ha-switch
+                            .checked=${this._show_recently_played !== false}
+                            .configValue=${"show_recently_played"}
                             @change=${this._valueChanged}></ha-switch>
                     </ha-formfield>
                 </div>

@@ -1,4 +1,4 @@
-export const CARD_VERSION = "3.3.0";
+export const CARD_VERSION = "3.4.0";
 
 // order : must be >= 0 to be taken in consideration. -1, means single displayable
 export const MEDIA_TYPE_PARAMS = {
@@ -32,8 +32,10 @@ export const DEFAULT_ENTITY_NAME = "sensor.kodi_media_sensor_search";
 export const DEFAULT_ADD_POSITION = 1;
 export const DEFAULT_SHOW_THUMBNAIL = true;
 export const DEFAULT_SHOW_THUMBNAIL_OVERLAY = true;
-export const DEFAULT_SHOW_ACTION_MODE = true;
 export const DEFAULT_ACTION_MODE = "play";
+export const DEFAULT_SHOW_ACTION_MODE = true;
+export const DEFAULT_SHOW_RECENTLY_ADDED = true;
+export const DEFAULT_SHOW_RECENTLY_PLAYED = true;
 export const DEFAULT_ALBUM_DETAILS_SORT = "date_desc";
 export const DEFAULT_SHOW_THUMBNAIL_BORDER = false;
 export const DEFAULT_OUTLINE_COLOR = "var(--primary-text-color)";

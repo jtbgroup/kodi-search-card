@@ -864,7 +864,7 @@ export class KodiSearchCard extends LitElement {
             #search-form-controls-grid {
                 display: grid;
                 column-gap: 10px;
-                row-gap: 10px;
+                row-gap: 15px;
                 grid-template-columns: auto auto;
             }
 

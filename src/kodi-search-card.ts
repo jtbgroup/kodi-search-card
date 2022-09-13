@@ -15,8 +15,10 @@ import {
     DEFAULT_ADD_POSITION,
     DEFAULT_SHOW_THUMBNAIL,
     DEFAULT_SHOW_THUMBNAIL_OVERLAY,
-    DEFAULT_SHOW_ACTION_MODE,
     DEFAULT_ACTION_MODE,
+    DEFAULT_SHOW_ACTION_MODE,
+    DEFAULT_SHOW_RECENTLY_ADDED,
+    DEFAULT_SHOW_RECENTLY_PLAYED,
     DEFAULT_ALBUM_DETAILS_SORT,
     DEFAULT_MEDIA_TYPE_ORDER,
     DEFAULT_ENTITY_NAME,
@@ -54,6 +56,8 @@ export class KodiSearchCard extends LitElement {
             outline_color: DEFAULT_OUTLINE_COLOR,
             album_details_sort: DEFAULT_ALBUM_DETAILS_SORT,
             show_action_mode: DEFAULT_SHOW_ACTION_MODE,
+            show_recently_added: DEFAULT_SHOW_RECENTLY_ADDED,
+            show_recently_played: DEFAULT_SHOW_RECENTLY_PLAYED,
             action_mode: DEFAULT_ACTION_MODE,
             add_position: DEFAULT_ADD_POSITION,
             order: DEFAULT_MEDIA_TYPE_ORDER,
@@ -654,6 +658,9 @@ export class KodiSearchCard extends LitElement {
     }
 
     private _buildSearchForm() {
+        const recents = this.config.show_recently_played || this.config.show_recently_added;
+        const recent_css =
+            this.config.show_recently_played && this.config.show_recently_added ? "" : "search-form-recent-alone";
         this._searchInput = document.createElement("ha-textfield");
         this._searchInput.setAttribute("id", "form_input_search");
         this._searchInput.setAttribute("outlined", "");
@@ -670,11 +677,26 @@ export class KodiSearchCard extends LitElement {
                 <mwc-button id="form-btn-search" label="Search" raised @click="${this._search}" }></mwc-button>
                 <!-- <mwc-icon-button icon="code"></mwc-icon-button> -->
 
-                <div id="form-btn-recents">
-                    <mwc-button label="Recently added" raised @click="${this._recently_added}"></mwc-button>
-                    <mwc-button label="Recently played" raised @click="${this._recently_played}"></mwc-button>
-                </div>
-
+                ${recents
+                    ? html`
+                          <div id="form-btn-recents">
+                              ${this.config.show_recently_added
+                                  ? html`<mwc-button
+                                        class=${recent_css}
+                                        label="Recently added"
+                                        raised
+                                        @click="${this._recently_added}"></mwc-button>`
+                                  : ``}
+                              ${this.config.show_recently_played
+                                  ? html` <mwc-button
+                                        class=${recent_css}
+                                        label="Recently played"
+                                        raised
+                                        @click="${this._recently_played}"></mwc-button>`
+                                  : ``}
+                          </div>
+                      `
+                    : ``}
                 ${this.config.show_action_mode
                     ? html`
                           <ha-select
@@ -842,7 +864,7 @@ export class KodiSearchCard extends LitElement {
             #search-form-controls-grid {
                 display: grid;
                 column-gap: 10px;
-                row-gap: 20px;
+                row-gap: 10px;
                 grid-template-columns: auto auto;
             }
 
@@ -862,7 +884,12 @@ export class KodiSearchCard extends LitElement {
                 grid-row: 2;
                 display: grid;
                 grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto;
                 column-gap: 10px;
+            }
+
+            .search-form-recent-alone {
+                grid-column: 1 / 3;
             }
 
             #form-select-action {

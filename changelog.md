@@ -1,5 +1,10 @@
 # SEARCH CARD - Changelog
 
+## 3.4.1
+
+- Bugfix: layout issue in the songs grid (album)
+
+
 ## 3.4.0
 
 - Added option to display / hide the recent buttons (see [issue #17](https://github.com/jtbgroup/kodi-search-card/issues/17)). Thanks to [Stooovie](https://github.com/Stooovie)

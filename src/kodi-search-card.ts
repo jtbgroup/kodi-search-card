@@ -917,7 +917,7 @@ export class KodiSearchCard extends LitElement {
 
             .search-song-grid {
                 display: grid;
-                grid-template-columns: auto 1fr auto auto;
+                grid-template-columns: auto 1fr auto;
                 grid-auto-rows: auto;
                 column-gap: 10px;
             }
@@ -932,22 +932,22 @@ export class KodiSearchCard extends LitElement {
             }
 
             .search-song-title {
-                grid-column: 2 / 5;
+                grid-column: 2 / 4;
                 grid-row: 1;
             }
 
             .search-song-genre {
-                grid-column: 2 / 5;
+                grid-column: 2 / 4;
                 grid-row: 2;
             }
 
             .search-song-album {
-                grid-column: 2 / 5;
+                grid-column: 2 / 3;
                 grid-row: 3;
             }
 
             .search-song-duration {
-                grid-column: 3 / 5;
+                grid-column: 3 / 4;
                 grid-row: 3;
             }
 

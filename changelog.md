@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 3.4.2
+
+- Better layout for controls
+
 ## 3.4.1
 
 - Bugfix: layout issue in the songs grid (album)

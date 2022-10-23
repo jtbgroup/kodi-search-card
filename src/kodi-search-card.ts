@@ -658,13 +658,10 @@ export class KodiSearchCard extends LitElement {
     }
 
     private _buildSearchForm() {
-        const recents = this.config.show_recently_played || this.config.show_recently_added;
-        const recent_css =
-            this.config.show_recently_played && this.config.show_recently_added ? "" : "search-form-recent-alone";
         this._searchInput = document.createElement("ha-textfield");
-        this._searchInput.setAttribute("id", "form_input_search");
         this._searchInput.setAttribute("outlined", "");
         this._searchInput.setAttribute("label", "Search criteria");
+        this._searchInput.setAttribute("class", "form-button");
         this._searchInput.addEventListener("keydown", event => {
             if (event.code === "Enter") {
                 this._search();
@@ -673,48 +670,45 @@ export class KodiSearchCard extends LitElement {
 
         return html`
             <div id="search-form-controls-grid">
-                ${this._searchInput}
-                <mwc-button id="form-btn-search" label="Search" raised @click="${this._search}" }></mwc-button>
-                <!-- <mwc-icon-button icon="code"></mwc-icon-button> -->
-
-                ${recents
-                    ? html`
-                          <div id="form-btn-recents">
-                              ${this.config.show_recently_added
-                                  ? html`<mwc-button
-                                        class=${recent_css}
-                                        label="Recently added"
-                                        raised
-                                        @click="${this._recently_added}"></mwc-button>`
-                                  : ``}
-                              ${this.config.show_recently_played
-                                  ? html` <mwc-button
-                                        class=${recent_css}
-                                        label="Recently played"
-                                        raised
-                                        @click="${this._recently_played}"></mwc-button>`
-                                  : ``}
-                          </div>
-                      `
-                    : ``}
-                ${this.config.show_action_mode
-                    ? html`
-                          <ha-select
-                              @selected=${this._actionModeChanged}
-                              @closed=${ev => ev.stopPropagation()}
-                              id="form-select-action"
-                              outlined
-                              label="Action mode"
-                              .value=${this._config_action_mode}>
-                              ${Object.keys(ACTION_MAP).map(
-                                  action =>
-                                      html`<mwc-list-item value=${action}>${ACTION_MAP[action].label}</mwc-list-item>`,
-                              )}
-                          </ha-select>
-                      `
-                    : ``}
-
-                <mwc-button id="form-btn-clear" label="Clear" raised @click="${this._clear}"></mwc-button>
+                <div class="search-form-controls-fields-grid">
+                    ${this._searchInput}
+                    ${this.config.show_action_mode
+                        ? html`
+                              <ha-select
+                                  @selected=${this._actionModeChanged}
+                                  @closed=${ev => ev.stopPropagation()}
+                                  class="form-button"
+                                  outlined
+                                  label="Action mode"
+                                  .value=${this._config_action_mode}>
+                                  ${Object.keys(ACTION_MAP).map(
+                                      action =>
+                                          html`<mwc-list-item value=${action}
+                                              >${ACTION_MAP[action].label}</mwc-list-item
+                                          >`,
+                                  )}
+                              </ha-select>
+                          `
+                        : ``}
+                </div>
+                <div class="search-form-controls-buttons-grid">
+                    <mwc-button class="form-button" label="Search" raised @click="${this._search}" }></mwc-button>
+                    <mwc-button class="form-button" label="Clear" raised @click="${this._clear}"></mwc-button>
+                    ${this.config.show_recently_added
+                        ? html`<mwc-button
+                              class="form-button"
+                              label="Recently added"
+                              raised
+                              @click="${this._recently_added}"></mwc-button>`
+                        : ``}
+                    ${this.config.show_recently_played
+                        ? html` <mwc-button
+                              class="form-button"
+                              label="Recently played"
+                              raised
+                              @click="${this._recently_played}"></mwc-button>`
+                        : ``}
+                </div>
             </div>
         `;
     }
@@ -864,44 +858,12 @@ export class KodiSearchCard extends LitElement {
             #search-form-controls-grid {
                 display: grid;
                 column-gap: 10px;
-                row-gap: 15px;
-                grid-template-columns: auto auto;
+                grid-template-columns: auto minmax(50px, auto);
             }
 
-            #form_input_search {
-                grid-column: 1;
-                grid-row: 1;
-            }
-
-            #form-btn-search {
-                grid-column: 2;
-                grid-row: 1;
-                color: var(--mdc-theme-on-primary);
-            }
-
-            #form-btn-recents {
-                grid-column: 1 / 3;
-                grid-row: 2;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                grid-template-rows: auto;
-                column-gap: 10px;
-            }
-
-            .search-form-recent-alone {
-                grid-column: 1 / 3;
-            }
-
-            #form-select-action {
-                grid-column: 1;
-                grid-row: 3;
-                align-items: center;
-            }
-
-            #form-btn-clear {
-                grid-column: 2;
-                grid-row: 3;
-                align-self: end;
+            .form-button {
+                width: 100%;
+                margin: 5px;
             }
 
             /*

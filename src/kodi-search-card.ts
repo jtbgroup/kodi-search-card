@@ -236,13 +236,14 @@ export class KodiSearchCard extends LitElement {
             return item.channeltype == "radio";
         });
 
-        return html`${this._fillChannel(tvchannels, "tv")} ${this._fillChannel(radiochannels, "radio")}`;
+        return html`${tvchannels.length > 0 ? this._fillChannel(tvchannels, "tv") : ""}
+        ${radiochannels.length > 0 ? this._fillChannel(radiochannels, "radio") : ""}`;
     }
     private _fillChannel(items, type) {
         return html`
             <div class="search-channels-channeltype">
-                ${type == "tv" ? "TV Channels" : "Radio Channels"}
-                <ha-icon icon=${type == "tv" ? "mdi:movie" : "mdi:music"}></ha-icon>
+                ${type == "tv" ? "TV Channels" : "Radio Channels"} &amp&amp;&amp;
+                <!-- <ha-icon icon=${type == "tv" ? "mdi:movie" : "mdi:music"}></ha-icon> -->
             </div>
 
             <div class="search-channels-grid search-grid search-item-container-grid">
@@ -858,7 +859,16 @@ export class KodiSearchCard extends LitElement {
             #search-form-controls-grid {
                 display: grid;
                 column-gap: 10px;
-                grid-template-columns: auto minmax(50px, auto);
+                grid-template-columns: 1fr minmax(70px, 160px);
+            }
+
+            .search-form-controls-fields-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+                justify-content: center;
+                align-content: center;
+                row-gap: 20px;
             }
 
             .form-button {
@@ -1135,10 +1145,11 @@ export class KodiSearchCard extends LitElement {
             }
 
             .search-channels-channeltype {
-                text-align: right;
+                text-align: center;
                 font-weight: bold;
                 font-size: 18px;
                 padding-top: 20px;
+                text-decoration: underline overline;
             }
 
             /*

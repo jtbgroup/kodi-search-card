@@ -1,5 +1,10 @@
 # SEARCH CARD - Changelog
 
+## 3.4.3
+
+- Small layout modification in the search form
+- Bugfix: display radio or tv channel only when there is a record for the specific channel.
+
 ## 3.4.2
 
 - Better layout for controls

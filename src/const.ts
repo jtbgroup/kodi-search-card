@@ -12,6 +12,7 @@ export const MEDIA_TYPE_PARAMS = {
     channel: { id: "channel", label: "Channels", icon: "mdi:movie", order: 7 },
     seasondetail: { id: "seasondetail", label: "Season Detail", icon: "mdi:movie", order: -1 },
     albumdetail: { id: "albumdetail", label: "Album Detail", icon: "mdi:music", order: -1 },
+    filemusicplaylist: { id: "filemusicplaylist", label: "Music Playlists", icon: "mdi:music", order: 8 },
 };
 export const MEDIA_TYPES = Object.keys(MEDIA_TYPE_PARAMS);
 export const MEDIA_TYPES_SINGLE_DISPLAY = MEDIA_TYPES.filter(type => MEDIA_TYPE_PARAMS[type].order == -1);

@@ -915,7 +915,6 @@ export class KodiSearchCard extends LitElement {
             .search-filemusicplaylist-cover {
                 grid-column: 1;
                 grid-row: 1 / 5;
-                border: 1px solid red;
             }
 
             .search-filemusicplaylist-cover-image-default {

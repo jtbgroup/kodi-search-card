@@ -223,6 +223,8 @@ export class KodiSearchCard extends LitElement {
                 return this._fillTVShowSeasonDetails(items);
             case MEDIA_TYPE_PARAMS.albumdetail.id:
                 return this._fillAlbumDetails(items);
+            case MEDIA_TYPE_PARAMS.filemusicplaylist.id:
+                return this._fillFileMusicPlaylist(items);
         }
         return html``;
     }
@@ -267,6 +269,27 @@ export class KodiSearchCard extends LitElement {
                 )}
             </div>
         `;
+    }
+
+    private _fillFileMusicPlaylist(items) {
+        return html`<div class="search-filemusicplaylists-grid search-grid search-item-container-grid">
+            ${items.map(
+                item => html`<div class="search-filemusicplaylist-grid">
+                    ${this._prepareCover(
+                        null,
+                        "search-filemusicplaylist-cover",
+                        "search-filemusicplaylist-cover-image",
+                        "search-filemusicplaylist-cover-image-default",
+                        this._getActionIcon(),
+                        "mdi:music",
+                        () => this._addMusicPlaylist(item["file"]),
+                    )}
+                    <div class="search-filemusicplaylist-label search-title">${item["label"]}</div>
+                    <div class="search-filemusicplaylist-title">${item["file"]}</div>
+                </div>`,
+                
+            )}
+        </div>`;
     }
 
     private _fillSongs(items) {
@@ -674,10 +697,7 @@ export class KodiSearchCard extends LitElement {
                 <div class="search-form-controls-fields-grid">
                     ${this._searchInput}
                     ${this.config.show_action_mode
-                        ? html`
-                              <ha-select
-                                  @selected=${this._actionModeChanged}
-                                  @closed=${ev => ev.stopPropagation()}
+                        ? html`<ha-select @selected=${this._actionModeChanged} @closed=${ev => ev.stopPropagation()}
                                   class="form-button"
                                   outlined
                                   label="Action mode"
@@ -877,10 +897,51 @@ export class KodiSearchCard extends LitElement {
             }
 
             /*
-                  -----------------
-                  ----- SONGS -----
-                  -----------------
-                */
+            -------------------------------
+            ----- FILE MUSIC PLAYLIST -----
+            -------------------------------
+            */
+            .search-filemusicplaylists-grid {
+                grid-template-columns: auto;
+                grid-template-rows: auto;
+            }
+            
+            .search-filemusicplaylist-grid {
+                display: grid;
+                grid-template-columns: auto 1fr auto;
+                grid-auto-rows: auto;
+                column-gap: 10px;
+            }
+            .search-filemusicplaylist-cover {
+                grid-column: 1;
+                grid-row: 1 / 5;
+            }
+
+            .search-filemusicplaylist-cover-image-default {
+                width: var(--song-thumbnail-width);
+                height: var(--song-thumbnail-width);
+                --mdc-icon-size: calc(var(--song-thumbnail-width) - 30px);
+            }
+
+            .search-song-filemusicplaylist-image {
+                width: var(--song-thumbnail-width);
+            }
+
+            .search-filemusicplaylist-label {
+                grid-column: 2 / 4;
+                grid-row: 1;
+            }
+            .search-filemusicplaylist-file {
+                grid-column: 2 / 4;
+                grid-row: 1;
+            }
+
+
+            /*
+            -----------------
+            ----- SONGS -----
+            -----------------
+            */
 
             .search-songs-grid {
                 grid-template-columns: auto;
@@ -1470,6 +1531,10 @@ export class KodiSearchCard extends LitElement {
         if (this._searchInput) {
             this._searchInput.value = "";
         }
+    }
+
+    private _addMusicPlaylist(playlist_file){
+        this._addItem("filemusicplaylist", playlist_file);
     }
 
     private _addSong(song_id) {

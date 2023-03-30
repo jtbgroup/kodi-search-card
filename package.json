@@ -1,6 +1,6 @@
 {
     "name": "kodi-search-card",
-    "version": "3.4.3",
+    "version": "3.5.0",
     "description": "Kodi Search Card",
     "keywords": [
         "home-assistant",
@@ -42,7 +42,7 @@
         "rollup-plugin-node-resolve": "^5.2.0",
         "rollup-plugin-serve": "^1.1.0",
         "rollup-plugin-terser": "^7.0.2",
-        "rollup-plugin-typescript2": "^0.30.0",
+        "rollup-plugin-typescript2": "^0.34.1",
         "typescript": "^4.4.3"
     },
     "scripts": {
@@ -52,4 +52,3 @@
         "rollup": "rollup -c"
     }
 }
-

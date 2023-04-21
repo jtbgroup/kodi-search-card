@@ -908,13 +908,13 @@ export class KodiSearchCard extends LitElement {
             
             .search-filemusicplaylist-grid {
                 display: grid;
-                grid-template-columns: auto 1fr auto;
+                grid-template-columns: auto 1fr;
                 grid-auto-rows: auto;
                 column-gap: 10px;
             }
             .search-filemusicplaylist-cover {
                 grid-column: 1;
-                grid-row: 1 / 5;
+                grid-row: 1 / 3;
             }
 
             .search-filemusicplaylist-cover-image-default {
@@ -928,12 +928,12 @@ export class KodiSearchCard extends LitElement {
             }
 
             .search-filemusicplaylist-label {
-                grid-column: 2 / 4;
+                grid-column: 2;
                 grid-row: 1;
             }
             .search-filemusicplaylist-file {
-                grid-column: 2 / 4;
-                grid-row: 1;
+                grid-column: 2;
+                grid-row: 2;
             }
 
 

@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 3.5.1
+
+- Bugfix: layout issue in the music playlist section
+
 ## 3.5.0
 
 - Displays the music playlists included in the search result. (see [issue #25](https://github.com/jtbgroup/kodi-search-card/issues/25)). Thanks to [Rudd-O](https://github.com/Rudd-O)

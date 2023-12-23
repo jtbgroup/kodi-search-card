@@ -67,7 +67,7 @@ export class KodiSearchCardEditor extends LitElement implements LovelaceCardEdit
     }
 
     get _show_current_artist(): boolean {
-        return this._config?.show_current_artist || true;
+        return this._config?.show_current_artist || false;
     }
     get _action_mode(): string {
         return this._config?.action_mode || "";

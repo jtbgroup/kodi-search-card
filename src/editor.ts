@@ -65,6 +65,10 @@ export class KodiSearchCardEditor extends LitElement implements LovelaceCardEdit
     get _show_recently_played(): boolean {
         return this._config?.show_recently_played || true;
     }
+
+    get _show_current_artist(): boolean {
+        return this._config?.show_current_artist || true;
+    }
     get _action_mode(): string {
         return this._config?.action_mode || "";
     }
@@ -180,6 +184,15 @@ export class KodiSearchCardEditor extends LitElement implements LovelaceCardEdit
                         <ha-switch
                             .checked=${this._show_recently_played !== false}
                             .configValue=${"show_recently_played"}
+                            @change=${this._valueChanged}></ha-switch>
+                    </ha-formfield>
+                </div>
+
+                <div class="config">
+                    <ha-formfield class="switch-wrapper" label="Show current artist releases">
+                        <ha-switch
+                            .checked=${this._show_current_artist !== false}
+                            .configValue=${"show_current_artist"}
                             @change=${this._valueChanged}></ha-switch>
                     </ha-formfield>
                 </div>

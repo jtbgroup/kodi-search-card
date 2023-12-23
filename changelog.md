@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 3.6.0
+
+- Added button to search the releases of the currently playing artist
+
 ## 3.5.1
 
 - Bugfix: layout issue in the music playlist section

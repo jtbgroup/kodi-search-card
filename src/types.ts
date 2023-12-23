@@ -21,6 +21,7 @@ export interface KodiSearchCardConfig extends LovelaceCardConfig {
     show_action_mode?: boolean;
     show_recently_added?: boolean;
     show_recently_played?: boolean;
+    show_current_artist?: boolean;
     title?: string;
 }
 

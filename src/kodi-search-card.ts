@@ -729,9 +729,25 @@ export class KodiSearchCard extends LitElement {
                               raised
                               @click="${this._recently_played}"></mwc-button>`
                         : ``}
+                    ${this.config.show_current_artist
+                        ? html` <mwc-button
+                              class="form-button"
+                              label="Current Artist"
+                              raised
+                              @click="${this._current_artist}"></mwc-button>`
+                        : ``}
                 </div>
             </div>
         `;
+    }
+
+    private _current_artist(){this.hass.callService(this._service_domain, "call_method", {
+        entity_id: this.config.entity,
+        method: "search",
+        item: {
+            media_type: "current_artist",
+        },
+    });
     }
 
     private _actionModeChanged(event) {

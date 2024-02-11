@@ -3,6 +3,7 @@ import { css, CSSResultGroup, html, LitElement, PropertyValues, TemplateResult }
 import { customElement, property, state } from "lit/decorators";
 import { HomeAssistant, LovelaceCardEditor, getLovelace, hasConfigOrEntityChanged } from "custom-card-helpers";
 import { localize } from "./localize/localize";
+import { until } from "lit/directives/until";
 
 import "./editor";
 import type { KodiSearchCardConfig } from "./types";
@@ -70,6 +71,7 @@ export class KodiSearchCard extends LitElement {
     private _entityState;
     private _json_meta;
     private _service_domain;
+    private _kodi_entity_id;
     // this is the only config property to be kept because we do not want to change the configuration when switching the action mode in the card (only in the editor)
     private _config_action_mode = DEFAULT_ACTION_MODE;
 
@@ -142,6 +144,7 @@ export class KodiSearchCard extends LitElement {
                         return;
                     }
                     this._service_domain = this._json_meta[0]["service_domain"];
+                    this._kodi_entity_id = this._json_meta[0]["kodi_entity_id"];
                 }
             }
         }
@@ -229,6 +232,170 @@ export class KodiSearchCard extends LitElement {
         return html``;
     }
 
+    private _createCoverElement(
+        image_url,
+        class_cover,
+        class_cover_image_default,
+        icon_overlay,
+        icon_default,
+        action_click,
+    ) {
+        const class_cover_div = class_cover + " search-item-cover" + (this.config.show_thumbnail_border ? " cover-image-outline-border" : "");
+
+        let cover_api = false;
+        let cover = image_url;
+        if (image_url != null && image_url.startsWith("/api")){
+            cover =   image_url ? this._getThumbnailURLorBase64(image_url).then((value) => `url(${value})`) : "none";
+            cover_api = true;
+        }
+
+        const class_cover_container_div = "search-item-cover-container";
+        const class_default_image = class_cover_image_default + " search-item-cover-image-default";
+        const class_cover_image = "search-item-cover-image";
+
+        return html`
+        <div class=${class_cover_div}>
+            <div class=${class_cover_container_div}>
+                <ha-icon icon=${icon_default} class=${class_default_image}></ha-icon>
+                ${
+                    cover != null ?
+                        (cover_api?
+                        html`<div class="${class_cover_image}" @click="${!this.config.show_thumbnail_overlay?action_click:''}" style="background-size: contain; background-image: ${until(cover, "")}"></div>`:
+                        html`<img class="${class_cover_image}" @click="${!this.config.show_thumbnail_overlay?action_click:''}" src="${cover}"></img>`
+                   ) : html``}
+                ${this.config.show_thumbnail_overlay ? html`<ha-icon class="overlay-play" icon=${icon_overlay} @click="${action_click}"></ha-icon>`:html``}
+            </div>
+        </div>
+        `
+    }
+
+
+    private _createMusicVideoCover(item) {
+        const image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
+        const class_cover = "search-musicvideo-cover";
+        const class_cover_image_default =  "search-musicvideo-cover-image-default";
+        const icon_default = "mdi:movie";
+        const icon_overlay = this._getActionIcon();
+        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addMusicVideo(item["musicvideoid"]))
+    }
+
+    private _createFileMusicPlaylistCover(item) {
+        const image_url = null;
+        const class_cover = "search-filemusicplaylist-cover";
+        const class_cover_image_default =  "search-filemusicplaylist-cover-image-default";
+        const icon_default = "mdi:disc";
+        const icon_overlay = this._getActionIcon();
+        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addMusicPlaylist(item["file"]))
+    }
+
+    private _createChannelCover(item) {
+        const image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
+        const class_cover = "search-channel-cover";
+        const class_cover_image_default =  "search-channel-cover-image-default";
+        const icon_default = "mdi:movie";
+        const icon_overlay = this._getActionIcon();
+        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addChannel(item["channelid"]))
+    }
+
+    private _createAlbumDetailsCover(item) {
+        const image_url = "/api/media_player_proxy/"+this._kodi_entity_id+"/browse_media/album/"+item["albumid"];
+        const class_cover = "search-albumdetails-cover";
+        const class_cover_image_default =  "search-albumdetails-cover-image-default";
+        const icon_default = "mdi:disc";
+        const icon_overlay = this._getActionIcon();
+        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addAlbum(item["albumid"]))
+    }
+
+    private _createTvShowSeasonDetailsCover(item) {
+        const image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
+        const class_cover = "search-seasondetails-cover";
+        const class_cover_image_default =  "search-seasondetails-cover-image-default";
+        const icon_default = "mdi:movie";
+        const icon_overlay = this._getActionIcon();
+        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addEpisodes(item["episodes"].map(x => x.episodeid)))
+    }
+
+    private _createEpisodeCover(item) {
+        const image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
+        const class_cover = "search-episode-cover";
+        const class_cover_image_default =  "search-episode-cover-image-default";
+        const icon_default = "mdi:movie";
+        const icon_overlay = this._getActionIcon();
+        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addEpisode(item["episodeid"]))
+    }
+
+    private _createTvShowCover(item) {
+        const image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
+        const class_cover = "search-tvshow-cover";
+        const class_cover_image_default =  "search-tvshow-cover-image-default";
+        const icon_default = "mdi:movie";
+        const icon_overlay = "mdi:menu";
+        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._searchMoreOfTvShow(item["tvshowid"]))
+    }
+
+    private _createMovieCover(item) {
+        const image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
+        const class_cover = "search-movie-cover";
+        const class_cover_image_default =  "search-movie-cover-image-default";
+        const icon_default = "mdi:movie";
+        const icon_overlay = this._getActionIcon();
+        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addMovie(item["movieid"]))
+    }
+
+    private _createArtistCover(item) {
+        const image_url = null;
+        const class_cover = "search-artist-cover";
+        const class_cover_image_default =  "search-artist-cover-image-default";
+        const icon_default = "mdi:microphone";
+        const icon_overlay = "mdi:menu";
+        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._searchMoreOfArtist(item["artistid"]))
+    }
+
+    private _createAlbumCover(item) {
+        const image_url = "/api/media_player_proxy/"+this._kodi_entity_id+"/browse_media/album/"+item["albumid"];
+        const class_cover = "search-album-cover";
+        const class_cover_image_default =  "search-album-cover-image-default";
+        const icon_default = "mdi:disc";
+        const icon_overlay = this._getActionIcon();
+        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addAlbum(item["albumid"]))
+    }
+
+    private _createSongCover(item) {
+        const image_url = "/api/media_player_proxy/"+this._kodi_entity_id+"/browse_media/album/"+item["albumid"];
+        const class_cover = "search-song-cover";
+        const class_cover_image_default =  "search-song-cover-image-default";
+        const icon_default = "mdi:music";
+        const icon_overlay = this._getActionIcon();
+        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addSong(item["songid"]))
+    }
+
+    // For more example on implementation, see https://github.com/home-assistant/frontend/blob/dev/src/components/media-player/ha-media-player-browse.ts#L675
+    private _getThumbnailURLorBase64(thumbnailUrl){
+        if (thumbnailUrl.startsWith("/")) {
+            // Thumbnails served by local API require authentication
+            return new Promise((resolve, reject) => {
+            this.hass
+                .fetchWithAuth(thumbnailUrl!)
+                // Since we are fetching with an authorization header, we cannot just put the
+                // URL directly into the document; we need to embed the image. We could do this
+                // using blob URLs, but then we would need to keep track of them in order to
+                // release them properly. Instead, we embed the thumbnail using base64.
+                .then((response) => response.blob())
+                .then((blob) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = reader.result;
+                    resolve(typeof result === "string" ? result : "");
+                };
+                reader.onerror = (e) => reject(e);
+                reader.readAsDataURL(blob);
+                });
+            });
+        }
+
+        return thumbnailUrl;
+    }
+
     private _fillChannels(items) {
         const tvchannels = items.filter(item => {
             return item.channeltype == "tv";
@@ -245,22 +412,13 @@ export class KodiSearchCard extends LitElement {
         return html`
             <div class="search-channels-channeltype">
                 ${type == "tv" ? "TV Channels" : "Radio Channels"} &amp&amp;&amp;
-                <!-- <ha-icon icon=${type == "tv" ? "mdi:movie" : "mdi:music"}></ha-icon> -->
             </div>
 
             <div class="search-channels-grid search-grid search-item-container-grid">
                 ${items.map(
                     item =>
                         html`<div class="search-channel-grid">
-                            ${this._prepareCover(
-                                item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"],
-                                "search-channel-cover",
-                                "search-channel-cover-image",
-                                "search-channel-cover-image-default",
-                                this._getActionIcon(),
-                                "mdi:movie",
-                                () => this._addChannel(item["channelid"]),
-                            )}
+                            ${this._createChannelCover(item)}
                             <div class="search-channel-title search-title">${item["label"]}</div>
                             <div class="search-channel-type search-genre">
                                 ${item["channeltype"]} ( nr ${item["channelnumber"]})
@@ -275,36 +433,20 @@ export class KodiSearchCard extends LitElement {
         return html`<div class="search-filemusicplaylists-grid search-grid search-item-container-grid">
             ${items.map(
                 item => html`<div class="search-filemusicplaylist-grid">
-                    ${this._prepareCover(
-                        null,
-                        "search-filemusicplaylist-cover",
-                        "search-filemusicplaylist-cover-image",
-                        "search-filemusicplaylist-cover-image-default",
-                        this._getActionIcon(),
-                        "mdi:music",
-                        () => this._addMusicPlaylist(item["file"]),
-                    )}
+                    ${this._createFileMusicPlaylistCover(item)}
                     <div class="search-filemusicplaylist-label search-title">${item["label"]}</div>
                     <div class="search-filemusicplaylist-title">${item["file"]}</div>
                 </div>`,
-                
+
             )}
         </div>`;
     }
 
     private _fillSongs(items) {
         return html`<div class="search-songs-grid search-grid search-item-container-grid">
-            ${items.map(
-                item => html`<div class="search-song-grid">
-                    ${this._prepareCover(
-                        item["thumbnail"],
-                        "search-song-cover",
-                        "search-song-cover-image",
-                        "search-song-cover-image-default",
-                        this._getActionIcon(),
-                        "mdi:music",
-                        () => this._addSong(item["songid"]),
-                    )}
+        ${items.map(
+            item => html`<div class="search-song-grid">
+                    ${this._createSongCover(item)}
                     <div class="search-song-title search-title">${item["artist"]} - ${item["title"]}</div>
                     <div class="search-song-genre search-genre">${item["genre"] ? item["genre"] : "undefined"}</div>
                     <div class="search-song-album search-album">${item["album"]} (${item["year"]})</div>
@@ -323,16 +465,8 @@ export class KodiSearchCard extends LitElement {
             ${items.map(
                 item =>
                     html`<div class="search-artist-grid">
-                ${this._prepareCover(
-                    item["thumbnail"],
-                    "search-artist-cover",
-                    "search-artist-cover-image",
-                    "search-artist-cover-image-default",
-                    "mdi:menu",
-                    "mdi:disc",
-                    () => this._searchMoreOfArtist(item["artistid"]),
-                )}
-                <div class='search-artist-title search-title'>${item["artist"]}</div>
+                        ${this._createArtistCover(item)}
+                       <div class='search-artist-title search-title'>${item["artist"]}</div>
                 </div>
               </div>`,
             )}
@@ -344,19 +478,11 @@ export class KodiSearchCard extends LitElement {
             ${items.map(
                 item =>
                     html`<div class="search-album-grid">
-                ${this._prepareCover(
-                    item["thumbnail"],
-                    "search-album-cover",
-                    "search-album-cover-image",
-                    "search-album-cover-image-default",
-                    this._getActionIcon(),
-                    "mdi:disc",
-                    () => this._addAlbum(item["albumid"]),
-                )}
-                <div class="search-album-title search-title">${item["title"]}</div>
-                <div class="search-album-artist search-artist">${item["artist"] + " (" + item["year"] + ")"}</div>
-                </div>
-              </div>`,
+                            ${this._createAlbumCover(item)}
+                            <div class="search-album-title search-title">${item["title"]}</div>
+                            <div class="search-album-artist search-artist">${item["artist"] + " (" + item["year"] + ")"}</div>
+                        </div>
+                    </div>`,
             )}
         </div> `;
     }
@@ -366,15 +492,7 @@ export class KodiSearchCard extends LitElement {
             ${items.map(
                 item =>
                     html`<div class="search-movie-grid">
-                        ${this._prepareCover(
-                            item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"],
-                            "search-movie-cover",
-                            "search-movie-cover-image",
-                            "search-movie-cover-image-default",
-                            this._getActionIcon(),
-                            "mdi:movie",
-                            () => this._addMovie(item["movieid"]),
-                        )}
+                        ${this._createMovieCover(item)}
                         <div class="search-movie-title search-title">${item["title"]}</div>
                         <div class="search-movie-genre search-genre">${item["genre"]} (${item["year"]})</div>
                     </div>`,
@@ -387,15 +505,7 @@ export class KodiSearchCard extends LitElement {
             ${items.map(
                 item =>
                     html`<div class="search-musicvideo-grid">
-                        ${this._prepareCover(
-                            item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"],
-                            "search-musicvideo-cover",
-                            "search-musicvideo-cover-image",
-                            "search-musicvideo-cover-image-default",
-                            this._getActionIcon(),
-                            "mdi:movie",
-                            () => this._addMusicVideo(item["musicvideoid"]),
-                        )}
+                        ${this._createMusicVideoCover(item)}
                         <div class="search-musicvideo-artist search-title">${item["artist"]}</div>
                         <div class="search-musicvideo-title">${item["title"]} (${item["year"]})</div>
                     </div>`,
@@ -408,15 +518,7 @@ export class KodiSearchCard extends LitElement {
             ${items.map(
                 item =>
                     html`<div class="search-episode-grid">
-                        ${this._prepareCover(
-                            item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"],
-                            "search-episode-cover",
-                            "search-episode-cover-image",
-                            "search-episode-cover-image-default",
-                            this._getActionIcon(),
-                            "mdi:movie",
-                            () => this._addEpisode(item["episodeid"]),
-                        )}
+                         ${this._createEpisodeCover(item)}
                         <div class="search-episode-title search-title">${item["title"]}</div>
                         <div class="search-episode-tvshow search-tvshow">
                             ${item["tvshowtitle"]}
@@ -435,15 +537,7 @@ export class KodiSearchCard extends LitElement {
             ${items.map(
                 item =>
                     html`<div class="search-tvshow-grid">
-                        ${this._prepareCover(
-                            item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"],
-                            "search-movie-cover",
-                            "search-movie-cover-image",
-                            "search-movie-cover-image-default",
-                            "mdi:menu",
-                            "mdi:movie",
-                            () => this._searchMoreOfTvShow(item["tvshowid"]),
-                        )}
+                        ${this._createTvShowCover(item)}
                         <div class="search-tvshow-title search-title">${item["title"]}</div>
                         <div class="search-tvshow-genre search-genre">${item["genre"]} (${item["year"]})</div>
                     </div>`,
@@ -454,20 +548,10 @@ export class KodiSearchCard extends LitElement {
     private _fillTVShowSeasonDetails(items) {
         return html`
             <div>
-                <!-- <div class="media-type-div">Season Details<ha-icon icon="mdi:movie"></ha-icon></div> -->
                 ${items.map(
                     season =>
                         html`<div class="search-seasondetails-grid  search-grid search-item-container-grid">
-                            ${this._prepareCover(
-                                season["poster"] && season["poster"] != "" ? season["poster"] : season["thumbnail"],
-                                "search-seasondetails-cover",
-                                "search-seasondetails-cover-image",
-                                "search-seasondetails-cover-image-default",
-                                this._getActionIcon(),
-                                "mdi:music",
-                                () => this._addEpisodes(season["episodes"].map(x => x.episodeid)),
-                            )}
-
+                            ${this._createTvShowSeasonDetailsCover(season)}
                             <div class="search-seasondetails-title search-title">${season["title"]}</div>
 
                             <div class="search-seasondetails-episodes">
@@ -534,20 +618,10 @@ export class KodiSearchCard extends LitElement {
 
         return html`
             <div class="search-albumsdetails-grid search-grid search-item-container-grid">
-                <!-- <div class="media-type-div">Album Details<ha-icon icon="mdi:disc"></ha-icon></div> -->
                 ${items.map(
                     album =>
                         html`<div class="search-albumdetails-grid  search-grid">
-                            ${this._prepareCover(
-                                album["thumbnail"],
-                                "search-albumdetails-cover",
-                                "search-albumdetails-cover-image",
-                                "search-albumdetails-cover-image-default",
-                                this._getActionIcon(),
-                                "mdi:disc",
-                                () => this._addAlbum(album["albumid"]),
-                            )}
-
+                            ${this._createAlbumDetailsCover(album)}
                             <div class="search-albumdetails-title search-title">
                                 ${album["year"]} - ${album["title"]}
                             </div>
@@ -607,60 +681,60 @@ export class KodiSearchCard extends LitElement {
         }
     }
 
-    private _prepareCover(
-        cover,
-        class_cover,
-        class_cover_image,
-        class_cover_image_default,
-        icon_overlay,
-        icon_default,
-        action_click,
-    ) {
-        const border = this.config.show_thumbnail_border ? "cover-image-outline-border" : "";
-        const coverDiv = document.createElement("div");
-        coverDiv.setAttribute("class", class_cover);
+    // private _prepareCover(
+    //     cover,
+    //     class_cover,
+    //     class_cover_image,
+    //     class_cover_image_default,
+    //     icon_overlay,
+    //     icon_default,
+    //     action_click,
+    // ) {
+    //     const border = this.config.show_thumbnail_border ? "cover-image-outline-border" : "";
+    //     const coverDiv = document.createElement("div");
+    //     coverDiv.setAttribute("class", class_cover);
 
-        const coverContainer = document.createElement("div");
-        coverContainer.setAttribute("class", "search-cover-container");
-        coverDiv.appendChild(coverContainer);
-        if (this.config.show_thumbnail && cover && cover != "") {
-            const coverImg = document.createElement("img");
-            coverImg.setAttribute("src", cover);
-            coverImg.onerror = function () {
-                coverImg.remove();
+    //     const coverContainer = document.createElement("div");
+    //     coverContainer.setAttribute("class", "search-item-cover");
+    //     coverDiv.appendChild(coverContainer);
+    //     if (this.config.show_thumbnail && cover && cover != "") {
+    //         const coverImg = document.createElement("img");
+    //         coverImg.setAttribute("src", cover);
+    //         coverImg.onerror = function () {
+    //             coverImg.remove();
 
-                const coverImgDefault = document.createElement("ha-icon");
-                coverImgDefault.setAttribute(
-                    "class",
-                    "search-cover-image-default " + class_cover_image_default + " " + border,
-                );
-                coverImgDefault.setAttribute("icon", icon_default);
-                coverContainer.appendChild(coverImgDefault);
-            };
-            coverImg.setAttribute("class", class_cover_image + " search-cover-image" + " " + border);
-            coverContainer.appendChild(coverImg);
-        } else {
-            const coverImgDefault = document.createElement("ha-icon");
-            coverImgDefault.setAttribute(
-                "class",
-                "search-cover-image-default " + class_cover_image_default + " " + border,
-            );
-            coverImgDefault.setAttribute("icon", icon_default);
-            coverContainer.appendChild(coverImgDefault);
-        }
+    //             const coverImgDefault = document.createElement("ha-icon");
+    //             coverImgDefault.setAttribute(
+    //                 "class",
+    //                 "search-cover-image-default " + class_cover_image_default + " " + border,
+    //             );
+    //             coverImgDefault.setAttribute("icon", icon_default);
+    //             coverContainer.appendChild(coverImgDefault);
+    //         };
+    //         coverImg.setAttribute("class", class_cover_image + " search-cover-image" + " " + border);
+    //         coverContainer.appendChild(coverImg);
+    //     } else {
+    //         const coverImgDefault = document.createElement("ha-icon");
+    //         coverImgDefault.setAttribute(
+    //             "class",
+    //             "search-cover-image-default " + class_cover_image_default + " " + border,
+    //         );
+    //         coverImgDefault.setAttribute("icon", icon_default);
+    //         coverContainer.appendChild(coverImgDefault);
+    //     }
 
-        if (!this.config.show_thumbnail_overlay) {
-            coverContainer.addEventListener("click", action_click);
-        } else {
-            const overlayImg = document.createElement("ha-icon");
-            overlayImg.setAttribute("class", "overlay-play");
-            overlayImg.setAttribute("icon", icon_overlay);
-            overlayImg.addEventListener("click", action_click);
-            coverContainer.appendChild(overlayImg);
-        }
+    //     if (!this.config.show_thumbnail_overlay) {
+    //         coverContainer.addEventListener("click", action_click);
+    //     } else {
+    //         const overlayImg = document.createElement("ha-icon");
+    //         overlayImg.setAttribute("class", "overlay-play");
+    //         overlayImg.setAttribute("icon", icon_overlay);
+    //         overlayImg.addEventListener("click", action_click);
+    //         coverContainer.appendChild(overlayImg);
+    //     }
 
-        return html`${coverDiv}`;
-    }
+    //     return html`${coverDiv}`;
+    // }
 
     private _getActionIcon() {
         return ACTION_MAP[this._config_action_mode].icon;
@@ -799,13 +873,11 @@ export class KodiSearchCard extends LitElement {
                 border-bottom: solid;
             }
 
-            .search-cover-container {
-                position: relative;
+
+            .cover-image-outline-border {
+                border: 1px solid var(--outline_color);
             }
 
-            .search-cover-container:hover .overlay-play {
-                opacity: 1;
-            }
 
             .overlay-play {
                 position: absolute;
@@ -816,7 +888,7 @@ export class KodiSearchCard extends LitElement {
                 background: rgba(0, 0, 0, 0.5);
                 opacity: 0;
                 color: white;
-                transition: 0.5s ease;
+                transition: 0.5s ease opacity;
                 text-align: center;
                 --mdc-icon-size: 50px;
             }
@@ -887,6 +959,38 @@ export class KodiSearchCard extends LitElement {
                 row-gap: var(--container-rows-gap);
             }
 
+            .search-item-cover-image-default {
+                display: flex;
+                justify-content: flex-end;
+                align-items: flex-end;
+                color: white;
+                height: 100%;
+            }
+
+            .search-item-cover-container{
+                position: relative;
+                background-color: var(--background-basic-color);
+            }
+
+            .search-item-cover-image {
+                position: absolute;
+            }
+
+            .search-item-cover-image, .search-item-cover-container{
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 0;
+            }
+
+            .search-item-cover {
+                position: relative;
+            }
+
+            .search-item-cover:hover .overlay-play {
+                opacity: 1;
+            }
+
             /*
                 -----------------
                 ----- FORM -----
@@ -921,7 +1025,7 @@ export class KodiSearchCard extends LitElement {
                 grid-template-columns: auto;
                 grid-template-rows: auto;
             }
-            
+
             .search-filemusicplaylist-grid {
                 display: grid;
                 grid-template-columns: auto 1fr;
@@ -931,11 +1035,11 @@ export class KodiSearchCard extends LitElement {
             .search-filemusicplaylist-cover {
                 grid-column: 1;
                 grid-row: 1 / 3;
+                width: var(--song-thumbnail-width);
+                height: var(--song-thumbnail-width);
             }
 
             .search-filemusicplaylist-cover-image-default {
-                width: var(--song-thumbnail-width);
-                height: var(--song-thumbnail-width);
                 --mdc-icon-size: calc(var(--song-thumbnail-width) - 30px);
             }
 
@@ -971,15 +1075,6 @@ export class KodiSearchCard extends LitElement {
                 column-gap: 10px;
             }
 
-            .search-song-cover {
-                grid-column: 1;
-                grid-row: 1 / 5;
-            }
-
-            .search-song-cover-image {
-                width: var(--song-thumbnail-width);
-            }
-
             .search-song-title {
                 grid-column: 2 / 4;
                 grid-row: 1;
@@ -1000,11 +1095,17 @@ export class KodiSearchCard extends LitElement {
                 grid-row: 3;
             }
 
-            .search-song-cover-image-default {
+            .search-song-cover {
+                grid-column: 1;
+                grid-row: 1 / 5;
                 width: var(--song-thumbnail-width);
                 height: var(--song-thumbnail-width);
+            }
+
+            .search-song-cover-image-default {
                 --mdc-icon-size: calc(var(--song-thumbnail-width) - 30px);
             }
+
 
             /*
                 ------------------
@@ -1023,10 +1124,6 @@ export class KodiSearchCard extends LitElement {
                 row-gap: 3px;
             }
 
-            .search-album-cover {
-                grid-column: 1 / 2;
-                grid-row: 1;
-            }
 
             .search-album-title {
                 grid-column: 1 / 3;
@@ -1040,17 +1137,16 @@ export class KodiSearchCard extends LitElement {
                 vertical-align: text-top;
             }
 
-            .search-album-cover-image {
+
+            .search-album-cover {
+                grid-column: 1 / 2;
+                grid-row: 1 ;
                 width: var(--album-thumbnail-width);
+                height: var(--album-thumbnail-width);
             }
 
             .search-album-cover-image-default {
-                width: var(--album-thumbnail-width);
-                height: var(--album-thumbnail-width);
                 --mdc-icon-size: calc(var(--album-thumbnail-width) - 30px);
-            }
-
-            .search-albumdetails-cover-image-default {
             }
 
             /*
@@ -1077,18 +1173,16 @@ export class KodiSearchCard extends LitElement {
 
             .search-artist-cover {
                 grid-column: 1;
-                grid-row: 1;
-            }
-
-            .search-artist-cover-image {
+                grid-row: 1 ;
                 width: var(--artist-thumbnail-width);
+                height: var(--artist-thumbnail-width);
             }
 
             .search-artist-cover-image-default {
-                width: var(--artist-thumbnail-width);
-                height: var(--artist-thumbnail-width);
                 --mdc-icon-size: calc(var(--artist-thumbnail-width) - 30px);
             }
+
+
 
             /*
             ------------------
@@ -1107,10 +1201,6 @@ export class KodiSearchCard extends LitElement {
                 row-gap: 3px;
             }
 
-            .search-movie-cover {
-                grid-column: 1 / 2;
-                grid-row: 1;
-            }
 
             .search-movie-title {
                 grid-column: 1 / 3;
@@ -1122,20 +1212,21 @@ export class KodiSearchCard extends LitElement {
                 grid-row: 3;
             }
 
-            .search-movie-cover-image {
+            .search-movie-cover {
+                grid-column: 1 / 2;
+                grid-row: 1;
                 width: var(--movie-thumbnail-width);
+                height: calc(var(--movie-thumbnail-width) / var(--movie-thumbnail-ratio));
             }
 
             .search-movie-cover-image-default {
-                width: var(--movie-thumbnail-width);
-                height: calc(var(--movie-thumbnail-width) / var(--movie-thumbnail-ratio));
                 --mdc-icon-size: calc(var(--movie-thumbnail-width) - 30px);
             }
 
             /*
-                -----------------------
-                ----- MUSIC VIDEO -----
-                -----------------------
+            -----------------------
+            ----- MUSIC VIDEO -----
+            -----------------------
               */
             .search-musicvideos-grid {
                 grid-template-columns: repeat(auto-fill, minmax(var(--musicvideo-thumbnail-width), 1fr));
@@ -1147,11 +1238,6 @@ export class KodiSearchCard extends LitElement {
                 grid-template-columns: auto 1fr;
                 grid-template-rows: auto auto 1fr;
                 row-gap: 3px;
-            }
-
-            .search-musicvideo-cover {
-                grid-column: 1 / 2;
-                grid-row: 1;
             }
 
             .search-musicvideo-artist {
@@ -1169,13 +1255,14 @@ export class KodiSearchCard extends LitElement {
                 grid-row: 4;
             }
 
-            .search-musicvideo-cover-image {
+            .search-musicvideo-cover {
+                grid-column: 1 / 2;
+                grid-row: 1;
                 width: var(--musicvideo-thumbnail-width);
+                height: calc(var(--musicvideo-thumbnail-width) / var(--musicvideo-thumbnail-ratio));
             }
 
             .search-musicvideo-cover-image-default {
-                width: var(--musicvideo-thumbnail-width);
-                height: calc(var(--musicvideo-thumbnail-width) / var(--musicvideo-thumbnail-ratio));
                 --mdc-icon-size: calc(var(--musicvideo-thumbnail-width) - 30px);
             }
 
@@ -1196,11 +1283,6 @@ export class KodiSearchCard extends LitElement {
                 row-gap: 3px;
             }
 
-            .search-channel-cover {
-                grid-column: 1 / 2;
-                grid-row: 1;
-            }
-
             .search-channel-title {
                 grid-column: 1 / 3;
                 grid-row: 2;
@@ -1211,16 +1293,6 @@ export class KodiSearchCard extends LitElement {
                 grid-row: 3;
             }
 
-            .search-channel-cover-image {
-                width: var(--movie-thumbnail-width);
-            }
-
-            .search-channel-cover-image-default {
-                width: var(--movie-thumbnail-width);
-                height: calc(var(--movie-thumbnail-width) / var(--movie-thumbnail-ratio));
-                --mdc-icon-size: calc((var(--movie-thumbnail-width) / var(--movie-thumbnail-ratio)) - 30px);
-            }
-
             .search-channels-channeltype {
                 text-align: center;
                 font-weight: bold;
@@ -1228,6 +1300,19 @@ export class KodiSearchCard extends LitElement {
                 padding-top: 20px;
                 text-decoration: underline overline;
             }
+
+            .search-channel-cover {
+                grid-column: 1 / 2;
+                grid-row: 1;
+                width: var(--movie-thumbnail-width);
+                height: calc(var(--movie-thumbnail-width) / var(--movie-thumbnail-ratio));
+            }
+
+            .search-channel-cover-image-default {
+                --mdc-icon-size: calc((var(--movie-thumbnail-width) / var(--movie-thumbnail-ratio)) - 30px);
+            }
+
+
 
             /*
           --------------------
@@ -1246,11 +1331,6 @@ export class KodiSearchCard extends LitElement {
                 row-gap: 3px;
             }
 
-            .search-episode-cover {
-                grid-column: 1 / 2;
-                grid-row: 1;
-            }
-
             .search-episode-tvshow {
                 grid-column: 1 / 3;
                 grid-row: 3;
@@ -1266,13 +1346,14 @@ export class KodiSearchCard extends LitElement {
                 grid-row: 4;
             }
 
-            .search-episode-cover-image {
+            .search-episode-cover {
+                grid-column: 1 / 2;
+                grid-row: 1;
                 width: var(--episode-thumbnail-width);
+                height: calc(var(--episode-thumbnail-width) / var(--episode-thumbnail-ratio));
             }
 
             .search-episode-cover-image-default {
-                width: var(--episode-thumbnail-width);
-                height: calc(var(--episode-thumbnail-width) / var(--episode-thumbnail-ratio));
                 --mdc-icon-size: calc((var(--episode-thumbnail-width) / var(--episode-thumbnail-ratio)) - 30px);
             }
 
@@ -1293,11 +1374,6 @@ export class KodiSearchCard extends LitElement {
                 row-gap: 3px;
             }
 
-            .search-tvshow-cover {
-                grid-column: 1 / 2;
-                grid-row: 1;
-            }
-
             .search-tvshow-title {
                 grid-column: 1 / 3;
                 grid-row: 2;
@@ -1308,13 +1384,14 @@ export class KodiSearchCard extends LitElement {
                 grid-row: 3;
             }
 
-            .search-tvshow-cover-image {
+            .search-tvshow-cover {
+                grid-column: 1 / 2;
+                grid-row: 1;
                 width: var(--movie-thumbnail-width);
+                height: calc(var(--movie-thumbnail-width) / var(--movie-thumbnail-ratio));
             }
 
             .search-tvshow-cover-image-default {
-                width: var(--movie-thumbnail-width);
-                height: var(--movie-thumbnail-width);
                 --mdc-icon-size: calc(var(--movie-thumbnail-width) - 30px);
             }
 
@@ -1333,21 +1410,6 @@ export class KodiSearchCard extends LitElement {
                 grid-template-columns: auto 1fr;
                 grid-auto-rows: auto;
                 border-bottom: solid;
-            }
-
-            .search-albumdetails-cover {
-                grid-column: 1;
-                grid-row: 1;
-            }
-
-            .search-albumdetails-cover-image {
-                width: var(--album-thumbnail-width);
-            }
-
-            .search-albumdetails-cover-image-default {
-                width: var(--album-thumbnail-width);
-                height: var(--album-thumbnail-width);
-                --mdc-icon-size: calc(var(--album-thumbnail-width) - 30px);
             }
 
             .search-albumdetails-title {
@@ -1398,6 +1460,17 @@ export class KodiSearchCard extends LitElement {
                 text-align: right;
             }
 
+            .search-albumdetails-cover {
+                grid-column: 1;
+                grid-row: 1;
+                width: var(--album-thumbnail-width);
+                height: var(--album-thumbnail-width);
+            }
+
+            .search-albumdetails-cover-image-default {
+                --mdc-icon-size: calc(var(--album-thumbnail-width) - 30px);
+            }
+
             /*
                   --------------------------------
                   ----- SEASON DETAIL -----
@@ -1409,20 +1482,6 @@ export class KodiSearchCard extends LitElement {
                 border-bottom: solid;
             }
 
-            .search-seasondetails-cover {
-                grid-column: 1;
-                grid-row: 1;
-            }
-
-            .search-seasondetails-cover-image {
-                width: var(--album-thumbnail-width);
-            }
-
-            .search-seasondetails-cover-image-default {
-                width: var(--album-thumbnail-width);
-                height: var(--album-thumbnail-width);
-                --mdc-icon-size: calc(var(--album-thumbnail-width) - 30px);
-            }
 
             .search-seasondetails-title {
                 width: var(--album-thumbnail-width);
@@ -1463,6 +1522,17 @@ export class KodiSearchCard extends LitElement {
                 text-align: right;
             }
 
+            .search-seasondetails-cover {
+                grid-column: 1;
+                grid-row: 1;
+                width: var(--album-thumbnail-width);
+                height: calc(var(--album-thumbnail-width) / var(--movie-thumbnail-ratio));
+            }
+
+
+            .search-seasondetails-cover-image-default {
+                --mdc-icon-size: calc(var(--album-thumbnail-width) - 30px);
+            }
             /* OTHER */
             .song-play,
             .album-play,
@@ -1491,9 +1561,6 @@ export class KodiSearchCard extends LitElement {
                 color: red;
             }
 
-            .cover-image-outline-border {
-                border: 1px solid var(--outline_color);
-            }
         `;
     }
 

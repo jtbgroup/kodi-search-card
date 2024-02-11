@@ -1,6 +1,6 @@
 {
     "name": "kodi-search-card",
-    "version": "3.6.1",
+    "version": "3.7.0",
     "description": "Kodi Search Card",
     "keywords": [
         "home-assistant",
@@ -15,13 +15,14 @@
     "author": "Gautier Vanderslyen <gautier.vanderslyen@gmail.com>",
     "license": "MIT",
     "dependencies": {
+        "change-perspective": "^1.0.1",
+        "compare-versions": "^4.0.1",
         "custom-card-helpers": "^1.9.0",
         "home-assistant-js-websocket": "^5.11.1",
         "lit": "^2.0.0",
         "pointer-tracker": "^2.4.0",
         "transformation-matrix": "^2.8.0",
-        "change-perspective": "^1.0.1",
-        "compare-versions": "^4.0.1"
+        "tslib": "^2.6.2"
     },
     "devDependencies": {
         "@babel/core": "^7.15.0",
@@ -43,7 +44,7 @@
         "rollup-plugin-serve": "^1.1.0",
         "rollup-plugin-terser": "^7.0.2",
         "rollup-plugin-typescript2": "^0.34.1",
-        "typescript": "^4.4.3"
+        "typescript": "^4.9.5"
     },
     "scripts": {
         "start": "rollup -c rollup.config.dev.js --watch",

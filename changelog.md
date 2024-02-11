@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 3.7.0
+
+- Images retrieved by the api to avoid http / https problems
+
 ## 3.6.1
 
 - Bugfix in the editor regarding the currently playing artist

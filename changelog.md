@@ -2,7 +2,9 @@
 
 ## 3.7.0
 
-- Images retrieved by the api to avoid http / https problems
+- Images retrieved by the api to avoid http / https problems (see [Issue #9](https://github.com/jtbgroup/kodi-media-sensors/issues/9))
+
+**This version needs at least the version 5.3.0 of the [Kodi Media Sendor](https://github.com/jtbgroup/kodi-media-sensors) integration**
 
 ## 3.6.1
 

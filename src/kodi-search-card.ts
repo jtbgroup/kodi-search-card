@@ -316,7 +316,12 @@ export class KodiSearchCard extends LitElement {
     }
 
     private _createEpisodeCover(item) {
-        const image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
+        const to_search = "image://";
+        let image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
+        image_url = decodeURIComponent(decodeURI(image_url));
+        const index = image_url.indexOf(to_search)+to_search.length;
+        image_url = image_url.substring(index);
+
         const class_cover = "search-episode-cover";
         const class_cover_image_default =  "search-episode-cover-image-default";
         const icon_default = "mdi:movie";

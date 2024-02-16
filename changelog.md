@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 3.7.1
+
+- Episodes make use of source url directly instead of using the image api of kodi (to avoid http / https issues)
+
 ## 3.7.0
 
 - Images retrieved by the api to avoid http / https problems (see [Issue #9](https://github.com/jtbgroup/kodi-media-sensors/issues/9))

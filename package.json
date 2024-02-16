@@ -1,6 +1,6 @@
 {
     "name": "kodi-search-card",
-    "version": "3.7.0",
+    "version": "3.7.1",
     "description": "Kodi Search Card",
     "keywords": [
         "home-assistant",
@@ -18,8 +18,8 @@
         "change-perspective": "^1.0.1",
         "compare-versions": "^4.0.1",
         "custom-card-helpers": "^1.9.0",
-        "home-assistant-js-websocket": "^5.11.1",
-        "lit": "^2.0.0",
+        "home-assistant-js-websocket": "^9.1.0",
+        "lit": "^3.1.2",
         "pointer-tracker": "^2.4.0",
         "transformation-matrix": "^2.8.0",
         "tslib": "^2.6.2"
@@ -31,20 +31,20 @@
         "@rollup/plugin-json": "^4.1.0",
         "@typescript-eslint/eslint-plugin": "^4.33.0",
         "@typescript-eslint/parser": "^4.33.0",
-        "eslint": "^7.32.0",
-        "eslint-config-airbnb-base": "^14.2.1",
+        "eslint": "^8.56.0",
+        "eslint-config-airbnb-base": "^15.0.0",
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-import": "^2.24.0",
-        "eslint-plugin-prettier": "^4.0.0",
-        "prettier": "^2.4.1",
-        "rollup": "^2.74.1",
+        "eslint-plugin-prettier": "^9.1.0",
+        "prettier": "^3.2.5",
+        "rollup": "^4.10.0",
         "rollup-plugin-babel": "^4.4.0",
         "rollup-plugin-commonjs": "^10.1.0",
         "rollup-plugin-node-resolve": "^5.2.0",
         "rollup-plugin-serve": "^1.1.0",
         "rollup-plugin-terser": "^7.0.2",
-        "rollup-plugin-typescript2": "^0.34.1",
-        "typescript": "^4.9.5"
+        "rollup-plugin-typescript2": "^0.36.0",
+        "typescript": "^5.3.3"
     },
     "scripts": {
         "start": "rollup -c rollup.config.dev.js --watch",

@@ -2,7 +2,7 @@
 
 ## 3.7.1
 
-- Episodes make use of source url directly instead of using the image api of kodi (to avoid http / https issues)
+- Make use of source url directly instead of using the image api of kodi (to avoid http / https issues) for tvshow episodes and music videos.
 
 ## 3.7.0
 

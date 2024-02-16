@@ -243,9 +243,9 @@ export class KodiSearchCard extends LitElement {
         const class_cover_div = class_cover + " search-item-cover" + (this.config.show_thumbnail_border ? " cover-image-outline-border" : "");
 
         let cover_api = false;
-        let cover = image_url;
-        if (image_url != null && image_url.startsWith("/api")){
-            cover =   image_url ? this._getThumbnailURLorBase64(image_url).then((value) => `url(${value})`) : "none";
+        let cover_image = image_url;
+        if (image_url != null && image_url != "" && image_url.startsWith("/api")){
+            cover_image =   image_url ? this._getThumbnailURLorBase64(image_url).then((value) => `url(${value})`) : "none";
             cover_api = true;
         }
 
@@ -257,12 +257,14 @@ export class KodiSearchCard extends LitElement {
         <div class=${class_cover_div}>
             <div class=${class_cover_container_div}>
                 <ha-icon icon=${icon_default} class=${class_default_image}></ha-icon>
+
                 ${
-                    cover != null ?
+                    cover_image != null && cover_image != "" ?
                         (cover_api?
-                        html`<div class="${class_cover_image}" @click="${!this.config.show_thumbnail_overlay?action_click:''}" style="background-size: contain; background-image: ${until(cover, "")}"></div>`:
-                        html`<img class="${class_cover_image}" @click="${!this.config.show_thumbnail_overlay?action_click:''}" src="${cover}"></img>`
-                   ) : html``}
+                        html`<div class="${class_cover_image}" @click="${this.config.show_thumbnail_overlay?'':action_click}" style="background-size: contain; background-image: ${until(cover_image, "")}"></div>`:
+                        html`<img class="${class_cover_image}" @click="${this.config.show_thumbnail_overlay?'':action_click}" src="${cover_image}"></img>`
+                   ) : html`<div class="${class_cover_image}" @click="${this.config.show_thumbnail_overlay?'':action_click}"></div>`}
+
                 ${this.config.show_thumbnail_overlay ? html`<ha-icon class="overlay-play" icon=${icon_overlay} @click="${action_click}"></ha-icon>`:html``}
             </div>
         </div>
@@ -271,7 +273,20 @@ export class KodiSearchCard extends LitElement {
 
 
     private _createMusicVideoCover(item) {
-        const image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
+        const to_search = "image://";
+        let image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
+        image_url = decodeURIComponent(decodeURI(image_url));
+
+        if(image_url.indexOf(to_search) > 0){
+            const index = image_url.indexOf(to_search)+to_search.length;
+            const last_slash = image_url.endsWith("/");
+            if (image_url.endsWith("/")){
+                image_url = image_url.substring(index, image_url.length-1);
+            }else{
+                image_url = image_url.substring(index);
+            }
+        }
+
         const class_cover = "search-musicvideo-cover";
         const class_cover_image_default =  "search-musicvideo-cover-image-default";
         const icon_default = "mdi:movie";
@@ -319,8 +334,16 @@ export class KodiSearchCard extends LitElement {
         const to_search = "image://";
         let image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
         image_url = decodeURIComponent(decodeURI(image_url));
-        const index = image_url.indexOf(to_search)+to_search.length;
-        image_url = image_url.substring(index);
+
+        if(image_url.indexOf(to_search) > 0){
+            const index = image_url.indexOf(to_search)+to_search.length;
+            const last_slash = image_url.endsWith("/");
+            if (image_url.endsWith("/")){
+                image_url = image_url.substring(index, image_url.length-1);
+            }else{
+                image_url = image_url.substring(index);
+            }
+        }
 
         const class_cover = "search-episode-cover";
         const class_cover_image_default =  "search-episode-cover-image-default";
@@ -366,7 +389,10 @@ export class KodiSearchCard extends LitElement {
     }
 
     private _createSongCover(item) {
-        const image_url = "/api/media_player_proxy/"+this._kodi_entity_id+"/browse_media/album/"+item["albumid"];
+        let image_url ="";
+        if(item["thumbnail"]){
+            image_url = "/api/media_player_proxy/"+this._kodi_entity_id+"/browse_media/album/"+item["albumid"];
+        }
         const class_cover = "search-song-cover";
         const class_cover_image_default =  "search-song-cover-image-default";
         const icon_default = "mdi:music";

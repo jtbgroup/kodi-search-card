@@ -7,6 +7,10 @@ strategy:
 on:
   release:
     types: [published]
+  push:
+    branches:
+      - master
+      - develop
 
 jobs:
   validate_hacs:

@@ -280,7 +280,7 @@ export class KodiSearchCard extends LitElement {
         if(image_url.indexOf(to_search) > 0){
             const index = image_url.indexOf(to_search)+to_search.length;
             const last_slash = image_url.endsWith("/");
-            if (image_url.endsWith("/")){
+            if (last_slash){
                 image_url = image_url.substring(index, image_url.length-1);
             }else{
                 image_url = image_url.substring(index);
@@ -338,7 +338,7 @@ export class KodiSearchCard extends LitElement {
         if(image_url.indexOf(to_search) > 0){
             const index = image_url.indexOf(to_search)+to_search.length;
             const last_slash = image_url.endsWith("/");
-            if (image_url.endsWith("/")){
+            if (last_slash){
                 image_url = image_url.substring(index, image_url.length-1);
             }else{
                 image_url = image_url.substring(index);

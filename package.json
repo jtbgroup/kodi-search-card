@@ -2,7 +2,7 @@
     "name": "kodi-search-card",
     "version": "3.7.1",
     "description": "Kodi Search Card",
-    "type": "module",
+    "type": "commonjs",
     "keywords": [
         "home-assistant",
         "homeassistant",

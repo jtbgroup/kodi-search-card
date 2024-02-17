@@ -1,9 +1,9 @@
-import commonjs from "rollup-plugin-commonjs";
+import commonjs from "@rollup/plugin-commonjs";
 import nodeResolve from "rollup-plugin-node-resolve";
 import typescript from "rollup-plugin-typescript2";
-import babel from "rollup-plugin-babel";
+import babel from "@rollup/plugin-babel";
 import serve from "rollup-plugin-serve";
-import { terser } from "rollup-plugin-terser";
+import { terser } from "@rollup/plugin-terser";
 import json from "@rollup/plugin-json";
 
 const port = process.env.PORT || 5001;

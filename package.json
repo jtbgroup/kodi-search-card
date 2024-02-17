@@ -10,7 +10,8 @@
         "lovelace",
         "custom-cards"
     ],
-    "module": "kodi-search-card.js",
+    "main":"src/kodi-search-card.js",
+    "module": "src/kodi-search-card.js",
     "repository": "git@github.com:jtbgroup/kodi-search-card.git",
     "author": "Gautier Vanderslyen <gautier.vanderslyen@gmail.com>",
     "license": "MIT",

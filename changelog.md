@@ -1,5 +1,10 @@
 # SEARCH CARD - Changelog
 
+## 3.8.0
+
+- Changed mwc buttons to ha buttons
+- Fixed [Issue #19](https://github.com/jtbgroup/kodi-search-card/issues/19)
+
 ## 3.7.1
 
 - Make use of source url directly instead of using the image api of kodi (to avoid http / https issues) for tvshow episodes and music videos.

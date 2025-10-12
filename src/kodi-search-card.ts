@@ -818,28 +818,25 @@ export class KodiSearchCard extends LitElement {
                         : ``}
                 </div>
                 <div class="search-form-controls-buttons-grid">
-                    <mwc-button class="form-button" label="Search" raised @click="${this._search}" }></mwc-button>
-                    <mwc-button class="form-button" label="Clear" raised @click="${this._clear}"></mwc-button>
+                    <ha-button class="form-button" raised @click="${this._search}">Search</ha-button>
+                    <ha-button class="form-button" raised @click="${this._clear}">Clear</ha-button>
                     ${this.config.show_recently_added
-                        ? html`<mwc-button
+                        ? html`<ha-button
                               class="form-button"
-                              label="Recently added"
                               raised
-                              @click="${this._recently_added}"></mwc-button>`
+                              @click="${this._recently_added}">Recently added</ha-button>`
                         : ``}
                     ${this.config.show_recently_played
-                        ? html` <mwc-button
+                        ? html` <ha-button
                               class="form-button"
-                              label="Recently played"
                               raised
-                              @click="${this._recently_played}"></mwc-button>`
+                              @click="${this._recently_played}">Recently played</ha-button>`
                         : ``}
                     ${this.config.show_current_artist
-                        ? html` <mwc-button
+                        ? html` <ha-button
                               class="form-button"
-                              label="Current Artist"
                               raised
-                              @click="${this._current_artist}"></mwc-button>`
+                              @click="${this._current_artist}">Current Artist</ha-button>`
                         : ``}
                 </div>
             </div>
@@ -1042,8 +1039,9 @@ export class KodiSearchCard extends LitElement {
                 row-gap: 20px;
             }
 
+
             .form-button {
-                width: 100%;
+                width: 80%;
                 margin: 5px;
             }
 

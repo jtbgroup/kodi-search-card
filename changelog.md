@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 3.8.1
+
+- Changed the layout of the control button to fit on smaller screens
+
 ## 3.8.0
 
 - Changed mwc buttons to ha buttons

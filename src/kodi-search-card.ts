@@ -817,24 +817,29 @@ export class KodiSearchCard extends LitElement {
                           `
                         : ``}
                 </div>
-                <div class="search-form-controls-buttons-grid">
+                <div class="search-form-controls-buttons-mandatory-grid">
                     <ha-button class="form-button" raised @click="${this._search}">Search</ha-button>
                     <ha-button class="form-button" raised @click="${this._clear}">Clear</ha-button>
+                </div>
+                <div class="search-form-controls-buttons-optional-grid">
                     ${this.config.show_recently_added
                         ? html`<ha-button
                               class="form-button"
+                              variant="success"
                               raised
                               @click="${this._recently_added}">Recently added</ha-button>`
                         : ``}
                     ${this.config.show_recently_played
                         ? html` <ha-button
                               class="form-button"
+                              variant="success"
                               raised
                               @click="${this._recently_played}">Recently played</ha-button>`
                         : ``}
                     ${this.config.show_current_artist
                         ? html` <ha-button
                               class="form-button"
+                              variant="success"
                               raised
                               @click="${this._current_artist}">Current Artist</ha-button>`
                         : ``}
@@ -1026,22 +1031,25 @@ export class KodiSearchCard extends LitElement {
               */
             #search-form-controls-grid {
                 display: grid;
-                column-gap: 10px;
-                grid-template-columns: 1fr minmax(70px, 160px);
+                row-gap: 10px;
+                grid-template-columns: auto;
+                /* grid-template-rows: 1fr minmax(70px, 160px); */
+                /* border: 1px solid red; */
             }
 
             .search-form-controls-fields-grid {
                 display: grid;
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto;
+                grid-template-columns: 100%;
+                 /* grid-template-rows: auto auto; */
                 justify-content: center;
                 align-content: center;
                 row-gap: 20px;
+                /* border: 1px solid yellow; */
             }
 
 
             .form-button {
-                width: 80%;
+                /* width: 100%; */
                 margin: 5px;
             }
 

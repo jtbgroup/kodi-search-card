@@ -1,10 +1,10 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "es2020",
         "module": "esnext",
         "moduleResolution": "node",
-        "lib": ["es6", "dom", "dom.iterable", "esnext"],
-        "noEmit": true,
+        "lib": ["es2020", "dom", "dom.iterable"],
+        "noEmit": false,
         "noUnusedParameters": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
@@ -12,6 +12,9 @@
         "noImplicitAny": false,
         "skipLibCheck": true,
         "resolveJsonModule": true,
-        "experimentalDecorators": true
-    }
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "allowSyntheticDefaultImports": true
+    },
+    "exclude": ["node_modules", "dist"]
 }

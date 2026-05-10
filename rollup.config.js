@@ -9,36 +9,41 @@ import json from "@rollup/plugin-json";
 const dev = process.env.ROLLUP_WATCH;
 
 const plugins = [
+    // 1. On résout les chemins en premier
+    nodeResolve({
+        browser: true,
+        extensions: [".ts", ".js", ".json"],
+        preferBuiltins: false,
+    }),
+    // 2. On transforme le TypeScript
     typescript({
         clean: true,
-        check: false,
+        check: false, // On désactive le check strict pour laisser le bundle se faire
         tsconfigOverride: {
             compilerOptions: {
                 noEmit: false,
+                declaration: false,
                 emitDecoratorMetadata: true,
-                experimentalDecorators: true
-            }
-        }
-    }),
-    nodeResolve({
-        browser: true,
-        preferBuiltins: false
+                experimentalDecorators: true,
+            },
+        },
     }),
     commonjs(),
     json(),
+    // 3. Babel pour la compatibilité finale
     babel({
-            exclude: "node_modules/**",
-            babelHelpers: "bundled",
-            extensions: ['.js', '.jsx', '.ts', '.tsx'],
-            presets: [
-                ["@babel/preset-env", { targets: { browsers: "last 2 versions" } }],
-                "@babel/preset-typescript" // <-- Ajoute ceci pour comprendre 'public static', etc.
-            ],
-            plugins: [
-                ["@babel/plugin-proposal-decorators", { legacy: true }],
-                ["@babel/plugin-proposal-class-properties", { loose: true }],
-            ],
-        }),
+        exclude: "node_modules/**",
+        babelHelpers: "bundled",
+        extensions: [".ts", ".js"],
+        presets: [
+            ["@babel/preset-env", { targets: { browsers: "last 2 versions" } }],
+            "@babel/preset-typescript",
+        ],
+        plugins: [
+            ["@babel/plugin-proposal-decorators", { legacy: true }],
+            ["@babel/plugin-proposal-class-properties", { loose: true }],
+        ],
+    }),
     dev && serve({
         contentBase: ["./dist"],
         host: "0.0.0.0",
@@ -49,15 +54,13 @@ const plugins = [
     !dev && terser(),
 ];
 
-export default [
-    {
-        input: "src/kodi-search-card.ts",
-        output: {
-            dir: "dist",
-            format: "es",
-            sourcemap: dev,
-        },
-        plugins: [...plugins],
-        context: "window",
+export default {
+    input: "src/kodi-search-card.ts",
+    output: {
+        dir: "dist",
+        format: "es",
+        sourcemap: dev,
     },
-];
+    plugins: plugins,
+    context: "window",
+};

@@ -1,5 +1,10 @@
 # SEARCH CARD - Changelog
 
+## 3.9.0
+
+- Fixed [Issue #19](https://github.com/jtbgroup/kodi-search-card/issues/19)
+- Fixed [Issue #20](https://github.com/jtbgroup/kodi-search-card/issues/20)
+
 ## 3.8.1
 
 - Changed the layout of the control button to fit on smaller screens

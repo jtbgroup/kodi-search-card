@@ -1,6 +1,6 @@
 {
     "name": "kodi-search-card",
-    "version": "3.7.1",
+    "version": "3.9.0",
     "description": "Kodi Search Card",
     "keywords": [
         "home-assistant",
@@ -10,7 +10,7 @@
         "lovelace",
         "custom-cards"
     ],
-    "main":"src/kodi-search-card.js",
+    "main": "src/kodi-search-card.js",
     "module": "src/kodi-search-card.js",
     "repository": "git@github.com:jtbgroup/kodi-search-card.git",
     "author": "Gautier Vanderslyen <gautier.vanderslyen@gmail.com>",
@@ -54,3 +54,4 @@
         "rollup": "rollup -c"
     }
 }
+

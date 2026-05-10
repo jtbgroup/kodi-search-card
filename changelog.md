@@ -4,6 +4,7 @@
 
 - Fixed [Issue #19](https://github.com/jtbgroup/kodi-search-card/issues/19)
 - Fixed [Issue #20](https://github.com/jtbgroup/kodi-search-card/issues/20)
+- dependencies updated
 
 ## 3.8.1
 

@@ -6,7 +6,7 @@ import { localize } from "./localize/localize";
 import { until } from "lit/directives/until";
 
 import "./editor";
-import type { KodiSearchCardConfig } from "./types";
+import { KodiSearchCardConfig } from "./types";
 import {
     CARD_VERSION,
     MEDIA_TYPE_PARAMS,

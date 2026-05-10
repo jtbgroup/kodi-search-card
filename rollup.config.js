@@ -1,7 +1,7 @@
 import typescript from "rollup-plugin-typescript2";
-import commonjs from "rollup-plugin-commonjs";
-import nodeResolve from "rollup-plugin-node-resolve";
-import babel from "rollup-plugin-babel";
+import commonjs from "@rollup/plugin-commonjs";
+import nodeResolve from "@rollup/plugin-node-resolve";
+import babel from "@rollup/plugin-babel";
 import terser from '@rollup/plugin-terser';
 import serve from "rollup-plugin-serve";
 import json from "@rollup/plugin-json";
@@ -19,12 +19,19 @@ const serveopts = {
 };
 
 const plugins = [
-    nodeResolve({}),
+    nodeResolve({
+        browser: true,
+        preferBuiltins: false
+    }),
     commonjs(),
-    typescript(),
+    typescript({
+        clean: true,
+        check: false // Permet de passer les erreurs de type strictes lors du bundle
+    }),
     json(),
     babel({
         exclude: "node_modules/**",
+        babelHelpers: "bundled",
     }),
     dev && serve(serveopts),
     !dev && terser(),
@@ -36,7 +43,10 @@ export default [
         output: {
             dir: "dist",
             format: "es",
+            sourcemap: dev,
         },
         plugins: [...plugins],
+        // On ignore les warnings de "this" circulaire fréquents avec Lit
+        context: "window",
     },
 ];

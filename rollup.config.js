@@ -27,14 +27,18 @@ const plugins = [
     commonjs(),
     json(),
     babel({
-        exclude: "node_modules/**",
-        babelHelpers: "bundled",
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
-        plugins: [
-            ["@babel/plugin-proposal-decorators", { legacy: true }],
-            ["@babel/plugin-proposal-class-properties", { loose: true }],
-        ],
-    }),
+            exclude: "node_modules/**",
+            babelHelpers: "bundled",
+            extensions: ['.js', '.jsx', '.ts', '.tsx'],
+            presets: [
+                ["@babel/preset-env", { targets: { browsers: "last 2 versions" } }],
+                "@babel/preset-typescript" // <-- Ajoute ceci pour comprendre 'public static', etc.
+            ],
+            plugins: [
+                ["@babel/plugin-proposal-decorators", { legacy: true }],
+                ["@babel/plugin-proposal-class-properties", { loose: true }],
+            ],
+        }),
     dev && serve({
         contentBase: ["./dist"],
         host: "0.0.0.0",

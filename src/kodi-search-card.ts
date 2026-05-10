@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { css, CSSResultGroup, html, LitElement, PropertyValues, TemplateResult } from "lit";
-import { customElement, property, state } from "lit/decorators";
+import { customElement, property, query, state } from "lit/decorators";
 import { HomeAssistant, LovelaceCardEditor, getLovelace, hasConfigOrEntityChanged } from "custom-card-helpers";
 import { localize } from "./localize/localize";
 import { until } from "lit/directives/until";
@@ -66,14 +66,15 @@ export class KodiSearchCard extends LitElement {
     }
 
     private _render_finished = false;
-    private _searchInput;
+    // Trouve l'input par son ID maintenant
+    @query("#searchInput") private _searchInput!: HTMLInputElement;
 
     private _entityState;
     private _json_meta;
     private _service_domain;
     private _kodi_entity_id;
     // this is the only config property to be kept because we do not want to change the configuration when switching the action mode in the card (only in the editor)
-    private _config_action_mode = DEFAULT_ACTION_MODE;
+    @state() private _config_action_mode = DEFAULT_ACTION_MODE;
 
     // TODO Add any properities that should cause your element to re-render here
     // https://lit.dev/docs/components/properties/
@@ -240,12 +241,15 @@ export class KodiSearchCard extends LitElement {
         icon_default,
         action_click,
     ) {
-        const class_cover_div = class_cover + " search-item-cover" + (this.config.show_thumbnail_border ? " cover-image-outline-border" : "");
+        const class_cover_div =
+            class_cover +
+            " search-item-cover" +
+            (this.config.show_thumbnail_border ? " cover-image-outline-border" : "");
 
         let cover_api = false;
         let cover_image = image_url;
-        if (image_url != null && image_url != "" && image_url.startsWith("/api")){
-            cover_image =   image_url ? this._getThumbnailURLorBase64(image_url).then((value) => `url(${value})`) : "none";
+        if (image_url != null && image_url != "" && image_url.startsWith("/api")) {
+            cover_image = image_url ? this._getThumbnailURLorBase64(image_url).then(value => `url(${value})`) : "none";
             cover_api = true;
         }
 
@@ -254,80 +258,121 @@ export class KodiSearchCard extends LitElement {
         const class_cover_image = "search-item-cover-image";
 
         return html`
-        <div class=${class_cover_div}>
-            <div class=${class_cover_container_div}>
-                <ha-icon icon=${icon_default} class=${class_default_image}></ha-icon>
+            <div class=${class_cover_div}>
+                <div class=${class_cover_container_div}>
+                    <ha-icon icon=${icon_default} class=${class_default_image}></ha-icon>
 
-                ${
-                    cover_image != null && cover_image != "" ?
-                        (cover_api?
-                        html`<div class="${class_cover_image}" @click="${this.config.show_thumbnail_overlay?'':action_click}" style="background-size: contain; background-image: ${until(cover_image, "")}"></div>`:
-                        html`<img class="${class_cover_image}" @click="${this.config.show_thumbnail_overlay?'':action_click}" src="${cover_image}"></img>`
-                   ) : html`<div class="${class_cover_image}" @click="${this.config.show_thumbnail_overlay?'':action_click}"></div>`}
-
-                ${this.config.show_thumbnail_overlay ? html`<ha-icon class="overlay-play" icon=${icon_overlay} @click="${action_click}"></ha-icon>`:html``}
+                    ${cover_image != null && cover_image != ""
+                        ? cover_api
+                            ? html`<div
+                                  class="${class_cover_image}"
+                                  @click="${this.config.show_thumbnail_overlay ? "" : action_click}"
+                                  style="background-size: contain; background-image: ${until(cover_image, "")}"></div>`
+                            : html`<img class="${class_cover_image}" @click="${
+                                  this.config.show_thumbnail_overlay ? "" : action_click
+                              }" src="${cover_image}"></img>`
+                        : html`<div
+                              class="${class_cover_image}"
+                              @click="${this.config.show_thumbnail_overlay ? "" : action_click}"></div>`}
+                    ${this.config.show_thumbnail_overlay
+                        ? html`<ha-icon class="overlay-play" icon=${icon_overlay} @click="${action_click}"></ha-icon>`
+                        : html``}
+                </div>
             </div>
-        </div>
-        `
+        `;
     }
-
 
     private _createMusicVideoCover(item) {
         const to_search = "image://";
         let image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
         image_url = decodeURIComponent(decodeURI(image_url));
 
-        if(image_url.indexOf(to_search) > 0){
-            const index = image_url.indexOf(to_search)+to_search.length;
+        if (image_url.indexOf(to_search) > 0) {
+            const index = image_url.indexOf(to_search) + to_search.length;
             const last_slash = image_url.endsWith("/");
-            if (last_slash){
-                image_url = image_url.substring(index, image_url.length-1);
-            }else{
+            if (last_slash) {
+                image_url = image_url.substring(index, image_url.length - 1);
+            } else {
                 image_url = image_url.substring(index);
             }
         }
 
         const class_cover = "search-musicvideo-cover";
-        const class_cover_image_default =  "search-musicvideo-cover-image-default";
+        const class_cover_image_default = "search-musicvideo-cover-image-default";
         const icon_default = "mdi:movie";
         const icon_overlay = this._getActionIcon();
-        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addMusicVideo(item["musicvideoid"]))
+        return this._createCoverElement(
+            image_url,
+            class_cover,
+            class_cover_image_default,
+            icon_overlay,
+            icon_default,
+            () => this._addMusicVideo(item["musicvideoid"]),
+        );
     }
 
     private _createFileMusicPlaylistCover(item) {
         const image_url = null;
         const class_cover = "search-filemusicplaylist-cover";
-        const class_cover_image_default =  "search-filemusicplaylist-cover-image-default";
+        const class_cover_image_default = "search-filemusicplaylist-cover-image-default";
         const icon_default = "mdi:disc";
         const icon_overlay = this._getActionIcon();
-        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addMusicPlaylist(item["file"]))
+        return this._createCoverElement(
+            image_url,
+            class_cover,
+            class_cover_image_default,
+            icon_overlay,
+            icon_default,
+            () => this._addMusicPlaylist(item["file"]),
+        );
     }
 
     private _createChannelCover(item) {
         const image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
         const class_cover = "search-channel-cover";
-        const class_cover_image_default =  "search-channel-cover-image-default";
+        const class_cover_image_default = "search-channel-cover-image-default";
         const icon_default = "mdi:movie";
         const icon_overlay = this._getActionIcon();
-        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addChannel(item["channelid"]))
+        return this._createCoverElement(
+            image_url,
+            class_cover,
+            class_cover_image_default,
+            icon_overlay,
+            icon_default,
+            () => this._addChannel(item["channelid"]),
+        );
     }
 
     private _createAlbumDetailsCover(item) {
-        const image_url = "/api/media_player_proxy/"+this._kodi_entity_id+"/browse_media/album/"+item["albumid"];
+        const image_url = "/api/media_player_proxy/" + this._kodi_entity_id + "/browse_media/album/" + item["albumid"];
         const class_cover = "search-albumdetails-cover";
-        const class_cover_image_default =  "search-albumdetails-cover-image-default";
+        const class_cover_image_default = "search-albumdetails-cover-image-default";
         const icon_default = "mdi:disc";
         const icon_overlay = this._getActionIcon();
-        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addAlbum(item["albumid"]))
+        return this._createCoverElement(
+            image_url,
+            class_cover,
+            class_cover_image_default,
+            icon_overlay,
+            icon_default,
+            () => this._addAlbum(item["albumid"]),
+        );
     }
 
     private _createTvShowSeasonDetailsCover(item) {
         const image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
         const class_cover = "search-seasondetails-cover";
-        const class_cover_image_default =  "search-seasondetails-cover-image-default";
+        const class_cover_image_default = "search-seasondetails-cover-image-default";
         const icon_default = "mdi:movie";
         const icon_overlay = this._getActionIcon();
-        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addEpisodes(item["episodes"].map(x => x.episodeid)))
+        return this._createCoverElement(
+            image_url,
+            class_cover,
+            class_cover_image_default,
+            icon_overlay,
+            icon_default,
+            () => this._addEpisodes(item["episodes"].map(x => x.episodeid)),
+        );
     }
 
     private _createEpisodeCover(item) {
@@ -335,92 +380,134 @@ export class KodiSearchCard extends LitElement {
         let image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
         image_url = decodeURIComponent(decodeURI(image_url));
 
-        if(image_url.indexOf(to_search) > 0){
-            const index = image_url.indexOf(to_search)+to_search.length;
+        if (image_url.indexOf(to_search) > 0) {
+            const index = image_url.indexOf(to_search) + to_search.length;
             const last_slash = image_url.endsWith("/");
-            if (last_slash){
-                image_url = image_url.substring(index, image_url.length-1);
-            }else{
+            if (last_slash) {
+                image_url = image_url.substring(index, image_url.length - 1);
+            } else {
                 image_url = image_url.substring(index);
             }
         }
 
         const class_cover = "search-episode-cover";
-        const class_cover_image_default =  "search-episode-cover-image-default";
+        const class_cover_image_default = "search-episode-cover-image-default";
         const icon_default = "mdi:movie";
         const icon_overlay = this._getActionIcon();
-        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addEpisode(item["episodeid"]))
+        return this._createCoverElement(
+            image_url,
+            class_cover,
+            class_cover_image_default,
+            icon_overlay,
+            icon_default,
+            () => this._addEpisode(item["episodeid"]),
+        );
     }
 
     private _createTvShowCover(item) {
         const image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
         const class_cover = "search-tvshow-cover";
-        const class_cover_image_default =  "search-tvshow-cover-image-default";
+        const class_cover_image_default = "search-tvshow-cover-image-default";
         const icon_default = "mdi:movie";
         const icon_overlay = "mdi:menu";
-        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._searchMoreOfTvShow(item["tvshowid"]))
+        return this._createCoverElement(
+            image_url,
+            class_cover,
+            class_cover_image_default,
+            icon_overlay,
+            icon_default,
+            () => this._searchMoreOfTvShow(item["tvshowid"]),
+        );
     }
 
     private _createMovieCover(item) {
         const image_url = item["poster"] && item["poster"] != "" ? item["poster"] : item["thumbnail"];
         const class_cover = "search-movie-cover";
-        const class_cover_image_default =  "search-movie-cover-image-default";
+        const class_cover_image_default = "search-movie-cover-image-default";
         const icon_default = "mdi:movie";
         const icon_overlay = this._getActionIcon();
-        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addMovie(item["movieid"]))
+        return this._createCoverElement(
+            image_url,
+            class_cover,
+            class_cover_image_default,
+            icon_overlay,
+            icon_default,
+            () => this._addMovie(item["movieid"]),
+        );
     }
 
     private _createArtistCover(item) {
         const image_url = null;
         const class_cover = "search-artist-cover";
-        const class_cover_image_default =  "search-artist-cover-image-default";
+        const class_cover_image_default = "search-artist-cover-image-default";
         const icon_default = "mdi:microphone";
         const icon_overlay = "mdi:menu";
-        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._searchMoreOfArtist(item["artistid"]))
+        return this._createCoverElement(
+            image_url,
+            class_cover,
+            class_cover_image_default,
+            icon_overlay,
+            icon_default,
+            () => this._searchMoreOfArtist(item["artistid"]),
+        );
     }
 
     private _createAlbumCover(item) {
-        const image_url = "/api/media_player_proxy/"+this._kodi_entity_id+"/browse_media/album/"+item["albumid"];
+        const image_url = "/api/media_player_proxy/" + this._kodi_entity_id + "/browse_media/album/" + item["albumid"];
         const class_cover = "search-album-cover";
-        const class_cover_image_default =  "search-album-cover-image-default";
+        const class_cover_image_default = "search-album-cover-image-default";
         const icon_default = "mdi:disc";
         const icon_overlay = this._getActionIcon();
-        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addAlbum(item["albumid"]))
+        return this._createCoverElement(
+            image_url,
+            class_cover,
+            class_cover_image_default,
+            icon_overlay,
+            icon_default,
+            () => this._addAlbum(item["albumid"]),
+        );
     }
 
     private _createSongCover(item) {
-        let image_url ="";
-        if(item["thumbnail"]){
-            image_url = "/api/media_player_proxy/"+this._kodi_entity_id+"/browse_media/album/"+item["albumid"];
+        let image_url = "";
+        if (item["thumbnail"]) {
+            image_url = "/api/media_player_proxy/" + this._kodi_entity_id + "/browse_media/album/" + item["albumid"];
         }
         const class_cover = "search-song-cover";
-        const class_cover_image_default =  "search-song-cover-image-default";
+        const class_cover_image_default = "search-song-cover-image-default";
         const icon_default = "mdi:music";
         const icon_overlay = this._getActionIcon();
-        return this._createCoverElement (image_url, class_cover,class_cover_image_default, icon_overlay, icon_default, () => this._addSong(item["songid"]))
+        return this._createCoverElement(
+            image_url,
+            class_cover,
+            class_cover_image_default,
+            icon_overlay,
+            icon_default,
+            () => this._addSong(item["songid"]),
+        );
     }
 
     // For more example on implementation, see https://github.com/home-assistant/frontend/blob/dev/src/components/media-player/ha-media-player-browse.ts#L675
-    private _getThumbnailURLorBase64(thumbnailUrl){
+    private _getThumbnailURLorBase64(thumbnailUrl) {
         if (thumbnailUrl.startsWith("/")) {
             // Thumbnails served by local API require authentication
             return new Promise((resolve, reject) => {
-            this.hass
-                .fetchWithAuth(thumbnailUrl!)
-                // Since we are fetching with an authorization header, we cannot just put the
-                // URL directly into the document; we need to embed the image. We could do this
-                // using blob URLs, but then we would need to keep track of them in order to
-                // release them properly. Instead, we embed the thumbnail using base64.
-                .then((response) => response.blob())
-                .then((blob) => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const result = reader.result;
-                    resolve(typeof result === "string" ? result : "");
-                };
-                reader.onerror = (e) => reject(e);
-                reader.readAsDataURL(blob);
-                });
+                this.hass
+                    .fetchWithAuth(thumbnailUrl!)
+                    // Since we are fetching with an authorization header, we cannot just put the
+                    // URL directly into the document; we need to embed the image. We could do this
+                    // using blob URLs, but then we would need to keep track of them in order to
+                    // release them properly. Instead, we embed the thumbnail using base64.
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            const result = reader.result;
+                            resolve(typeof result === "string" ? result : "");
+                        };
+                        reader.onerror = e => reject(e);
+                        reader.readAsDataURL(blob);
+                    });
             });
         }
 
@@ -468,15 +555,14 @@ export class KodiSearchCard extends LitElement {
                     <div class="search-filemusicplaylist-label search-title">${item["label"]}</div>
                     <div class="search-filemusicplaylist-title">${item["file"]}</div>
                 </div>`,
-
             )}
         </div>`;
     }
 
     private _fillSongs(items) {
         return html`<div class="search-songs-grid search-grid search-item-container-grid">
-        ${items.map(
-            item => html`<div class="search-song-grid">
+            ${items.map(
+                item => html`<div class="search-song-grid">
                     ${this._createSongCover(item)}
                     <div class="search-song-title search-title">${item["artist"]} - ${item["title"]}</div>
                     <div class="search-song-genre search-genre">${item["genre"] ? item["genre"] : "undefined"}</div>
@@ -511,7 +597,9 @@ export class KodiSearchCard extends LitElement {
                     html`<div class="search-album-grid">
                             ${this._createAlbumCover(item)}
                             <div class="search-album-title search-title">${item["title"]}</div>
-                            <div class="search-album-artist search-artist">${item["artist"] + " (" + item["year"] + ")"}</div>
+                            <div class="search-album-artist search-artist">${
+                                item["artist"] + " (" + item["year"] + ")"
+                            }</div>
                         </div>
                     </div>`,
             )}
@@ -549,7 +637,7 @@ export class KodiSearchCard extends LitElement {
             ${items.map(
                 item =>
                     html`<div class="search-episode-grid">
-                         ${this._createEpisodeCover(item)}
+                        ${this._createEpisodeCover(item)}
                         <div class="search-episode-title search-title">${item["title"]}</div>
                         <div class="search-episode-tvshow search-tvshow">
                             ${item["tvshowtitle"]}
@@ -787,85 +875,81 @@ export class KodiSearchCard extends LitElement {
     }
 
     private _buildSearchForm() {
-        this._searchInput = document.createElement("ha-textfield");
-        this._searchInput.setAttribute("outlined", "");
-        this._searchInput.setAttribute("label", "Search criteria");
-        this._searchInput.setAttribute("class", "form-button");
-        this._searchInput.addEventListener("keydown", event => {
-            if (event.code === "Enter") {
-                this._search();
-            }
-        });
-
         return html`
             <div id="search-form-controls-grid">
                 <div class="search-form-controls-fields-grid">
-                    ${this._searchInput}
+                    <div class="search-field-container">
+                        <label class="field-label">Search criteria</label>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            class="custom-html-input"
+                            placeholder="Rechercher..."
+                            .value=${""}
+                            @keydown=${(event: KeyboardEvent) => {
+                                if (event.code === "Enter") this._search();
+                            }} />
+                    </div>
+
                     ${this.config.show_action_mode
-                        ? html`<ha-select @selected=${this._actionModeChanged} @closed=${ev => ev.stopPropagation()}
-                                  class="form-button"
-                                  outlined
-                                  label="Action mode"
-                                  .value=${this._config_action_mode}>
+                        ? html` <div class="search-field-container">
+                              <label class="field-label">Action mode</label>
+                              <select
+                                  class="custom-html-input"
+                                  .value=${this._config_action_mode}
+                                  @change=${this._actionModeChanged}>
                                   ${Object.keys(ACTION_MAP).map(
-                                      action =>
-                                          html`<mwc-list-item value=${action}
-                                              >${ACTION_MAP[action].label}</mwc-list-item
-                                          >`,
+                                      action => html`
+                                          <option value="${action}" ?selected=${this._config_action_mode === action}>
+                                              ${ACTION_MAP[action].label}
+                                          </option>
+                                      `,
                                   )}
-                              </ha-select>
-                          `
+                              </select>
+                          </div>`
                         : ``}
                 </div>
+
                 <div class="search-form-controls-buttons-mandatory-grid">
                     <ha-button class="form-button" raised @click="${this._search}">Search</ha-button>
                     <ha-button class="form-button" raised @click="${this._clear}">Clear</ha-button>
                 </div>
+
                 <div class="search-form-controls-buttons-optional-grid">
                     ${this.config.show_recently_added
-                        ? html`<ha-button
-                              class="form-button"
-                              variant="success"
-                              raised
-                              @click="${this._recently_added}">Recently added</ha-button>`
+                        ? html`<ha-button class="form-button" variant="success" raised @click="${this._recently_added}"
+                              >Recently added</ha-button
+                          >`
                         : ``}
                     ${this.config.show_recently_played
-                        ? html` <ha-button
-                              class="form-button"
-                              variant="success"
-                              raised
-                              @click="${this._recently_played}">Recently played</ha-button>`
+                        ? html`<ha-button class="form-button" variant="success" raised @click="${this._recently_played}"
+                              >Recently played</ha-button
+                          >`
                         : ``}
                     ${this.config.show_current_artist
-                        ? html` <ha-button
-                              class="form-button"
-                              variant="success"
-                              raised
-                              @click="${this._current_artist}">Current Artist</ha-button>`
+                        ? html`<ha-button class="form-button" variant="success" raised @click="${this._current_artist}"
+                              >Current Artist</ha-button
+                          >`
                         : ``}
                 </div>
             </div>
         `;
     }
 
-    private _current_artist(){this.hass.callService(this._service_domain, "call_method", {
-        entity_id: this.config.entity,
-        method: "search",
-        item: {
-            media_type: "current_artist",
-        },
-    });
+    private _actionModeChanged(ev: any): void {
+        this._config_action_mode = ev.target.value;
+        console.log("Action sélectionnée :", this._config_action_mode);
+        this.requestUpdate();
     }
 
-    private _actionModeChanged(event) {
-        if (this._render_finished) {
-            if (event.target.value) {
-                const value = event.target.value;
-                this._config_action_mode = value;
-                this.render();
-                this.requestUpdate();
-            }
-        }
+    private _current_artist() {
+        this.hass.callService(this._service_domain, "call_method", {
+            entity_id: this.config.entity,
+            method: "search",
+            item: {
+                media_type: "current_artist",
+            },
+        });
     }
 
     // https://lit.dev/docs/components/styles/
@@ -906,11 +990,9 @@ export class KodiSearchCard extends LitElement {
                 border-bottom: solid;
             }
 
-
             .cover-image-outline-border {
                 border: 1px solid var(--outline_color);
             }
-
 
             .overlay-play {
                 position: absolute;
@@ -1000,7 +1082,7 @@ export class KodiSearchCard extends LitElement {
                 height: 100%;
             }
 
-            .search-item-cover-container{
+            .search-item-cover-container {
                 position: relative;
                 background-color: var(--background-basic-color);
             }
@@ -1009,7 +1091,8 @@ export class KodiSearchCard extends LitElement {
                 position: absolute;
             }
 
-            .search-item-cover-image, .search-item-cover-container{
+            .search-item-cover-image,
+            .search-item-cover-container {
                 width: 100%;
                 height: 100%;
                 top: 0;
@@ -1037,22 +1120,86 @@ export class KodiSearchCard extends LitElement {
                 /* border: 1px solid red; */
             }
 
-            .search-form-controls-fields-grid {
-                display: grid;
-                grid-template-columns: 100%;
-                 /* grid-template-rows: auto auto; */
-                justify-content: center;
-                align-content: center;
-                row-gap: 20px;
-                /* border: 1px solid yellow; */
+            .search-input-wrapper {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                padding: 0 5px;
             }
 
+            .search-input-wrapper label {
+                font-size: 12px;
+                font-weight: 500;
+                color: var(--secondary-text-color);
+                margin-left: 4px;
+            }
+
+            .custom-search-input {
+                width: 100%;
+                height: 48px;
+                background-color: transparent;
+                color: var(--primary-text-color);
+                border: 1px solid var(--outline-color, #747775);
+                border-radius: 4px;
+                padding: 0 16px;
+                font-size: 16px;
+                box-sizing: border-box;
+                outline: none;
+            }
+
+            .custom-search-input:focus {
+                border: 2px solid var(--primary-color);
+            }
+
+            .search-form-controls-fields-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
 
             .form-button {
                 /* width: 100%; */
                 margin: 5px;
             }
 
+            .search-field-container {
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 10px;
+            }
+
+            .field-label {
+                font-size: 12px;
+                color: var(--secondary-text-color);
+                margin-bottom: 4px;
+                margin-left: 4px;
+            }
+
+            .custom-html-input {
+                width: 100%;
+                height: 44px;
+                box-sizing: border-box; /* INDISPENSABLE : padding inclus dans les 100% */
+                background-color: var(--card-background-color, #2c2c2c);
+                color: var(--primary-text-color);
+                border: 1px solid var(--outline-color, #444);
+                border-radius: 4px;
+                padding: 0 12px;
+                font-size: 14px;
+                outline: none;
+                appearance: none;
+            }
+
+            .custom-html-input:focus {
+                border: 2px solid var(--primary-color);
+            }
+
+            /* Ajoute une petite flèche pour le select car 'appearance: none' l'enlève */
+            select.custom-html-input {
+                background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 10px center;
+                background-size: 20px;
+            }
             /*
             -------------------------------
             ----- FILE MUSIC PLAYLIST -----
@@ -1092,7 +1239,6 @@ export class KodiSearchCard extends LitElement {
                 grid-column: 2;
                 grid-row: 2;
             }
-
 
             /*
             -----------------
@@ -1143,7 +1289,6 @@ export class KodiSearchCard extends LitElement {
                 --mdc-icon-size: calc(var(--song-thumbnail-width) - 30px);
             }
 
-
             /*
                 ------------------
                 ----- ALBUMS -----
@@ -1161,7 +1306,6 @@ export class KodiSearchCard extends LitElement {
                 row-gap: 3px;
             }
 
-
             .search-album-title {
                 grid-column: 1 / 3;
                 grid-row: 2;
@@ -1174,10 +1318,9 @@ export class KodiSearchCard extends LitElement {
                 vertical-align: text-top;
             }
 
-
             .search-album-cover {
                 grid-column: 1 / 2;
-                grid-row: 1 ;
+                grid-row: 1;
                 width: var(--album-thumbnail-width);
                 height: var(--album-thumbnail-width);
             }
@@ -1210,7 +1353,7 @@ export class KodiSearchCard extends LitElement {
 
             .search-artist-cover {
                 grid-column: 1;
-                grid-row: 1 ;
+                grid-row: 1;
                 width: var(--artist-thumbnail-width);
                 height: var(--artist-thumbnail-width);
             }
@@ -1218,8 +1361,6 @@ export class KodiSearchCard extends LitElement {
             .search-artist-cover-image-default {
                 --mdc-icon-size: calc(var(--artist-thumbnail-width) - 30px);
             }
-
-
 
             /*
             ------------------
@@ -1237,7 +1378,6 @@ export class KodiSearchCard extends LitElement {
                 grid-template-rows: auto auto 1fr;
                 row-gap: 3px;
             }
-
 
             .search-movie-title {
                 grid-column: 1 / 3;
@@ -1348,8 +1488,6 @@ export class KodiSearchCard extends LitElement {
             .search-channel-cover-image-default {
                 --mdc-icon-size: calc((var(--movie-thumbnail-width) / var(--movie-thumbnail-ratio)) - 30px);
             }
-
-
 
             /*
           --------------------
@@ -1519,7 +1657,6 @@ export class KodiSearchCard extends LitElement {
                 border-bottom: solid;
             }
 
-
             .search-seasondetails-title {
                 width: var(--album-thumbnail-width);
                 grid-column: 1;
@@ -1566,7 +1703,6 @@ export class KodiSearchCard extends LitElement {
                 height: calc(var(--album-thumbnail-width) / var(--movie-thumbnail-ratio));
             }
 
-
             .search-seasondetails-cover-image-default {
                 --mdc-icon-size: calc(var(--album-thumbnail-width) - 30px);
             }
@@ -1597,7 +1733,6 @@ export class KodiSearchCard extends LitElement {
             channel-play:hover {
                 color: red;
             }
-
         `;
     }
 
@@ -1653,7 +1788,7 @@ export class KodiSearchCard extends LitElement {
         }
     }
 
-    private _addMusicPlaylist(playlist_file){
+    private _addMusicPlaylist(playlist_file) {
         this._addItem("filemusicplaylist", playlist_file);
     }
 

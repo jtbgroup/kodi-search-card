@@ -35,8 +35,8 @@ console.info(
 );
 
 // This puts your card into the UI card picker dialog
-(window as any).customCards = (window as any).customCards || [];
-(window as any).customCards.push({
+window["customCards"] = window["customCards"] || [];
+window["customCards"].push({
     type: "kodi-search-card",
     name: "Kodi Search Card",
     description: "This custom card allows you to search for media from your kodi libraries",

@@ -19,15 +19,16 @@ const serveopts = {
 };
 
 const plugins = [
+    typescript({
+        clean: true,
+        // On force l'utilisation du compilateur même s'il y a des erreurs de type
+        check: false
+    }),
     nodeResolve({
         browser: true,
         preferBuiltins: false
     }),
     commonjs(),
-    typescript({
-        clean: true,
-        check: false // Permet de passer les erreurs de type strictes lors du bundle
-    }),
     json(),
     babel({
         exclude: "node_modules/**",

@@ -8,16 +8,6 @@ import json from "@rollup/plugin-json";
 
 const dev = process.env.ROLLUP_WATCH;
 
-const serveopts = {
-    contentBase: ["./dist"],
-    host: "0.0.0.0",
-    port: 5000,
-    allowCrossOrigin: true,
-    headers: {
-        "Access-Control-Allow-Origin": "*",
-    },
-};
-
 const plugins = [
     typescript({
         clean: true,
@@ -40,8 +30,18 @@ const plugins = [
         exclude: "node_modules/**",
         babelHelpers: "bundled",
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
+        plugins: [
+            ["@babel/plugin-proposal-decorators", { legacy: true }],
+            ["@babel/plugin-proposal-class-properties", { loose: true }],
+        ],
     }),
-    dev && serve(serveopts),
+    dev && serve({
+        contentBase: ["./dist"],
+        host: "0.0.0.0",
+        port: 5000,
+        allowCrossOrigin: true,
+        headers: { "Access-Control-Allow-Origin": "*" },
+    }),
     !dev && terser(),
 ];
 

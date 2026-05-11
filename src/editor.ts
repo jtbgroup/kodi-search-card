@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { css, CSSResultGroup, html, LitElement, PropertyValues, TemplateResult } from "lit/index.js";
-import { customElement, property, query, state } from "lit/decorators.js";
+import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
 import { fireEvent, HomeAssistant, LovelaceCardEditor } from "custom-card-helpers";
 
 import { ACTION_MAP, ALBUM_SORT } from "./const";

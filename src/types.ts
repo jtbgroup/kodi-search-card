@@ -7,7 +7,6 @@ declare global {
     }
 }
 
-// TODO Add your configuration elements here for type-checking
 export interface KodiSearchCardConfig extends LovelaceCardConfig {
     action_mode?: string;
     add_position?: number;
@@ -24,4 +23,3 @@ export interface KodiSearchCardConfig extends LovelaceCardConfig {
     show_current_artist?: boolean;
     title?: string;
 }
-

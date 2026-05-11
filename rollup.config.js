@@ -2,7 +2,7 @@ import typescript from "rollup-plugin-typescript2";
 import commonjs from "@rollup/plugin-commonjs";
 import nodeResolve from "@rollup/plugin-node-resolve";
 import babel from "@rollup/plugin-babel";
-import terser from '@rollup/plugin-terser';
+import terser from "@rollup/plugin-terser";
 import serve from "rollup-plugin-serve";
 import json from "@rollup/plugin-json";
 
@@ -35,22 +35,20 @@ const plugins = [
         exclude: "node_modules/**",
         babelHelpers: "bundled",
         extensions: [".ts", ".js"],
-        presets: [
-            ["@babel/preset-env", { targets: { browsers: "last 2 versions" } }],
-            "@babel/preset-typescript",
-        ],
+        presets: [["@babel/preset-env", { targets: { browsers: "last 2 versions" } }], "@babel/preset-typescript"],
         plugins: [
             ["@babel/plugin-proposal-decorators", { legacy: true }],
             ["@babel/plugin-proposal-class-properties", { loose: true }],
         ],
     }),
-    dev && serve({
-        contentBase: ["./dist"],
-        host: "0.0.0.0",
-        port: 5000,
-        allowCrossOrigin: true,
-        headers: { "Access-Control-Allow-Origin": "*" },
-    }),
+    dev &&
+        serve({
+            contentBase: ["./dist"],
+            host: "0.0.0.0",
+            port: 5000,
+            allowCrossOrigin: true,
+            headers: { "Access-Control-Allow-Origin": "*" },
+        }),
     !dev && terser(),
 ];
 
@@ -58,9 +56,10 @@ export default {
     input: "src/kodi-search-card.ts",
     output: {
         dir: "dist",
-        format: "es",
+        format: "iife",
         sourcemap: dev,
     },
     plugins: plugins,
     context: "window",
 };
+

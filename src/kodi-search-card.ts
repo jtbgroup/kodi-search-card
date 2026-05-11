@@ -3,7 +3,7 @@ import { css, CSSResultGroup, html, LitElement, PropertyValues, TemplateResult }
 import { customElement, property, query, state } from "lit/decorators.js";
 import { HomeAssistant, LovelaceCardEditor, getLovelace, hasConfigOrEntityChanged } from "custom-card-helpers";
 import { localize } from "./localize/localize";
-import { until } from "lit/directives/until";
+import { until } from "lit/directives/until.js";
 
 import "./editor";
 import { KodiSearchCardConfig } from "./types";

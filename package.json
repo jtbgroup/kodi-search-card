@@ -1,6 +1,6 @@
 {
     "name": "kodi-search-card",
-    "version": "3.9.0",
+    "version": "4.0.1",
     "description": "Kodi Search Card",
     "keywords": [
         "home-assistant",
@@ -50,3 +50,4 @@
         "rollup": "rollup -c"
     }
 }
+

@@ -45,17 +45,11 @@ export class KodiSearchForm extends LitElement {
         if (ev.code === "Enter") this._onSearch();
     }
 
-    /*
-     * ha-select: use @change (fires once on user selection, after the menu closes)
-     * NOT @selected (fires on every render including initial mount).
-     * ev.target.value contains the newly selected value.
-     */
     private _onActionModeChanged(ev: Event): void {
-        ev.stopPropagation();
-        const newMode = (ev.target as HTMLElement & { value: string }).value;
-        if (!newMode || newMode === this._currentMode) return;
-        this._currentMode = newMode;
-        this._emit("kodi-action-mode-changed", { mode: newMode });
+        const mode = (ev.target as HTMLSelectElement).value;
+        if (!mode || mode === this._currentMode) return;
+        this._currentMode = mode;
+        this._emit("kodi-action-mode-changed", { mode });
     }
 
     protected render(): TemplateResult {
@@ -69,41 +63,40 @@ export class KodiSearchForm extends LitElement {
 
                     ${this.showActionMode
                         ? html`
-                              <ha-select
-                                  naturalMenuWidth
-                                  fixedMenuPosition
-                                  label="Action mode"
-                                  .value=${this._currentMode}
-                                  @change=${this._onActionModeChanged}
-                                  @closed=${(ev: Event) => ev.stopPropagation()}>
-                                  ${Object.keys(ACTION_MAP).map(
-                                      action => html`
-                                          <mwc-list-item .value=${action}>${ACTION_MAP[action].label}</mwc-list-item>
-                                      `,
-                                  )}
-                              </ha-select>
+                              <div class="search-field-container">
+                                  <label class="field-label">Action mode</label>
+                                  <select class="search-input" @change=${this._onActionModeChanged}>
+                                      ${Object.keys(ACTION_MAP).map(
+                                          action => html`
+                                              <option value=${action} ?selected=${this._currentMode === action}>
+                                                  ${ACTION_MAP[action].label}
+                                              </option>
+                                          `,
+                                      )}
+                                  </select>
+                              </div>
                           `
                         : ""}
                 </div>
 
                 <div class="search-form-controls-buttons-mandatory-grid">
-                    <ha-button raised @click=${this._onSearch}>Search</ha-button>
-                    <ha-button raised @click=${this._onClear}>Clear</ha-button>
+                    <ha-button raised variant="brand" @click=${this._onSearch}>Search</ha-button>
+                    <ha-button raised variant="brand" @click=${this._onClear}>Clear</ha-button>
                 </div>
 
                 <div class="search-form-controls-buttons-optional-grid">
                     ${this.showRecentlyAdded
-                        ? html`<ha-button raised @click=${() => this._emit("kodi-recently-added")}
+                        ? html`<ha-button variant="outlined" raised @click=${() => this._emit("kodi-recently-added")}
                               >Recently added</ha-button
                           >`
                         : ""}
                     ${this.showRecentlyPlayed
-                        ? html`<ha-button raised @click=${() => this._emit("kodi-recently-played")}
+                        ? html`<ha-button variant="outlined" raised @click=${() => this._emit("kodi-recently-played")}
                               >Recently played</ha-button
                           >`
                         : ""}
                     ${this.showCurrentArtist
-                        ? html`<ha-button raised @click=${() => this._emit("kodi-current-artist")}
+                        ? html`<ha-button variant="outlined" raised @click=${() => this._emit("kodi-current-artist")}
                               >Current Artist</ha-button
                           >`
                         : ""}
@@ -116,3 +109,4 @@ export class KodiSearchForm extends LitElement {
         return [sharedStyles, formStyles];
     }
 }
+

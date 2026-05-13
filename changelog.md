@@ -1,6 +1,6 @@
 # SEARCH CARD - Changelog
 
-## 4.0.1
+## 4.0.2
 
 - Fixed [Issue #19](https://github.com/jtbgroup/kodi-search-card/issues/19)
 - Fixed [Issue #20](https://github.com/jtbgroup/kodi-search-card/issues/20)

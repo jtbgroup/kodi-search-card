@@ -3,7 +3,7 @@
         "target": "es2020",
         "module": "esnext",
         "moduleResolution": "node",
-        "ignoreDeprecations": "5.0",
+        "ignoreDeprecations": "6.0",
         "lib": ["es2020", "dom", "dom.iterable"],
         "noEmit": false,
         "noUnusedParameters": true,

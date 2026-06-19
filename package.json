@@ -26,6 +26,9 @@
         "tslib": "^2.6.2"
     },
     "devDependencies": {
+        "@babel/core": "^8.0.1",
+        "@babel/preset-env": "^8.0.2",
+        "@rollup/plugin-babel": "^7.1.0",
         "@rollup/plugin-commonjs": "^21.1.0",
         "@rollup/plugin-json": "^4.1.0",
         "@rollup/plugin-node-resolve": "^13.3.0",
@@ -50,4 +53,3 @@
         "rollup": "rollup -c"
     }
 }
-

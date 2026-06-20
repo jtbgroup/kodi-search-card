@@ -14,8 +14,9 @@
         "skipLibCheck": true,
         "resolveJsonModule": true,
         "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "allowSyntheticDefaultImports": true
+        // "emitDecoratorMetadata": true,
+        // "allowSyntheticDefaultImports": true
+        "useDefineForClassFields": false
     },
-    "exclude": ["node_modules", "dist"]
+    // "exclude": ["node_modules", "dist"]
 }

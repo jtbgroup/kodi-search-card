@@ -39,7 +39,7 @@ export class KodiSearchCardEditor extends LitElement implements LovelaceCardEdit
         },
         {
             name: "outline_color",
-            selector: { color_rgb: {} },
+            selector: { text: {} },
         },
         {
             name: "action_mode",

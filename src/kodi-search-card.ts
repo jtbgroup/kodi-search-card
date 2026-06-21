@@ -1,5 +1,5 @@
 import "./editor";
-import { LitElement, html, css } from "lit";
+import { LitElement, html, css, PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { HomeAssistant, LovelaceCardEditor } from "custom-card-helpers";
 import { KodiSearchCardConfig } from "./types";
@@ -11,6 +11,7 @@ interface SearchResultItem {
     name?: string;
     label?: string;
     artist?: string | string[];
+    artistid?: number | string;
     album?: string;
     thumbnail?: string;
     year?: number | string;
@@ -18,6 +19,7 @@ interface SearchResultItem {
     duration?: number;
     genre?: string | string[];
     file?: string;
+    songs?: SearchResultItem[];
 }
 
 interface SearchResults {
@@ -29,10 +31,10 @@ interface SearchResults {
     [key: string]: SearchResultItem[] | undefined;
 }
 interface WebSocketRequest {
-type: string;
+    type: string;
     entry_id: string;
-    kodi_entity_id: string; 
-    query?: string; 
+    kodi_entity_id: string;
+    query?: string;
     category?: string;
 }
 
@@ -58,6 +60,8 @@ export class KodiSearchCard extends LitElement {
     @state() private _thumbnailCache: Map<string, string> = new Map();
     private _thumbnailLoadingSet: Set<string> = new Set();
 
+    @state() private _sensorState = "unavailable";
+    @state() private _isArtistView = false;
 
     public static async getConfigElement(): Promise<LovelaceCardEditor> {
         return document.createElement("kodi-search-card-editor");
@@ -65,7 +69,6 @@ export class KodiSearchCard extends LitElement {
 
     static getStubConfig(): Record<string, string> {
         return {
-            entry_id: "",
             title: "Kodi Search",
         };
     }
@@ -78,6 +81,57 @@ export class KodiSearchCard extends LitElement {
                 border-radius: var(--ha-card-border-radius, 12px);
                 border: 1px solid var(--divider-color);
                 overflow: hidden;
+            }
+
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 16px;
+            }
+            .card-title {
+                margin: 0;
+                font-size: 1.25rem;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .kodi-icon {
+                color: var(--accent-color);
+            }
+
+            @keyframes pulse-dot {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.3;
+                }
+            }
+
+            .status-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                transition: background 0.3s ease;
+            }
+
+            .status-dot.fixed-green {
+                background: var(--success-color);
+            }
+
+            .status-dot.fixed-orange {
+                background: var(--warning-color);
+            }
+
+            .status-dot.fixed-red {
+                background: var(--error-color);
+            }
+
+            .status-dot.flashing-green {
+                background: var(--success-color);
+                animation: pulse-dot 1s infinite;
             }
 
             /* Container des contrôles d'entrée natifs */
@@ -221,13 +275,99 @@ export class KodiSearchCard extends LitElement {
                 background-color: #141414;
             }
 
-            .search-controls {
+            .kodi-controls {
+                padding: 16px;
                 display: flex;
-                flex-direction: column; /* Empile les éléments */
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .control-gap {
+                flex-grow: 1;
+            }
+
+            .search-box {
+                display: flex;
+                align-items: center;
+                background: var(--secondary-background-color);
+                border-radius: 8px;
+                padding: 0 12px;
+                height: 40px;
+            }
+            .search-box input {
+                flex: 1;
+                border: none;
+                background: none;
+                outline: none;
+                color: var(--primary-text-color);
+            }
+
+            .control-toolbar {
+                display: flex;
+                align-items: center;
                 gap: 8px;
-                padding: 12px 16px;
+                flex-wrap: wrap; /* CRUCIAL : autorise le retour à la ligne */
+                justify-content: center; /* Centre les éléments si ça passe à la ligne */
+                padding: 8px 0;
+            }
+
+            .control-actions {
+                display: flex;
+                background: var(--secondary-background-color);
+                border-radius: 8px;
+                padding: 2px;
+                white-space: nowrap; /* Empêche les boutons de se couper en deux */
+            }
+
+            .nav-buttons {
+                display: flex;
+                gap: 4px;
+                flex-wrap: wrap; /* Autorise les icônes à passer à la ligne */
+                justify-content: center;
+            }
+
+            @media (max-width: 350px) {
+                .group button span {
+                    display: none;
+                } /* Cache le texte des boutons si l'écran est minuscule */
+                .group button {
+                    padding: 6px 8px;
+                }
+            }
+
+            .group button {
+                border: none;
+                padding: 6px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                background: transparent;
+                color: var(--secondary-text-color);
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+            .group button.active {
+                background: var(--primary-color);
+                color: white;
+            }
+
+            .separator {
+                height: 24px;
+                width: 1px;
+                background: var(--divider-color);
+                margin: 0 4px;
+            }
+
+            .icon-btn {
+                cursor: pointer;
+                padding: 8px;
+                border-radius: 50%;
+                transition: background 0.2s;
+            }
+            .icon-btn:hover {
                 background: var(--secondary-background-color);
             }
+
             .search-input-wrapper {
                 display: flex;
                 flex-grow: 1;
@@ -385,6 +525,113 @@ export class KodiSearchCard extends LitElement {
                 align-items: center;
                 justify-content: center;
             }
+
+            .album-detailed-row {
+    display: flex;
+    gap: 20px;
+    background: #1c1c1c;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid #2d2d2d;
+}
+
+@media (max-width: 600px) {
+    .album-detailed-row {
+        flex-direction: column; /* Devient vertical sur mobile */
+    }
+}
+
+/* Bloc Pochette à gauche */
+.album-detailed-thumb-container {
+    width: 120px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.album-detailed-thumb-container .list-thumb-wrapper {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 8px;
+}
+
+.album-detailed-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.album-detailed-year {
+    font-size: 0.8rem;
+    color: #8a8a8a;
+    margin-top: 2px;
+}
+
+/* Bloc Liste de Chansons à droite */
+.album-detailed-songs-list {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.album-song-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    border-bottom: 1px solid #252525;
+}
+
+.album-song-item:hover {
+    background: #2a2a2a;
+}
+
+.song-index {
+    color: #8a8a8a;
+    margin-right: 8px;
+    width: 20px;
+    font-size: 0.85rem;
+}
+
+.song-title {
+    flex-grow: 1;
+    color: #ffffff;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song-duration {
+    color: #8a8a8a;
+    font-size: 0.8rem;
+    margin-right: 12px;
+    font-family: monospace;
+}
+
+/* Boutons d'actions alignés à droite */
+.song-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.song-actions ha-icon {
+    --mdc-icon-size: 20px;
+    padding: 4px;
+}
+
+.no-songs-msg {
+    color: #8a8a8a;
+    font-style: italic;
+    padding: 12px;
+    font-size: 0.85rem;
+}
         `;
     }
 
@@ -395,42 +642,64 @@ export class KodiSearchCard extends LitElement {
         this._config = config;
     }
 
-protected updated(changedProperties: Map<string, any>) {
-    super.updated(changedProperties);
-    
-    // 1. Résolution de la config quand hass change
-    if (changedProperties.has("hass")) {
-        this._resolveConfig();
+    // 2. updated : Ne sert plus qu'aux choses qui DOIVENT se passer *après* le rendu
+    // Dans la SearchCard, vous n'en avez presque plus besoin.
+    protected updated(changedProperties: PropertyValues) {
+        super.updated(changedProperties);
+        // (Dans la PlaylistCard, c'est ici que vous garderiez le if (!this._unsubscribe) this._subscribePlaylist(); )
     }
 
-    // 2. SÉCURITÉ : Ne jamais lancer de recherche automatique 
-    // tant que les IDs ne sont pas résolus.
-    if (changedProperties.has("_resolvedKodiEntityId") && this._resolvedKodiEntityId) {
-        // Tu peux déclencher un chargement initial ici si tu veux
-        // this._performSearch(); 
+    // 1. willUpdate : S'occupe de lire l'état de HA *avant* de dessiner
+    protected willUpdate(changedProperties: PropertyValues) {
+        super.willUpdate(changedProperties);
+
+        // Dès que HA envoie de nouvelles données, on met à jour nos variables internes
+        if (changedProperties.has("hass") || changedProperties.has("_config")) {
+            this._resolveConfig();
+            this._fetchSensorState();
+            // Fin de l'histoire ! LitElement dessinera le bon point vert automatiquement.
+        }
     }
-}
 
-  private _resolveConfig(): void {
-    if (!this.hass || !this._config?.entity) return;
+    private _fetchSensorState(): void {
+        if (!this.hass || !this._config?.entity) {
+            this._sensorState = "unavailable";
+            return;
+        }
 
-    const state = this.hass.states[this._config.entity];
-    
-    if (state && state.attributes.config_entry_id) {
-        // On stocke dans des variables locales, PAS dans this._config
-        this._resolvedEntryId = state.attributes.config_entry_id;
-        this._resolvedKodiEntityId = state.attributes.kodi_entity_id;
-        
-        console.log("Configuration résolue :", { 
-            entry: this._resolvedEntryId, 
-            kodi: this._resolvedKodiEntityId 
-        });
-    } else {
-        console.error("L'entité sélectionnée n'a pas les attributs requis.");
+        const sensorEntity = this.hass.states[this._config.entity];
+
+        if (sensorEntity) {
+            this._sensorState = sensorEntity.state;
+
+            console.debug("[Kodi Card] Sensor state:", {
+                state: this._sensorState,
+            });
+        } else {
+            this._sensorState = "unavailable";
+        }
     }
-}
 
-private async _performSearch(): Promise<void> {
+    private _resolveConfig(): void {
+        if (!this.hass || !this._config?.entity) return;
+
+        const state = this.hass.states[this._config.entity];
+
+        if (state && state.attributes.config_entry_id) {
+            // On stocke dans des variables locales, PAS dans this._config
+            this._resolvedEntryId = state.attributes.config_entry_id;
+            this._resolvedKodiEntityId = state.attributes.kodi_entity_id;
+
+            console.log("Configuration résolue :", {
+                entry: this._resolvedEntryId,
+                kodi: this._resolvedKodiEntityId,
+            });
+        } else {
+            console.error("L'entité sélectionnée n'a pas les attributs requis.");
+        }
+    }
+
+    private async _performSearch(): Promise<void> {
         // 1. Validation de la config résolue
         if (!this._resolvedEntryId || !this._resolvedKodiEntityId || !this._query.trim()) {
             this._results = null;
@@ -461,9 +730,9 @@ private async _performSearch(): Promise<void> {
             }
         } catch (error) {
             console.error("Search error:", error);
-            // Note: assure-toi que ton interface SearchResults accepte bien une clé 'error' 
+            // Note: assure-toi que ton interface SearchResults accepte bien une clé 'error'
             // sinon, utilise un gestionnaire d'erreur séparé.
-            this._results = {}; 
+            this._results = {};
         }
     }
 
@@ -479,9 +748,24 @@ private async _performSearch(): Promise<void> {
     }
 
     protected render() {
+        let statusClass = "fixed-green";
+
+        if (this._sensorState === "off") {
+            statusClass = "fixed-red";
+        } else if (this._sensorState === "playing") {
+            statusClass = "flashing-green";
+        } else if (["paused", "stopped"].includes(this._sensorState)) {
+            statusClass = "fixed-green";
+        } else if (this._sensorState === "idle") {
+            statusClass = "fixed-orange";
+        }
+
         return html`
             <div class="card-header">
-                <h3>${this._config?.title || "Kodi Search"}</h3>
+                <h3 class="card-title">
+                    <ha-icon class="kodi-icon" icon="mdi:kodi"></ha-icon> ${this._config?.title || "Kodi Search"}
+                </h3>
+                <div class="status-dot ${statusClass}"></div>
             </div>
 
             ${this._renderControls()}
@@ -492,28 +776,62 @@ private async _performSearch(): Promise<void> {
 
     private _renderControls() {
         return html`
-            <div class="search-controls">
-                <div class="search-input-wrapper">
+            <div class="kodi-controls">
+                <div class="search-box">
                     <input
                         .value="${this._query}"
                         @input="${(e: any) => (this._query = e.target.value)}"
                         @keydown="${(e: any) => e.key === "Enter" && this._performSearch()}"
                         placeholder="Rechercher..." />
                     ${this._query
-                        ? html`<ha-icon
-                              class="clear-icon"
-                              icon="mdi:close"
-                              @click="${() => {
-                                  this._query = "";
-                                  this._results = null;
-                              }}"></ha-icon>`
+                        ? html`
+                              <ha-icon
+                                  class="icon-btn clear"
+                                  icon="mdi:close"
+                                  @click="${() => {
+                                      this._query = "";
+                                      this._results = null;
+                                      this._isArtistView = false;
+                                  }}"></ha-icon>
+                          `
                         : ""}
+                    <ha-icon class="icon-btn search" icon="mdi:magnify" @click="${this._performSearch}"></ha-icon>
                 </div>
 
-                <select .value="${this._searchAction}" @change="${(e: any) => (this._searchAction = e.target.value)}">
-                    <option value="play">▶ Jouer immédiatement</option>
-                    <option value="add">➕ Ajouter à la suite</option>
-                </select>
+                <div class="control-toolbar">
+                    <div class="control-actions">
+                        <button
+                            class="${this._searchAction === "play" ? "active" : ""}"
+                            @click="${() => (this._searchAction = "play")}">
+                            <ha-icon icon="mdi:play-circle-outline"></ha-icon> Jouer
+                        </button>
+                        <button
+                            class="${this._searchAction === "add" ? "active" : ""}"
+                            @click="${() => (this._searchAction = "add")}">
+                            <ha-icon icon="mdi:playlist-plus"></ha-icon> Ajouter
+                        </button>
+                    </div>
+
+                    <div class="control-gap"></div>
+
+                    <div class="nav-buttons">
+                        <ha-icon
+                            icon="mdi:history"
+                            class="icon-btn"
+                            @click="${() => this._handleNavigation("recently_played")}"
+                            title="Récemment écouté"></ha-icon>
+                        <ha-icon
+                            icon="mdi:clock-plus"
+                            class="icon-btn"
+                            @click="${() => this._handleNavigation("recently_added")}"
+                            title="Nouveautés"></ha-icon>
+                        <ha-icon
+                            icon="mdi:account-music"
+                            class="icon-btn"
+                            @click="${() => this._handleNavigation("current_artist")}"
+                            title="Artiste actuel"></ha-icon>
+                    </div>
+                </div>
             </div>
         `;
     }
@@ -539,27 +857,88 @@ private async _performSearch(): Promise<void> {
         `;
     }
 
-    private _renderSection(category: string, items: SearchResultItem[]) {
-        const isGridLayout = ["albums", "artists"].includes(category.toLowerCase());
-        const sectionIcon = this._getCategoryIcon(category);
-
+private _renderSection(category: string, items: SearchResultItem[]) {
+    const categoryLower = category.toLowerCase();
+    
+    // 🚀 Si on est en vue artiste détaillée pour les albums, rendu spécial !
+    if (this._isArtistView && categoryLower === "albums") {
         return html`
             <div class="category-section">
                 <h3 class="category-header">
-                    <span>${category.toUpperCase()}</span>
-                    <ha-icon icon="${sectionIcon}"></ha-icon>
+                    <span>ALBUMS DE L'ARTISTE</span>
+                    <ha-icon icon="mdi:album"></ha-icon>
                 </h3>
-
-                ${isGridLayout
-                    ? html` <div class="results-grid">${items.map(item => this._renderGridItem(item, category))}</div> `
-                    : html`
-                          <ul class="results-list">
-                              ${items.map(item => this._renderListItem(item, category))}
-                          </ul>
-                      `}
+                <div class="artist-detailed-view">
+                    ${items.map(album => this._renderDetailedAlbumRow(album))}
+                </div>
             </div>
         `;
     }
+
+    // Le reste du code existant (Grid ou List classique) reste inchangé...
+    const isGridLayout = ["albums", "artists"].includes(categoryLower);
+    const sectionIcon = this._getCategoryIcon(category);
+
+    return html`
+        <div class="category-section">
+            <h3 class="category-header">
+                <span>${category.toUpperCase()}</span>
+                <ha-icon icon="${sectionIcon}"></ha-icon>
+            </h3>
+            ${isGridLayout
+                ? html` <div class="results-grid">${items.map(item => this._renderGridItem(item, category))}</div> `
+                : html` <ul class="results-list">${items.map(item => this._renderListItem(item, category))}</ul> `}
+        </div>
+    `;
+}
+
+private _renderDetailedAlbumRow(album: SearchResultItem) {
+    const icon = this._getCategoryIcon("albums");
+    const resolvedThumbnail = this._getItemThumbnailUrl(album, "albums");
+
+    return html`
+        <div class="album-detailed-row">
+            <div class="album-detailed-thumb-container">
+                <div class="list-thumb-wrapper">
+                    ${this._renderItemThumbnail(resolvedThumbnail, icon, "list-thumb", "albums")}
+                </div>
+                <div class="album-detailed-title">${album.title || album.label}</div>
+                ${album.year ? html`<div class="album-detailed-year">(${album.year})</div>` : ""}
+            </div>
+
+            <div class="album-detailed-songs-list">
+                ${album.songs && album.songs.length > 0
+                    ? album.songs.map((song, index) => html`
+                        <div class="album-song-item">
+                            <span class="song-index">${index + 1}.</span>
+                            <span class="song-title">${song.title || song.label}</span>
+                            <span class="song-duration">${this._formatDuration(song.duration)}</span>
+                            
+                            <div class="song-actions">
+                                <ha-icon 
+                                    icon="mdi:play" 
+                                    class="icon-btn" 
+                                    title="Jouer"
+                                    @click="${() => this._handleDirectAction(song, "play")}"></ha-icon>
+                                <ha-icon 
+                                    icon="mdi:plus" 
+                                    class="icon-btn" 
+                                    title="Ajouter"
+                                    @click="${() => this._handleDirectAction(song, "add")}"></ha-icon>
+                            </div>
+                        </div>
+                    `)
+                    : html`<div class="no-songs-msg">Aucun morceau trouvé ou format non supporté</div>`}
+            </div>
+        </div>
+    `;
+}
+
+// Petite méthode utilitaire pour déclencher l'action directement (sans passer par le toggle global)
+private _handleDirectAction(song: SearchResultItem, action: "play" | "add") {
+    console.log(`Action DIRECTE: ${action.toUpperCase()} | Song:`, song.title || song.label);
+    // Ici l'appel à ton service de média Home Assistant pour Kodi
+}
 
     private _renderListItem(item: SearchResultItem, category: string) {
         const title = item.title || item.label || item.name || "Unknown";
@@ -633,82 +1012,30 @@ private async _performSearch(): Promise<void> {
     private async _loadLocalImageAsBase64(url: string): Promise<string> {
         try {
             const response = await this.hass.fetchWithAuth(url);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            // Si erreur HTTP (404, etc.), on ne throw pas.
+            // On log un warning léger et on retourne une chaîne vide.
+            if (!response.ok) {
+                console.warn(`Kodi Search: Image inaccessible (${response.status}) pour ${url}`);
+                return "";
+            }
 
             const blob = await response.blob();
-            return new Promise((resolve, reject) => {
+            return new Promise(resolve => {
                 const reader = new FileReader();
                 reader.onloadend = () => resolve(reader.result as string);
-                reader.onerror = reject;
+                reader.onerror = () => {
+                    console.warn("Kodi Search: Erreur lors de la lecture du blob image.");
+                    resolve(""); // Retourne vide en cas d'erreur lecture
+                };
                 reader.readAsDataURL(blob);
             });
         } catch (error) {
-            console.error("Erreur dans _loadLocalImageAsBase64:", error);
-            throw error;
+            // Capture les erreurs réseau (CORS, offline, etc.)
+            console.warn("Kodi Search: Impossible de charger l'image via proxy:", error);
+            return ""; // Sécurisation : on retourne une chaîne vide au lieu de planter
         }
     }
-    // 🚀 Signature corrigée : Accepte l'argument 'category' optionnel pour une robustesse maximale
-    // private _getItemThumbnailUrl(item: any, category?: string): string | undefined {
-    //     if (!item) return undefined;
-
-    //     // Détection intelligente du type (via l'item ou via la catégorie parente)
-    //     let itemType = item.type;
-    //     if (!itemType && category) {
-    //         const catLower = category.toLowerCase();
-    //         if (catLower === "songs") itemType = "song";
-    //         else if (catLower === "albums") itemType = "album";
-    //         else if (catLower === "artists") itemType = "artist";
-    //         else if (catLower === "movies") itemType = "movie";
-    //         else if (catLower === "tvshows") itemType = "tvshow";
-    //     }
-
-    //     // Utilisation de l'entityId dynamique récupéré du WebSocket (avec repli de sécurité)
-    //     const entityId = this._entityId || "media_player.kodi";
-
-    //     // 🎵 Pour les chansons et albums (Format query params officiel de HA)
-    //     if (itemType === "song" || itemType === "music" || itemType === "album") {
-    //         const albumId = item.albumid;
-    //         if (albumId) {
-    //             const url = `/api/media_player_proxy//browse_media/album/${albumId}`;
-    //             console.log(url);
-    //             return url;
-    //         }
-    //     }
-
-    //     // 🎬 Pour les Films
-    //     if (itemType === "movie") {
-    //         const movieId = item.movieid;
-    //         if (movieId) {
-    //             return `/api/media_player_proxy/${entityId}?media_content_type=movie&media_content_id=${movieId}`;
-    //         }
-    //     }
-
-    //     // 📺 Pour les Séries TV
-    //     if (itemType === "tvshow") {
-    //         const tvshowId = item.tvshowid;
-    //         if (tvshowId) {
-    //             return `/api/media_player_proxy/${entityId}?media_content_type=tvshow&media_content_id=${tvshowId}`;
-    //         }
-    //     }
-
-    //     // 🎞️ Pour les Épisodes de série
-    //     if (itemType === "episode") {
-    //         const episodeId = item.episodeid;
-    //         if (episodeId) {
-    //             return `/api/media_player_proxy/${entityId}?media_content_type=episode&media_content_id=${episodeId}`;
-    //         }
-    //     }
-
-    //     // Fallback d'origine pour les vidéos ou fichiers génériques
-    //     if (itemType === "video") {
-    //         const poster = item.poster;
-    //         if (poster && poster !== "") {
-    //             return poster;
-    //         }
-    //     }
-
-    //     return item.thumbnail;
-    // }
 
     private _getItemThumbnailUrl(item: any, category?: string): string | undefined {
         if (!item) return undefined;
@@ -793,19 +1120,41 @@ private async _performSearch(): Promise<void> {
         `;
     }
 
-    private _handleItemAction(item: SearchResultItem, category: string) {
-        const isNavigation = ["tvshows", "artists"].includes(category.toLowerCase());
+private _handleItemAction(item: SearchResultItem, category: string) {
+    const categoryLower = category.toLowerCase();
 
-        if (isNavigation) {
-            console.log(`Action: NAVIGATION | Item:`, item.title || item.label);
-            // Ici, tu pourras plus tard déclencher une recherche filtrée sur ce nom
-            this._query = item.title || item.label || "";
-        } else {
-            const action = this._searchAction;
-            console.log(`Action: ${action.toUpperCase()} | Item:`, item.title || item.label);
-            // Ici, tu appelleras tes services Kodi
-        }
+    if (categoryLower === "artists") {
+        this._drillDownArtist(item);
+    } else if (categoryLower === "tvshows") {
+        console.log(`Action: NAVIGATION TVSHOW | Item:`, item.title || item.label);
+        // Traité plus tard, pour l'instant on garde le comportement existant
+        this._query = item.title || item.label || "";
+    } else {
+        const action = this._searchAction;
+        console.log(`Action: ${action.toUpperCase()} | Item:`, item.title || item.label);
+        // Vos appels de service Kodi existants (play/add)
     }
+}
+
+private async _drillDownArtist(item: SearchResultItem): Promise<void> {
+    if (!this._resolvedEntryId || !this._resolvedKodiEntityId) return;
+    if (!item.artistid) return;
+
+    try {
+        const result = await this.hass.callWS<SearchResults>({
+            type: "kodi_media_sensors/search_artist",
+            entry_id: this._resolvedEntryId,
+            kodi_entity_id: this._resolvedKodiEntityId,
+            artistid: item.artistid,
+        });
+
+        this._results = result ?? {};
+        this._isArtistView = true; // 🚀 On active le mode d'affichage détaillé
+        this._query = item.title || item.label || "";
+    } catch (e) {
+        console.error(`Erreur lors du drill-down de l'artiste:`, e);
+    }
+}
 
     private _getActionIcon(category: string): string {
         const categoriesToNavigate = ["tvshows", "artists"];
@@ -819,9 +1168,22 @@ private async _performSearch(): Promise<void> {
         return this._searchAction === "play" ? "mdi:play" : "mdi:plus";
     }
 
-    const elementName = "kodi-search-card-editor";
-if (!customElements.get(elementName)) {
-    customElements.define(elementName, KodiSearchCardEditor);
-}
+    private async _handleNavigation(type: string): Promise<void> {
+        try {
+            const result = await this.hass.callWS<{ items: SearchResultItem[] }>({
+                type: `kodi_media_sensors/search_${type}`,
+                entry_id: this._resolvedEntryId || this._config?.entry_id || "",
+                kodi_entity_id: this._resolvedKodiEntityId,
+            });
+
+
+            this._results = {
+                songs: result.items,
+            };
+
+        } catch (e) {
+            console.error(`Erreur lors de la navigation/recherche ${type}:`, e);
+        }
+    }
 }
 

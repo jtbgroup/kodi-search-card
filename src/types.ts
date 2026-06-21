@@ -56,24 +56,3 @@ export interface EditorField {
     max?: number;
 }
 
-/**
- * Editor schema - Describes how to render the configuration UI
- */
-export const EDITOR_SCHEMA: EditorField[] = [
-    {
-        key: "entry_id",
-        label: "Kodi Integration ID",
-        type: "text",
-        required: true,
-        placeholder: "xxxxxxxxxxxxx",
-        description: "ID of the Kodi Media Sensors integration entry",
-    },
-    {
-        key: "title",
-        label: "Card Title",
-        type: "text",
-        default: "Kodi Search",
-        placeholder: "Kodi Search",
-        description: "Title displayed at the top of the card",
-    },
-];

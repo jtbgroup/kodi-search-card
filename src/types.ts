@@ -1,7 +1,51 @@
 import { LovelaceCardConfig } from "custom-card-helpers";
 
 /**
- * Card configuration - All supported options
+ * Résultats de recherche Kodi
+ */
+export interface SearchResults {
+    movies?: SearchResultItem[];
+    tvshows?: SearchResultItem[];
+    songs?: SearchResultItem[];
+    albums?: SearchResultItem[];
+    artists?: SearchResultItem[];
+    musicvideos?: SearchResultItem[];
+    channels?: SearchResultItem[];
+    episodes?: SearchResultItem[];
+    filemusicplaylist?: SearchResultItem[];
+    [key: string]: SearchResultItem[] | undefined;
+}
+
+/**
+ * Élément de résultat de recherche
+ */
+export interface SearchResultItem {
+    title?: string;
+    name?: string;
+    label?: string;
+    artist?: string | string[];
+    artistid?: number | string;
+    album?: string;
+    albumid?: number | string;
+    albumartist?: string | string[];
+    thumbnail?: string;
+    poster?: string;
+    fanart?: string;
+    year?: number | string;
+    rating?: number;
+    duration?: number;
+    genre?: string | string[];
+    file?: string;
+    songs?: SearchResultItem[];
+    songid?: number | string;
+    movieid?: number | string;
+    tvshowid?: number | string;
+    episodeid?: number | string;
+    channelid?: number | string;
+}
+
+/**
+ * Configuration de la carte - Toutes les options supportées
  */
 export interface KodiSearchCardConfig extends LovelaceCardConfig {
     action_mode?: string;
@@ -21,19 +65,19 @@ export interface KodiSearchCardConfig extends LovelaceCardConfig {
 }
 
 /**
- * Default configuration values
+ * Valeurs de configuration par défaut
  */
 export const DEFAULT_CONFIG: Readonly<Partial<KodiSearchCardConfig>> = {
     title: "Kodi Search",
 };
 
 /**
- * Editor field type definition
+ * Type de champ éditeur
  */
 export type EditorFieldType = "text" | "number" | "boolean" | "color" | "select";
 
 /**
- * Option for select type fields
+ * Option pour les champs de type select
  */
 export interface EditorOption {
     label: string;
@@ -41,7 +85,7 @@ export interface EditorOption {
 }
 
 /**
- * Editor schema field definition
+ * Définition de champ éditeur
  */
 export interface EditorField {
     key: keyof KodiSearchCardConfig;
@@ -55,4 +99,3 @@ export interface EditorField {
     min?: number;
     max?: number;
 }
-

@@ -19,7 +19,7 @@ export class KodiSearchCard extends LitElement {
     @state() private _searchAction: "play" | "add" = "play";
 
     @state() private _resolvedEntryId?: string;
-    @state() private _resolvedKodiEntityId?: string;
+    // @state() private _resolvedKodiEntityId?: string;
 
     @state() private _sensorState = "unavailable";
     @state() private _isArtistView = false;
@@ -125,9 +125,9 @@ export class KodiSearchCard extends LitElement {
     }
 
     private _initializeServices(): void {
-        if (this._resolvedEntryId && this._resolvedKodiEntityId && this.hass) {
+        if (this._resolvedEntryId && this.hass) {
             if (!this._searchService) {
-                this._searchService = new SearchService(this.hass, this._resolvedEntryId, this._resolvedKodiEntityId);
+                this._searchService = new SearchService(this.hass, this._resolvedEntryId);
             }
 
             if (!this._thumbnailService) {
@@ -152,7 +152,6 @@ export class KodiSearchCard extends LitElement {
         const state = this.hass.states[this._config.entity];
         if (state && state.attributes.config_entry_id) {
             this._resolvedEntryId = state.attributes.config_entry_id;
-            this._resolvedKodiEntityId = state.attributes.kodi_entity_id;
         } else {
             console.error("L'entité sélectionnée n'a pas les attributs requis.");
         }
@@ -230,93 +229,97 @@ export class KodiSearchCard extends LitElement {
         }
     }
 
-private async _handleResultsClick(e: CustomEvent): Promise<void> {
-    const item = e.detail;
+async _handleResultsClick(e: any): Promise<void> {
+        const item = e.detail;
 
-    // ==========================================
-    // 1. INTERCEPTION ET FORCE DU DRILLDOWN (Artistes & Séries TV)
-    // ==========================================
-    
-    // Si c'est un artiste (on détecte 'artistid'), on appelle votre méthode existante !
-    if (item.artistid !== undefined) {
-        this._query = ""; // Nettoyer le champ de recherche textuel
-        await this._drillDownArtist(item); // Appel de votre méthode native
-        return; // ARRÊT IMMÉDIAT : On ne passe pas au Play/Add
-    }
+        if (!item) {
+            console.error("L'événement ne contient aucune donnée dans e.detail", e);
+            return;
+        }
 
-    // Si c'est une série TV (on détecte 'tvshowid')
-    if (item.tvshowid !== undefined) {
-        this._query = ""; 
-        if (this._searchService) {
-            try {
-                // Si searchCurrentArtist existe, vérifiez si searchTVShow ou similaire existe.
-                // Si votre service n'a pas de méthode spécifique, on tente d'adapter avec les méthodes disponibles :
-                if (typeof (this._searchService as any).searchTVShow === "function") {
-                    this._results = await (this._searchService as any).searchTVShow(item.tvshowid);
-                } else {
-                    // En l'absence de méthode spécifique connue, on repasse l'identifiant à la recherche principale
-                    this._results = await this._searchService.search(String(item.tvshowid));
-                }
-            } catch (err) {
-                console.error("Erreur lors de la récupération des détails de la série TV :", err);
+        let id: string | number | undefined;
+        let itemName: string | undefined;
+
+        // 1. Détermination ultra-simple si Kodi fournit le 'type' (ex: "song", "album")
+        if (item.type) {
+            itemName = item.type === "file" ? "filemusicplaylist" : `${item.type}id`;
+            
+            // Récupération dynamique de la valeur (ex: item["songid"] ou item["file"])
+            const targetKey = item.type === "file" ? "file" : itemName;
+            id = item[targetKey];
+        } 
+        
+        // 2. Sécurité (Fallback) : Si la propriété 'type' n'est pas présente dans l'objet
+        if (id === undefined || !itemName) {
+            if (item.songid !== undefined) {
+                id = item.songid;
+                itemName = "songid";
+            } else if (item.albumid !== undefined) {
+                id = item.albumid;
+                itemName = "albumid";
+            } else if (item.movieid !== undefined) {
+                id = item.movieid;
+                itemName = "movieid";
+            } else if (item.episodeid !== undefined) {
+                id = item.episodeid;
+                itemName = "episodeid";
+            } else if (item.channelid !== undefined) {
+                id = item.channelid;
+                itemName = "channelid";
+            } else if (item.file !== undefined) {
+                id = item.file;
+                itemName = "filemusicplaylist";
             }
         }
-        return; // ARRÊT IMMÉDIAT
-    }
 
-    // ==========================================
-    // 2. CAS DU JEU / AJOUT DE MÉDIA FINAUX (Play & Add)
-    // ==========================================
+        // 3. Conversion stricte en entier sauf pour le chemin du fichier
+        if (itemName !== "filemusicplaylist" && id !== undefined) {
+            const parsed = parseInt(String(id), 10);
+            if (isNaN(parsed)) {
+                console.error(`Impossible d'exécuter l'action : item_id (${id}) n'est pas un entier valide.`);
+                return;
+            }
+            id = parsed;
+        }
+
+        // Si aucun identifiant valide n'a pu être extrait
+        if (id === undefined || !itemName) {
+            console.error("Impossible de déterminer l'identifiant ou le type de l'élément", item);
+            return;
+        }
+
+        // 4. Validation stricte de l'authentification
+        if (!this._resolvedEntryId) {
+            console.error("Données d'authentification (entry_id) manquantes. L'intégration n'est pas prête.");
+            return;
+        }
+
+        // 5. Détermination de la route WebSocket exacte
+        const isAddAction = this._searchAction === "add";
+        const wsType = isAddAction
+            ? "kodi_media_sensors/playlist_add_item"  
+            : "kodi_media_sensors/playlist_play_item";
+
+        // 6. Construction et envoi du payload typé pur
+        const servicePayload: { type: string } & Record<string, any> = {
+            type: wsType,
+            entry_id: this._resolvedEntryId,
+            item_id: id,
+            item_name: itemName,
+        };
+
+        if (isAddAction) {
+            servicePayload.position =  this._config?.add_position || 1; 
+        }
+
+        try {
+            await this.hass.connection.sendMessagePromise(servicePayload);
+            console.log(`Action WebSocket [${wsType}] exécutée avec succès :`, servicePayload);
+        } catch (err) {
+            console.error(`Erreur WebSocket retournée par Home Assistant pour [${wsType}] :`, err);
+        }
+    }
     
-    let itemName: string | undefined;
-    let itemId: number | string | undefined;
-
-    // Détermination de la clé attendue par le backend python pour les éléments lisibles
-    if (item.songid !== undefined) { itemName = "songid"; itemId = item.songid; }
-    else if (item.albumid !== undefined) { itemName = "albumid"; itemId = item.albumid; }
-    else if (item.movieid !== undefined) { itemName = "movieid"; itemId = item.movieid; }
-    else if (item.musicvideoid !== undefined) { itemName = "musicvideoid"; itemId = item.musicvideoid; }
-    else if (item.episodeid !== undefined) { itemName = "episodeid"; itemId = item.episodeid; }
-    else if (item.channelid !== undefined) { itemName = "channelid"; itemId = item.channelid; }
-    else if (item.file !== undefined) { itemName = "filemusicplaylist"; itemId = item.file; }
-
-    // Validation pour les éléments finaux (fichiers/chansons/etc.)
-    if (!itemName || itemId === undefined) {
-        console.error("Impossible de déterminer le type ou l'ID de l'élément Kodi", item);
-        return;
-    }
-
-    // Convertir l'ID en entier pour les IDs numériques standard de Kodi
-    const formattedId = typeof itemId === "string" && itemName !== "filemusicplaylist" 
-        ? parseInt(itemId, 10) || itemId 
-        : itemId;
-
-    // Détermination de la route WebSocket exacte déclarée dans le backend playlist.py
-    const wsType = this._searchAction === "add"
-        ? "kodi_media_sensors/playlist_add_item"  
-        : "kodi_media_sensors/playlist_play_item";
-
-    const servicePayload = {
-        type: wsType,
-        entry_id: this._resolvedEntryId,
-        item_id: formattedId,
-        item_name: itemName,
-        kodi_entity_id: this._resolvedKodiEntityId || this._config?.entity
-    };
-
-    if (!servicePayload.entry_id || !servicePayload.kodi_entity_id) {
-        console.error("Données d'authentification ou entité Kodi manquantes pour le WebSocket", servicePayload);
-        return;
-    }
-
-    try {
-        await this.hass.connection.sendMessagePromise(servicePayload);
-        console.log(`Action ${this._searchAction} exécutée avec succès :`, servicePayload);
-    } catch (err) {
-        console.error(`Erreur lors de l'envoi de la commande ${this._searchAction} via WebSocket :`, err);
-    }
-}
-
     private async _drillDownArtist(item: any): Promise<void> {
         if (!this._searchService || !item.artistid) return;
 

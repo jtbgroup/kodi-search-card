@@ -6,6 +6,8 @@
         "ignoreDeprecations": "6.0",
         "lib": ["es2020", "dom", "dom.iterable"],
         "noEmit": false,
+        "sourceMap": false,
+        "inlineSourceMap": false,
         "noUnusedParameters": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
@@ -14,9 +16,7 @@
         "skipLibCheck": true,
         "resolveJsonModule": true,
         "experimentalDecorators": true,
-        // "emitDecoratorMetadata": true,
-        // "allowSyntheticDefaultImports": true
         "useDefineForClassFields": false
     },
-    // "exclude": ["node_modules", "dist"]
+    "exclude": ["node_modules", "dist"]
 }

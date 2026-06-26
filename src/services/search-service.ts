@@ -21,7 +21,6 @@ export class SearchService {
     constructor(
         private hass: HomeAssistant,
         private resolvedEntryId: string,
-        private resolvedKodiEntityId: string,
     ) {}
 
     async search(query: string): Promise<SearchResults> {
@@ -33,7 +32,6 @@ export class SearchService {
             const request: WebSocketRequest = {
                 type: "kodi_media_sensors/search",
                 entry_id: this.resolvedEntryId,
-                kodi_entity_id: this.resolvedKodiEntityId,
                 query,
                 category: "all",
             };
@@ -57,8 +55,8 @@ export class SearchService {
         try {
             const result = await this.hass.callWS<SearchResults>({
                 type: "kodi_media_sensors/search_artist",
-                kodi_entity_id: this.resolvedKodiEntityId,
-                artistid: artistId,
+                entry_id: this.resolvedEntryId,
+                artist_id: artistId,
             });
             return result ?? {};
         } catch (e) {
@@ -72,7 +70,6 @@ export class SearchService {
             const wsType = `kodi_media_sensors/search_${type}`;
             const payload: Record<string, any> = {
                 entry_id: this.resolvedEntryId,
-                kodi_entity_id: this.resolvedKodiEntityId,
             };
 
             const result = await this.hass.callWS<{

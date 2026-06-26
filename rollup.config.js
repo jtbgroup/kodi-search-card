@@ -11,6 +11,7 @@ export default {
         format: "es",
         entryFileNames: "kodi-search-card.js",
         inlineDynamicImports: true,
+        sourcemap: false // 🛠️ "sourcemap" tout en minuscules pour Rollup
     },
     plugins: [
         json(),
@@ -24,6 +25,7 @@ export default {
         typescript({
             tsconfig: "./tsconfig.json",
             declaration: false,
+            sourceMap: false // 🛠️ "sourceMap" avec M majuscule pour le compilateur TS
         }),
         terser(),
     ],

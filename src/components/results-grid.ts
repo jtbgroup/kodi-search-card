@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { SearchResultItem } from "../types";
+import { SearchResultItem, ItemClickDetail } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
 import { CategoryHelper } from "../services/category-helper";
 
@@ -10,6 +10,7 @@ export class ResultsGrid extends LitElement {
     @property() category = "";
     @property() searchAction: "play" | "add" = "play";
     @property() thumbnailService?: ThumbnailService;
+    @property() imageUpdateCounter = 0;
 
     static get styles() {
         return css`
@@ -63,40 +64,51 @@ export class ResultsGrid extends LitElement {
         return html` <div class="results-grid">${this.items.map(item => this._renderGridItem(item))}</div> `;
     }
 
-_renderGridItem(item: SearchResultItem) {
-    const icon = CategoryHelper.getCategoryIcon(this.category);
-    const isContainer = CategoryHelper.isContainerCategory(this.category);
-    
-    // FORCER L'ICÔNE D'INFORMATION POUR LES DRILLDOWNS
-    let actionIcon = CategoryHelper.getActionIcon(this.category, this.searchAction);
-    if (this.category === "artist" || this.category === "tvshow") {
-        actionIcon = "mdi:information"; // Met l'icône d'info au survol
-    }
-
-    let thumbnailUrl: string | undefined;
-    if (this.thumbnailService) {
-        thumbnailUrl = this.thumbnailService.getItemThumbnailUrl(item, this.category);
-        if (thumbnailUrl && !this.thumbnailService.isCached(thumbnailUrl)) {
-            this.thumbnailService.loadThumbnail(thumbnailUrl);
+    private _renderGridItem(item: SearchResultItem) {
+        const icon = CategoryHelper.getCategoryIcon(this.category);
+        const isContainer = CategoryHelper.isContainerCategory(this.category);
+        
+        let actionIcon = CategoryHelper.getActionIcon(this.category, this.searchAction);
+        if (this.category === "artists" || this.category === "tvshow") {
+            actionIcon = "mdi:information";
         }
+
+        let thumbnailUrl: string | undefined;
+        if (this.thumbnailService) {
+            thumbnailUrl = this.thumbnailService.getItemThumbnailUrl(item, this.category);
+            if (thumbnailUrl && !this.thumbnailService.isCached(thumbnailUrl)) {
+                this.thumbnailService.loadThumbnail(thumbnailUrl);
+            }
+        }
+
+        const isCached = this.thumbnailService ? this.thumbnailService.isCached(thumbnailUrl || "") : false;
+        const cachedUrl = this.thumbnailService?.getCachedThumbnail(thumbnailUrl || "");
+
+        const handleClick = () => {
+            const detail: ItemClickDetail = { item, category: this.category };
+            this.dispatchEvent(
+                new CustomEvent("item-click", { 
+                    detail,
+                    bubbles: false,
+                    composed: true
+                })
+            );
+        };
+
+        return html`
+            <div class="grid-card" @click="${handleClick}">
+                <kodi-item-thumbnail
+                    .imageUrl="${cachedUrl}"
+                    .icon="${icon}"
+                    .isCached="${isCached}"
+                    .isContainer="${isContainer}"
+                    .actionIcon="${actionIcon}"
+                    size="large"
+                    .hasOverlay="${true}">
+                </kodi-item-thumbnail>
+                <div class="grid-title">${item.title || item.label}</div>
+                <div class="grid-meta">${CategoryHelper.getMetaLine(item, this.category)}</div>
+            </div>
+        `;
     }
-
-    const isCached = this.thumbnailService ? this.thumbnailService.isCached(thumbnailUrl || "") : false;
-    const cachedUrl = this.thumbnailService?.getCachedThumbnail(thumbnailUrl || "");
-
-    return html`
-        <div class="grid-card" @click="${() => this.dispatchEvent(new CustomEvent("item-click", { detail: item }))}">
-            <kodi-item-thumbnail
-                .imageUrl="${cachedUrl}"
-                .icon="${icon}"
-                .isCached="${isCached}"
-                .isContainer="${isContainer}"
-                .actionIcon="${actionIcon}" size="large"
-                .hasOverlay="${true}"></kodi-item-thumbnail>
-            <div class="grid-title">${item.title || item.label}</div>
-            <div class="grid-meta">${CategoryHelper.getMetaLine(item, this.category)}</div>
-        </div>
-    `;
 }
-}
-

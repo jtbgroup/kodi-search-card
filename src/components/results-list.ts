@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { SearchResultItem } from "../types";
+import { SearchResultItem, ItemClickDetail } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
 import { CategoryHelper } from "../services/category-helper";
 
@@ -10,6 +10,7 @@ export class ResultsList extends LitElement {
     @property() category = "";
     @property() searchAction: "play" | "add" = "play";
     @property() thumbnailService?: ThumbnailService;
+    @property() imageUpdateCounter = 0;
 
     static get styles() {
         return css`
@@ -83,47 +84,56 @@ export class ResultsList extends LitElement {
         `;
     }
 
-  // Dans results-list.ts -> Méthode de rendu de la ligne
-_renderListItem(item: SearchResultItem) {
-    const title = item.title || item.name || item.label || "";
-    const meta = CategoryHelper.getMetaLine(item, this.category);
-    const icon = CategoryHelper.getCategoryIcon(this.category);
-    
-    // FORCER L'ICÔNE D'INFORMATION POUR LES DRILLDOWNS
-    let actionIcon = CategoryHelper.getActionIcon(this.category, this.searchAction);
-    if (this.category === "artist" || this.category === "tvshow") {
-        actionIcon = "mdi:information";
-    }
-
-    let thumbnailUrl: string | undefined;
-    if (this.thumbnailService) {
-        thumbnailUrl = this.thumbnailService.getItemThumbnailUrl(item, this.category);
-        if (thumbnailUrl && !this.thumbnailService.isCached(thumbnailUrl)) {
-            this.thumbnailService.loadThumbnail(thumbnailUrl);
+    private _renderListItem(item: SearchResultItem) {
+        const title = item.title || item.name || item.label || "";
+        const meta = CategoryHelper.getMetaLine(item, this.category);
+        const icon = CategoryHelper.getCategoryIcon(this.category);
+        
+        let actionIcon = CategoryHelper.getActionIcon(this.category, this.searchAction);
+        if (this.category === "artists" || this.category === "tvshow") {
+            actionIcon = "mdi:information";
         }
-    }
 
-    const isCached = this.thumbnailService ? this.thumbnailService.isCached(thumbnailUrl || "") : false;
-    const cachedUrl = this.thumbnailService?.getCachedThumbnail(thumbnailUrl || "");
+        let thumbnailUrl: string | undefined;
+        if (this.thumbnailService) {
+            thumbnailUrl = this.thumbnailService.getItemThumbnailUrl(item, this.category);
+            if (thumbnailUrl && !this.thumbnailService.isCached(thumbnailUrl)) {
+                this.thumbnailService.loadThumbnail(thumbnailUrl);
+            }
+        }
 
-    return html`
-        <div class="list-item" @click="${() => this.dispatchEvent(new CustomEvent("item-click", { detail: item }))}">
-            <kodi-item-thumbnail
-                .imageUrl="${cachedUrl}"
-                .icon="${icon}"
-                .isCached="${isCached}"
-                .actionIcon="${actionIcon}"
-                size="small"
-                .hasOverlay="${true}"></kodi-item-thumbnail>
+        const isCached = this.thumbnailService ? this.thumbnailService.isCached(thumbnailUrl || "") : false;
+        const cachedUrl = this.thumbnailService?.getCachedThumbnail(thumbnailUrl || "");
 
-            <div class="item-info">
-                <div class="item-title">${title}</div>
-                <div class="item-subtext">${meta}</div>
+        const handleClick = () => {
+            const detail: ItemClickDetail = { item, category: this.category };
+            this.dispatchEvent(
+                new CustomEvent("item-click", { 
+                    detail,
+                    bubbles: false,
+                    composed: true
+                })
+            );
+        };
+
+        return html`
+            <div class="list-item" @click="${handleClick}">
+                <kodi-item-thumbnail
+                    .imageUrl="${cachedUrl}"
+                    .icon="${icon}"
+                    .isCached="${isCached}"
+                    .actionIcon="${actionIcon}"
+                    size="small"
+                    .hasOverlay="${true}">
+                </kodi-item-thumbnail>
+
+                <div class="item-info">
+                    <div class="item-title">${title}</div>
+                    <div class="item-subtext">${meta}</div>
+                </div>
+
+                ${item.duration ? html` <div class="item-duration">${CategoryHelper.formatDuration(item.duration)}</div> ` : ""}
             </div>
-
-            ${item.duration ? html` <div class="item-duration">${CategoryHelper.formatDuration(item.duration)}</div> ` : ""}
-        </div>
-    `;
+        `;
+    }
 }
-}
-

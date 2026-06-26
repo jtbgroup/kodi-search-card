@@ -4,8 +4,7 @@ import "./components/results-container";
 import { LitElement, html, css, PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { HomeAssistant, LovelaceCardEditor } from "custom-card-helpers";
-import { KodiSearchCardConfig } from "./types";
-import { SearchResults } from "./types";
+import { KodiSearchCardConfig, SearchResults, SearchResultItem, ItemClickDetail } from "./types";
 import { SearchService } from "./services/search-service";
 import { ThumbnailService } from "./services/thumbnail-service";
 
@@ -24,6 +23,9 @@ export class KodiSearchCard extends LitElement {
     @state() private _sensorState = "unavailable";
     @state() private _isArtistView = false;
     @state() private _artistName = "";
+
+    @state() private _imageUpdateCounter = 0;
+
 
     private _searchService?: SearchService;
     private _thumbnailService?: ThumbnailService;
@@ -123,7 +125,6 @@ export class KodiSearchCard extends LitElement {
             this._initializeServices();
         }
     }
-
     private _initializeServices(): void {
         if (this._resolvedEntryId && this.hass) {
             if (!this._searchService) {
@@ -131,7 +132,10 @@ export class KodiSearchCard extends LitElement {
             }
 
             if (!this._thumbnailService) {
-                this._thumbnailService = new ThumbnailService(this.hass, () => this.requestUpdate());
+                this._thumbnailService = new ThumbnailService(this.hass, () => {
+                    this._imageUpdateCounter++; // ← Incrémenter le compteur
+                    this.requestUpdate();
+                });
             }
         }
     }
@@ -174,6 +178,7 @@ export class KodiSearchCard extends LitElement {
 
         try {
             this._results = await this._searchService.search(this._query);
+            console.log("search results: ", this._results);
         } catch (error) {
             console.error("Search error:", error);
             this._results = {};
@@ -229,97 +234,110 @@ export class KodiSearchCard extends LitElement {
         }
     }
 
-async _handleResultsClick(e: any): Promise<void> {
-        const item = e.detail;
+    private _handleResultsClick = async (e: CustomEvent<ItemClickDetail>): Promise<void> => {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
 
-        if (!item) {
-            console.error("L'événement ne contient aucune donnée dans e.detail", e);
-            return;
-        }
-
-        let id: string | number | undefined;
-        let itemName: string | undefined;
-
-        // 1. Détermination ultra-simple si Kodi fournit le 'type' (ex: "song", "album")
-        if (item.type) {
-            itemName = item.type === "file" ? "filemusicplaylist" : `${item.type}id`;
-            
-            // Récupération dynamique de la valeur (ex: item["songid"] ou item["file"])
-            const targetKey = item.type === "file" ? "file" : itemName;
-            id = item[targetKey];
-        } 
         
-        // 2. Sécurité (Fallback) : Si la propriété 'type' n'est pas présente dans l'objet
-        if (id === undefined || !itemName) {
-            if (item.songid !== undefined) {
-                id = item.songid;
-                itemName = "songid";
-            } else if (item.albumid !== undefined) {
-                id = item.albumid;
-                itemName = "albumid";
-            } else if (item.movieid !== undefined) {
-                id = item.movieid;
-                itemName = "movieid";
-            } else if (item.episodeid !== undefined) {
-                id = item.episodeid;
-                itemName = "episodeid";
-            } else if (item.channelid !== undefined) {
-                id = item.channelid;
-                itemName = "channelid";
-            } else if (item.file !== undefined) {
-                id = item.file;
-                itemName = "filemusicplaylist";
-            }
-        }
 
-        // 3. Conversion stricte en entier sauf pour le chemin du fichier
-        if (itemName !== "filemusicplaylist" && id !== undefined) {
-            const parsed = parseInt(String(id), 10);
-            if (isNaN(parsed)) {
-                console.error(`Impossible d'exécuter l'action : item_id (${id}) n'est pas un entier valide.`);
+            const { item, category } = e.detail;
+
+            if (!item) {
+                console.error("L'événement ne contient aucune donnée dans e.detail", e);
                 return;
             }
-            id = parsed;
-        }
 
-        // Si aucun identifiant valide n'a pu être extrait
-        if (id === undefined || !itemName) {
-            console.error("Impossible de déterminer l'identifiant ou le type de l'élément", item);
-            return;
-        }
+            // 🎯 Détectez les artistes et appelez le drilldown
+            if (category === "artists" && item.artistid) {
+                await this._drillDownArtist(item);
+                return;
+            }
 
-        // 4. Validation stricte de l'authentification
-        if (!this._resolvedEntryId) {
-            console.error("Données d'authentification (entry_id) manquantes. L'intégration n'est pas prête.");
-            return;
-        }
+            // 🎯 Gestion des TV shows (si besoin futur)
+            if (category === "tvshows" && item.tvshowid) {
+                console.log("TV show clicked:", item);
+                return;
+            }
 
-        // 5. Détermination de la route WebSocket exacte
-        const isAddAction = this._searchAction === "add";
-        const wsType = isAddAction
-            ? "kodi_media_sensors/playlist_add_item"  
-            : "kodi_media_sensors/playlist_play_item";
+            // ===== LOGIQUE PLAY/ADD pour les autres catégories =====
+            let id: string | number | undefined;
+            let itemName: string | undefined;
 
-        // 6. Construction et envoi du payload typé pur
-        const servicePayload: { type: string } & Record<string, any> = {
-            type: wsType,
-            entry_id: this._resolvedEntryId,
-            item_id: id,
-            item_name: itemName,
-        };
+            if (item.type) {
+                itemName = item.type === "file" ? "filemusicplaylist" : `${item.type}id`;
+                const targetKey = item.type === "file" ? "file" : itemName;
+                const value = item[targetKey as keyof SearchResultItem];
 
-        if (isAddAction) {
-            servicePayload.position =  this._config?.add_position || 1; 
-        }
+                if (value && typeof value !== "object") {
+                    id = value as string | number;
+                }
+            }
 
-        try {
-            await this.hass.connection.sendMessagePromise(servicePayload);
-            console.log(`Action WebSocket [${wsType}] exécutée avec succès :`, servicePayload);
-        } catch (err) {
-            console.error(`Erreur WebSocket retournée par Home Assistant pour [${wsType}] :`, err);
-        }
-    }
-    
+            if (id === undefined || !itemName) {
+                if (item.songid !== undefined) {
+                    id = item.songid;
+                    itemName = "songid";
+                } else if (item.albumid !== undefined) {
+                    id = item.albumid;
+                    itemName = "albumid";
+                } else if (item.movieid !== undefined) {
+                    id = item.movieid;
+                    itemName = "movieid";
+                } else if (item.episodeid !== undefined) {
+                    id = item.episodeid;
+                    itemName = "episodeid";
+                } else if (item.channelid !== undefined) {
+                    id = item.channelid;
+                    itemName = "channelid";
+                } else if (item.file !== undefined) {
+                    id = item.file;
+                    itemName = "filemusicplaylist";
+                }
+            }
+
+            if (itemName !== "filemusicplaylist" && id !== undefined) {
+                const parsed = parseInt(String(id), 10);
+                if (isNaN(parsed)) {
+                    console.error(`Impossible d'exécuter l'action : item_id (${id}) n'est pas un entier valide.`);
+                    return;
+                }
+                id = parsed;
+            }
+
+            if (id === undefined || !itemName) {
+                console.error("Impossible de déterminer l'identifiant ou le type de l'élément", item);
+                return;
+            }
+
+            if (!this._resolvedEntryId) {
+                console.error("Données d'authentification (entry_id) manquantes. L'intégration n'est pas prête.");
+                return;
+            }
+
+            const isAddAction = this._searchAction === "add";
+            const wsType = isAddAction
+                ? "kodi_media_sensors/playlist_add_item"
+                : "kodi_media_sensors/playlist_play_item";
+
+            const servicePayload: { type: string } & Record<string, any> = {
+                type: wsType,
+                entry_id: this._resolvedEntryId,
+                item_id: id,
+                item_name: itemName,
+            };
+
+            if (isAddAction) {
+                servicePayload.position = this._config?.add_position || 1;
+            }
+
+            try {
+                await this.hass.connection.sendMessagePromise(servicePayload);
+                console.log(`Action WebSocket [${wsType}] exécutée avec succès :`, servicePayload);
+            } catch (err) {
+                console.error(`Erreur WebSocket retournée par Home Assistant pour [${wsType}] :`, err);
+            }
+    };
+
     private async _drillDownArtist(item: any): Promise<void> {
         if (!this._searchService || !item.artistid) return;
 
@@ -377,9 +395,11 @@ async _handleResultsClick(e: any): Promise<void> {
                               .results="${this._results}"
                               .searchAction="${this._searchAction}"
                               .thumbnailService="${this._thumbnailService}"
+                              .imageUpdateCounter="${this._imageUpdateCounter}"
                               .isArtistView="${this._isArtistView}"
                               .artistName="${this._artistName}"
-                              @item-click="${this._handleResultsClick}"></kodi-results-container>
+                              @item-click="${this._handleResultsClick}">
+                          </kodi-results-container>
                       `
                     : ""}
             </div>

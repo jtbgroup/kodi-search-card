@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { SearchResults, SearchResultItem } from "../types";
+import { SearchResults, SearchResultItem, ItemClickDetail } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
 import { CategoryHelper } from "../services/category-helper";
 import "./results-grid";
@@ -12,6 +12,7 @@ export class ResultsContainer extends LitElement {
     @property() results: SearchResults | null = null;
     @property() searchAction: "play" | "add" = "play";
     @property() thumbnailService?: ThumbnailService;
+    @property() imageUpdateCounter = 0;
     @property() isArtistView = false;
     @property() artistName = "";
 
@@ -72,8 +73,9 @@ export class ResultsContainer extends LitElement {
             return html`<div class="no-results-msg">No results</div>`;
         }
 
+        // ← Envelopper tout le contenu dans un seul @item-click au niveau du wrapper
         return html`
-            <div class="results-wrapper">
+            <div class="results-wrapper" @item-click="${this._onItemClick}">
                 ${Object.entries(this.results).map(([category, items]) => {
                     if (Array.isArray(items) && items.length > 0) {
                         return this._renderSection(category, items);
@@ -87,7 +89,6 @@ export class ResultsContainer extends LitElement {
     private _renderSection(category: string, items: SearchResultItem[]) {
         const categoryLower = category.toLowerCase();
 
-        // Artist detail view with album list
         if (this.isArtistView && categoryLower === "albums") {
             return html`
                 <div class="category-section">
@@ -98,8 +99,9 @@ export class ResultsContainer extends LitElement {
                     <kodi-album-detail-view
                         .items="${items}"
                         .thumbnailService="${this.thumbnailService}"
-                        .searchAction="${this.searchAction}"
-                        @item-click="${(e: any) => this.dispatchEvent(new CustomEvent("item-click", { detail: e.detail }))}"></kodi-album-detail-view>
+                        .imageUpdateCounter="${this.imageUpdateCounter}"
+                        .searchAction="${this.searchAction}">
+                    </kodi-album-detail-view>
                 </div>
             `;
         }
@@ -120,7 +122,8 @@ export class ResultsContainer extends LitElement {
                               .category="${category}"
                               .searchAction="${this.searchAction}"
                               .thumbnailService="${this.thumbnailService}"
-                              @item-click="${(e: any) => this.dispatchEvent(new CustomEvent("item-click", { detail: e.detail }))}"></kodi-results-grid>
+                              .imageUpdateCounter="${this.imageUpdateCounter}">
+                          </kodi-results-grid>
                       `
                     : html`
                           <kodi-results-list
@@ -128,9 +131,20 @@ export class ResultsContainer extends LitElement {
                               .category="${category}"
                               .searchAction="${this.searchAction}"
                               .thumbnailService="${this.thumbnailService}"
-                              @item-click="${(e: any) => this.dispatchEvent(new CustomEvent("item-click", { detail: e.detail }))}"></kodi-results-list>
+                              .imageUpdateCounter="${this.imageUpdateCounter}">
+                          </kodi-results-list>
                       `}
             </div>
         `;
     }
+
+    private _onItemClick = (e: CustomEvent<ItemClickDetail>) => {
+        this.dispatchEvent(
+            new CustomEvent("item-click", {
+                detail: e.detail,
+                bubbles: true,
+                composed: true,
+            }),
+        );
+    };
 }

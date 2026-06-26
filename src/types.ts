@@ -23,6 +23,7 @@ export interface SearchResultItem {
     title?: string;
     name?: string;
     label?: string;
+    type?: string;  // ← AJOUTEZ CETTE LIGNE
     artist?: string | string[];
     artistid?: number | string;
     album?: string;
@@ -42,6 +43,14 @@ export interface SearchResultItem {
     tvshowid?: number | string;
     episodeid?: number | string;
     channelid?: number | string;
+}
+
+/**
+ * Payload de l'événement item-click
+ */
+export interface ItemClickDetail {
+    item: SearchResultItem;
+    category?: string;
 }
 
 /**

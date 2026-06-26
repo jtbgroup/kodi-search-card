@@ -10,6 +10,7 @@ export class AlbumDetailView extends LitElement {
     @property() items: SearchResultItem[] = [];
     @property() searchAction: "play" | "add" = "play";
     @property() thumbnailService?: ThumbnailService;
+    @property() imageUpdateCounter = 0;
 
     static get styles() {
         return css`

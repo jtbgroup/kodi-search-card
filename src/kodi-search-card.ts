@@ -8,6 +8,7 @@ import { KodiSearchCardConfig, SearchResults, SearchResultItem, ItemClickDetail 
 import { SearchService } from "./services/search-service";
 import { ThumbnailService } from "./services/thumbnail-service";
 
+
 @customElement("kodi-search-card")
 export class KodiSearchCard extends LitElement {
     @property({ attribute: false }) public hass!: HomeAssistant;
@@ -18,7 +19,6 @@ export class KodiSearchCard extends LitElement {
     @state() private _searchAction: "play" | "add" = "play";
 
     @state() private _resolvedEntryId?: string;
-    // @state() private _resolvedKodiEntityId?: string;
 
     @state() private _sensorState = "unavailable";
     @state() private _isArtistView = false;
@@ -133,7 +133,7 @@ export class KodiSearchCard extends LitElement {
 
             if (!this._thumbnailService) {
                 this._thumbnailService = new ThumbnailService(this.hass, () => {
-                    this._imageUpdateCounter++; // ← Incrémenter le compteur
+                    this._imageUpdateCounter++; 
                     this.requestUpdate();
                 });
             }
@@ -238,8 +238,6 @@ export class KodiSearchCard extends LitElement {
         e.stopPropagation();
         e.stopImmediatePropagation();
 
-        
-
             const { item, category } = e.detail;
 
             if (!item) {
@@ -247,13 +245,11 @@ export class KodiSearchCard extends LitElement {
                 return;
             }
 
-            // 🎯 Détectez les artistes et appelez le drilldown
             if (category === "artists" && item.artistid) {
                 await this._drillDownArtist(item);
                 return;
             }
 
-            // 🎯 Gestion des TV shows (si besoin futur)
             if (category === "tvshows" && item.tvshowid) {
                 console.log("TV show clicked:", item);
                 return;

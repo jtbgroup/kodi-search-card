@@ -29,11 +29,11 @@ export class ItemThumbnail extends LitElement {
                 align-items: center;
                 justify-content: center;
                 background: var(--secondary-background-color);
+                aspect-ratio: var(--thumb-ratio, 1/1);
             }
 
             :host([size="large"]) .thumb-wrapper {
                 width: 100%;
-                aspect-ratio: 1/1;
             }
 
             :host([size="small"]) .thumb-wrapper {
@@ -69,7 +69,6 @@ export class ItemThumbnail extends LitElement {
                 right: 8px;
             }
 
-            /* MODIFICATION ICI : On s'assure de la couleur blanche, du centrage et de la superposition */
             .thumb-overlay {
                 position: absolute;
                 top: 0;

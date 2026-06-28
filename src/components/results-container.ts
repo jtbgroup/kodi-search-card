@@ -93,7 +93,7 @@ export class ResultsContainer extends LitElement {
             return html`
                 <div class="category-section">
                     <h3 class="category-header">
-                        <span>ALBUMS DE : ${this.artistName.toUpperCase()}</span>
+                        <span>ALBUMS : ${this.artistName.toUpperCase()}</span>
                         <ha-icon icon="mdi:album"></ha-icon>
                     </h3>
                     <kodi-album-detail-view

@@ -3,6 +3,7 @@ import { customElement, property } from "lit/decorators.js";
 import { SearchResultItem, ItemClickDetail } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
 import { CategoryHelper } from "../services/category-helper";
+import { buildMetadataString } from "../utils/formatters";
 
 @customElement("kodi-results-grid")
 export class ResultsGrid extends LitElement {
@@ -67,6 +68,9 @@ export class ResultsGrid extends LitElement {
     private _renderGridItem(item: SearchResultItem) {
         const icon = CategoryHelper.getCategoryIcon(this.category);
         const isContainer = CategoryHelper.isContainerCategory(this.category);
+
+        const ratio = CategoryHelper.getThumbnailAspectRatio(this.category);
+        const customStyle = `--thumb-ratio: ${ratio}`;
         
         let actionIcon = CategoryHelper.getActionIcon(this.category, this.searchAction);
         if (this.category === "artists" || this.category === "tvshow") {
@@ -95,6 +99,8 @@ export class ResultsGrid extends LitElement {
             );
         };
 
+        const meta = buildMetadataString(item, this.category);
+
         return html`
             <div class="grid-card" @click="${handleClick}">
                 <kodi-item-thumbnail
@@ -103,11 +109,13 @@ export class ResultsGrid extends LitElement {
                     .isCached="${isCached}"
                     .isContainer="${isContainer}"
                     .actionIcon="${actionIcon}"
+                    .hasOverlay="${true}"
                     size="large"
-                    .hasOverlay="${true}">
+                    style="${customStyle}"
+                    >
                 </kodi-item-thumbnail>
-                <div class="grid-title">${item.title || item.label}</div>
-                <div class="grid-meta">${CategoryHelper.getMetaLine(item, this.category)}</div>
+                <div class="grid-title">${item.title || item.label} ${item.year ? "(" + item.year + ")" :""}</div>
+                <div class="grid-meta" title="${meta}" >${meta}</div>
             </div>
         `;
     }

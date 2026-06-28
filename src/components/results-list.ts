@@ -3,6 +3,7 @@ import { customElement, property } from "lit/decorators.js";
 import { SearchResultItem, ItemClickDetail } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
 import { CategoryHelper } from "../services/category-helper";
+import { buildMetadataString, formatDuration, formatGenre } from "../utils/formatters";
 
 @customElement("kodi-results-list")
 export class ResultsList extends LitElement {
@@ -30,6 +31,7 @@ export class ResultsList extends LitElement {
                 padding: 10px 0;
                 border-bottom: 1px solid #252525;
                 cursor: pointer;
+                gap: 12px;
             }
 
             .list-item:last-child {
@@ -49,9 +51,19 @@ export class ResultsList extends LitElement {
             }
 
             .item-title {
-                color: #ffffff;
+                color: var(--secondary-text-color);
                 font-weight: 500;
                 font-size: 0.95rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .item-genre {
+                font-style: italic;
+                margin-top: 2px;
+                font-size: 0.8rem;
+                color: var(--secondary-text-color);
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -86,9 +98,11 @@ export class ResultsList extends LitElement {
 
     private _renderListItem(item: SearchResultItem) {
         const title = item.title || item.name || item.label || "";
-        const meta = CategoryHelper.getMetaLine(item, this.category);
+        const genre = item.genre ? formatGenre(item.genre): "";
+        const subtext = buildMetadataString(item, this.category);
         const icon = CategoryHelper.getCategoryIcon(this.category);
-        
+
+
         let actionIcon = CategoryHelper.getActionIcon(this.category, this.searchAction);
         if (this.category === "artists" || this.category === "tvshow") {
             actionIcon = "mdi:information";
@@ -108,11 +122,11 @@ export class ResultsList extends LitElement {
         const handleClick = () => {
             const detail: ItemClickDetail = { item, category: this.category };
             this.dispatchEvent(
-                new CustomEvent("item-click", { 
+                new CustomEvent("item-click", {
                     detail,
                     bubbles: false,
-                    composed: true
-                })
+                    composed: true,
+                }),
             );
         };
 
@@ -129,10 +143,13 @@ export class ResultsList extends LitElement {
 
                 <div class="item-info">
                     <div class="item-title">${title}</div>
-                    <div class="item-subtext">${meta}</div>
+                    <div class="item-genre">${genre}</div>
+                    <div class="item-subtext">${subtext}</div>
                 </div>
 
-                ${item.duration ? html` <div class="item-duration">${CategoryHelper.formatDuration(item.duration)}</div> ` : ""}
+                ${item.duration
+                    ? html` <div class="item-duration">${formatDuration(item.duration)}</div> `
+                    : ""}
             </div>
         `;
     }

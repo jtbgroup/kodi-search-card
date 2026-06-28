@@ -23,7 +23,7 @@ export interface SearchResultItem {
     title?: string;
     name?: string;
     label?: string;
-    type?: string;  // ← AJOUTEZ CETTE LIGNE
+    type?: string;  
     artist?: string | string[];
     artistid?: number | string;
     album?: string;

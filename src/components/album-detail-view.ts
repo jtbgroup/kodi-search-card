@@ -4,6 +4,7 @@ import { SearchResultItem } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
 import { CategoryHelper } from "../services/category-helper";
 import "./item-thumbnail";
+import { formatDuration } from "../utils/formatters";
 
 @customElement("kodi-album-detail-view")
 export class AlbumDetailView extends LitElement {
@@ -172,7 +173,7 @@ export class AlbumDetailView extends LitElement {
                                   <div class="album-song-item">
                                       <span class="song-index">${index + 1}.</span>
                                       <span class="song-title">${song.title || song.label}</span>
-                                      <span class="song-duration">${CategoryHelper.formatDuration(song.duration)}</span>
+                                      <span class="song-duration">${formatDuration(song.duration)}</span>
 
                                       <div class="song-actions">
                                           <ha-icon

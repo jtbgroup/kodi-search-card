@@ -8,7 +8,6 @@ import { KodiSearchCardConfig, SearchResults, SearchResultItem, ItemClickDetail 
 import { SearchService } from "./services/search-service";
 import { ThumbnailService } from "./services/thumbnail-service";
 
-
 @customElement("kodi-search-card")
 export class KodiSearchCard extends LitElement {
     @property({ attribute: false }) public hass!: HomeAssistant;
@@ -24,8 +23,7 @@ export class KodiSearchCard extends LitElement {
     @state() private _isArtistView = false;
     @state() private _artistName = "";
 
-    @state() private _imageUpdateCounter = 0;
-
+    // @state() private _imageUpdateCounter = 0;
 
     private _searchService?: SearchService;
     private _thumbnailService?: ThumbnailService;
@@ -132,10 +130,11 @@ export class KodiSearchCard extends LitElement {
             }
 
             if (!this._thumbnailService) {
-                this._thumbnailService = new ThumbnailService(this.hass, () => {
-                    this._imageUpdateCounter++; 
-                    this.requestUpdate();
-                });
+                // this._thumbnailService = new ThumbnailService(this.hass, () => {
+                //     this._imageUpdateCounter++;
+                //     this.requestUpdate();
+                // });
+                this._thumbnailService = new ThumbnailService(this.hass);
             }
         }
     }
@@ -171,6 +170,8 @@ export class KodiSearchCard extends LitElement {
     }
 
     private async _performSearch(): Promise<void> {
+        this._isArtistView = false;
+
         if (!this._searchService || !this._query.trim()) {
             this._results = null;
             return;
@@ -186,6 +187,8 @@ export class KodiSearchCard extends LitElement {
     }
 
     private async _handleNavigation(type: string): Promise<void> {
+        this._isArtistView = false;
+
         if (!this._searchService) return;
 
         try {
@@ -222,6 +225,7 @@ export class KodiSearchCard extends LitElement {
         this._artistName = "";
     }
 
+    // This method coordiantes the actions to perform. Each submethod must manage the card behaviour such as th boolean  this._isArtistView
     private _handleSearchControls(e: CustomEvent): void {
         const type = e.type;
 
@@ -238,100 +242,98 @@ export class KodiSearchCard extends LitElement {
         e.stopPropagation();
         e.stopImmediatePropagation();
 
-            const { item, category } = e.detail;
+        const { item, category } = e.detail;
 
-            if (!item) {
-                console.error("L'événement ne contient aucune donnée dans e.detail", e);
+        if (!item) {
+            console.error("L'événement ne contient aucune donnée dans e.detail", e);
+            return;
+        }
+
+        if (category === "artists" && item.artistid) {
+            await this._drillDownArtist(item);
+            return;
+        }
+
+        if (category === "tvshows" && item.tvshowid) {
+            console.log("TV show clicked:", item);
+            return;
+        }
+
+        // ===== LOGIQUE PLAY/ADD pour les autres catégories =====
+        let id: string | number | undefined;
+        let itemName: string | undefined;
+
+        if (item.type) {
+            itemName = item.type === "file" ? "filemusicplaylist" : `${item.type}id`;
+            const targetKey = item.type === "file" ? "file" : itemName;
+            const value = item[targetKey as keyof SearchResultItem];
+
+            if (value && typeof value !== "object") {
+                id = value as string | number;
+            }
+        }
+
+        if (id === undefined || !itemName) {
+            if (item.songid !== undefined) {
+                id = item.songid;
+                itemName = "songid";
+            } else if (item.albumid !== undefined) {
+                id = item.albumid;
+                itemName = "albumid";
+            } else if (item.movieid !== undefined) {
+                id = item.movieid;
+                itemName = "movieid";
+            } else if (item.episodeid !== undefined) {
+                id = item.episodeid;
+                itemName = "episodeid";
+            } else if (item.channelid !== undefined) {
+                id = item.channelid;
+                itemName = "channelid";
+            } else if (item.file !== undefined) {
+                id = item.file;
+                itemName = "filemusicplaylist";
+            }
+        }
+
+        if (itemName !== "filemusicplaylist" && id !== undefined) {
+            const parsed = parseInt(String(id), 10);
+            if (isNaN(parsed)) {
+                console.error(`Impossible d'exécuter l'action : item_id (${id}) n'est pas un entier valide.`);
                 return;
             }
+            id = parsed;
+        }
 
-            if (category === "artists" && item.artistid) {
-                await this._drillDownArtist(item);
-                return;
-            }
+        if (id === undefined || !itemName) {
+            console.error("Impossible de déterminer l'identifiant ou le type de l'élément", item);
+            return;
+        }
 
-            if (category === "tvshows" && item.tvshowid) {
-                console.log("TV show clicked:", item);
-                return;
-            }
+        if (!this._resolvedEntryId) {
+            console.error("Données d'authentification (entry_id) manquantes. L'intégration n'est pas prête.");
+            return;
+        }
 
-            // ===== LOGIQUE PLAY/ADD pour les autres catégories =====
-            let id: string | number | undefined;
-            let itemName: string | undefined;
+        const isAddAction = this._searchAction === "add";
+        const wsType = isAddAction ? "kodi_media_sensors/playlist_add_item" : "kodi_media_sensors/playlist_play_item";
 
-            if (item.type) {
-                itemName = item.type === "file" ? "filemusicplaylist" : `${item.type}id`;
-                const targetKey = item.type === "file" ? "file" : itemName;
-                const value = item[targetKey as keyof SearchResultItem];
+        const servicePayload: { type: string } & Record<string, any> = {
+            type: wsType,
+            entry_id: this._resolvedEntryId,
+            item_id: id,
+            item_name: itemName,
+        };
 
-                if (value && typeof value !== "object") {
-                    id = value as string | number;
-                }
-            }
+        if (isAddAction) {
+            servicePayload.position = this._config?.add_position || 1;
+        }
 
-            if (id === undefined || !itemName) {
-                if (item.songid !== undefined) {
-                    id = item.songid;
-                    itemName = "songid";
-                } else if (item.albumid !== undefined) {
-                    id = item.albumid;
-                    itemName = "albumid";
-                } else if (item.movieid !== undefined) {
-                    id = item.movieid;
-                    itemName = "movieid";
-                } else if (item.episodeid !== undefined) {
-                    id = item.episodeid;
-                    itemName = "episodeid";
-                } else if (item.channelid !== undefined) {
-                    id = item.channelid;
-                    itemName = "channelid";
-                } else if (item.file !== undefined) {
-                    id = item.file;
-                    itemName = "filemusicplaylist";
-                }
-            }
-
-            if (itemName !== "filemusicplaylist" && id !== undefined) {
-                const parsed = parseInt(String(id), 10);
-                if (isNaN(parsed)) {
-                    console.error(`Impossible d'exécuter l'action : item_id (${id}) n'est pas un entier valide.`);
-                    return;
-                }
-                id = parsed;
-            }
-
-            if (id === undefined || !itemName) {
-                console.error("Impossible de déterminer l'identifiant ou le type de l'élément", item);
-                return;
-            }
-
-            if (!this._resolvedEntryId) {
-                console.error("Données d'authentification (entry_id) manquantes. L'intégration n'est pas prête.");
-                return;
-            }
-
-            const isAddAction = this._searchAction === "add";
-            const wsType = isAddAction
-                ? "kodi_media_sensors/playlist_add_item"
-                : "kodi_media_sensors/playlist_play_item";
-
-            const servicePayload: { type: string } & Record<string, any> = {
-                type: wsType,
-                entry_id: this._resolvedEntryId,
-                item_id: id,
-                item_name: itemName,
-            };
-
-            if (isAddAction) {
-                servicePayload.position = this._config?.add_position || 1;
-            }
-
-            try {
-                await this.hass.connection.sendMessagePromise(servicePayload);
-                console.log(`Action WebSocket [${wsType}] exécutée avec succès :`, servicePayload);
-            } catch (err) {
-                console.error(`Erreur WebSocket retournée par Home Assistant pour [${wsType}] :`, err);
-            }
+        try {
+            await this.hass.connection.sendMessagePromise(servicePayload);
+            console.log(`Action WebSocket [${wsType}] exécutée avec succès :`, servicePayload);
+        } catch (err) {
+            console.error(`Erreur WebSocket retournée par Home Assistant pour [${wsType}] :`, err);
+        }
     };
 
     private async _drillDownArtist(item: any): Promise<void> {
@@ -348,11 +350,13 @@ export class KodiSearchCard extends LitElement {
                 this._artistName = item.title || item.label || "Artist";
             }
         } catch (e) {
+            this._isArtistView = false;
             console.error("Error drilling down artist:", e);
         }
     }
 
     protected render() {
+        console.log("results to render : " , this._results)
         let statusClass = "fixed-green";
 
         if (this._sensorState === "off") {
@@ -391,7 +395,6 @@ export class KodiSearchCard extends LitElement {
                               .results="${this._results}"
                               .searchAction="${this._searchAction}"
                               .thumbnailService="${this._thumbnailService}"
-                              .imageUpdateCounter="${this._imageUpdateCounter}"
                               .isArtistView="${this._isArtistView}"
                               .artistName="${this._artistName}"
                               @item-click="${this._handleResultsClick}">

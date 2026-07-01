@@ -11,7 +11,7 @@ export class ResultsList extends LitElement {
     @property() category = "";
     @property() searchAction: "play" | "add" = "play";
     @property() thumbnailService?: ThumbnailService;
-    @property() imageUpdateCounter = 0;
+    // @property() imageUpdateCounter = 0;
 
     static get styles() {
         return css`
@@ -96,28 +96,49 @@ export class ResultsList extends LitElement {
         `;
     }
 
+    // private _getThumbnailForItem(
+    //     item: SearchResultItem,
+    //     category: string,
+    // ): { cachedUrl: string | undefined; isCached: boolean } {
+    //     if (!this.thumbnailService) {
+    //         return { cachedUrl: undefined, isCached: false };
+    //     }
+
+    //     // Étape 1: Résoudre l'URL
+    //     const url = this.thumbnailService.getItemThumbnailUrl(item, { category });
+    //     if (!url) {
+    //         return { cachedUrl: undefined, isCached: false };
+    //     }
+
+    //     // Étape 2: Vérifier le cache
+    //     const cachedUrl = this.thumbnailService.getCachedThumbnail(url);
+    //     const isCached = !!cachedUrl;
+
+    //     // Étape 3: Si pas en cache, charger en arrière-plan
+    //     if (!isCached) {
+    //         // 🔑 AMÉLIORATION: load() est intelligent
+    //         // Si un autre appel charge la même image, il attend le premier
+    //         // au lieu de lancer une requête HTTP dupliquée
+    //         this.thumbnailService.loadThumbnail(url).then(() => {
+    //             console.debug(`[Album Detail] Image chargée: ${url}`);
+    //         });
+    //     }
+
+    //     return { cachedUrl, isCached };
+    // }
+
     private _renderListItem(item: SearchResultItem) {
         const title = item.title || item.name || item.label || "";
-        const genre = item.genre ? formatGenre(item.genre): "";
+        const genre = item.genre ? formatGenre(item.genre) : "";
         const subtext = buildMetadataString(item, this.category);
         const icon = CategoryHelper.getCategoryIcon(this.category);
-
 
         let actionIcon = CategoryHelper.getActionIcon(this.category, this.searchAction);
         if (this.category === "artists" || this.category === "tvshow") {
             actionIcon = "mdi:information";
         }
 
-        let thumbnailUrl: string | undefined;
-        if (this.thumbnailService) {
-            thumbnailUrl = this.thumbnailService.getItemThumbnailUrl(item, this.category);
-            if (thumbnailUrl && !this.thumbnailService.isCached(thumbnailUrl)) {
-                this.thumbnailService.loadThumbnail(thumbnailUrl);
-            }
-        }
-
-        const isCached = this.thumbnailService ? this.thumbnailService.isCached(thumbnailUrl || "") : false;
-        const cachedUrl = this.thumbnailService?.getCachedThumbnail(thumbnailUrl || "");
+        // const { cachedUrl, isCached } = this._getThumbnailForItem(item, this.category);
 
         const handleClick = () => {
             const detail: ItemClickDetail = { item, category: this.category };
@@ -133,9 +154,7 @@ export class ResultsList extends LitElement {
         return html`
             <div class="list-item" @click="${handleClick}">
                 <kodi-item-thumbnail
-                    .imageUrl="${cachedUrl}"
                     .icon="${icon}"
-                    .isCached="${isCached}"
                     .actionIcon="${actionIcon}"
                     size="small"
                     .hasOverlay="${true}">
@@ -147,10 +166,9 @@ export class ResultsList extends LitElement {
                     <div class="item-subtext">${subtext}</div>
                 </div>
 
-                ${item.duration
-                    ? html` <div class="item-duration">${formatDuration(item.duration)}</div> `
-                    : ""}
+                ${item.duration ? html` <div class="item-duration">${formatDuration(item.duration)}</div> ` : ""}
             </div>
         `;
     }
 }
+

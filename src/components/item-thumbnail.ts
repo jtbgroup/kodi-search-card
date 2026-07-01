@@ -1,18 +1,25 @@
-import { LitElement, html, css } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { LitElement, html, css, PropertyValues } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import { ThumbnailService } from "../services/thumbnail-service";
+import { SearchResultItem } from "../types";
 
 @customElement("kodi-item-thumbnail")
 export class ItemThumbnail extends LitElement {
-    @property() imageUrl?: string;
+    // ⬇️ NOUVELLES PROPRIÉTÉS ⬇️
+    @property({ type: Object }) item?: SearchResultItem;
+    @property({ type: String }) category = "";
+    @property({ type: Object }) thumbnailService?: ThumbnailService;
+
+    // ⬇️ PROPRIÉTÉS CONSERVÉES ⬇️
     @property() icon = "mdi:image";
-    @property() isCached = false;
-    @property() isLoading = false;
-    @property() size: "small" | "large" = "large"; // small = list (60px), large = grid (100%+)
-    @property() isContainer = false;
+    @property() size: "small" | "large" = "large";
+    @property({ type: Boolean }) isContainer = false;
     @property() actionIcon = "mdi:play";
-    
-    // MODIFICATION ICI : On spécifie le type Boolean pour que LitElement intercepte correctement l'attribut HTML
     @property({ type: Boolean }) hasOverlay = false;
+
+    // ⬇️ ÉTATS INTERNES (Remplacent imageUrl et isCached) ⬇️
+    @state() private _imageUrl?: string;
+    @state() private _isLoaded = false;
 
     static get styles() {
         return css`
@@ -100,16 +107,54 @@ export class ItemThumbnail extends LitElement {
         `;
     }
 
+    // Intercepte les changements de propriétés pour lancer le chargement
+    protected willUpdate(changedProperties: PropertyValues) {
+        super.willUpdate(changedProperties);
+
+        // Si l'item ou le service change, on relance le processus d'image
+        if (changedProperties.has("item") || changedProperties.has("thumbnailService")) {
+            this._loadImage();
+        }
+    }
+
+    private async _loadImage() {
+        // Reset d'abord l'état
+        this._imageUrl = undefined;
+        this._isLoaded = false;
+
+        if (!this.item || !this.thumbnailService) return;
+
+        // 1. Récupérer l'URL théorique
+        const url = this.thumbnailService.getItemThumbnailUrl(this.item, { category: this.category });
+        if (!url) return;
+
+        // 2. Vérifier le cache (Synchrone)
+        const cachedUrl = this.thumbnailService.getCachedThumbnail(url);
+        if (cachedUrl) {
+            this._imageUrl = cachedUrl;
+            this._isLoaded = true;
+            return;
+        }
+
+        // 3. Charger l'image (Asynchrone)
+        const loadedUrl = await this.thumbnailService.loadThumbnail(url);
+        if (loadedUrl) {
+            this._imageUrl = loadedUrl;
+            this._isLoaded = true; // ⚠️ Ceci déclenche un rendu UNIQUEMENT pour ce composant !
+        }
+    }
+
     protected render() {
         const containerClass = this.isContainer ? "is-container" : "";
         const overlayTemplate = this.hasOverlay
             ? html`<div class="thumb-overlay"><ha-icon .icon="${this.actionIcon}"></ha-icon></div>`
             : "";
 
-        if (this.isCached && this.imageUrl) {
+        // On utilise maintenant nos états locaux _isLoaded et _imageUrl
+        if (this._isLoaded && this._imageUrl) {
             return html`
                 <div class="thumb-wrapper">
-                    <img class="thumb-image" src="${this.imageUrl}" />
+                    <img class="thumb-image" src="${this._imageUrl}" />
                     ${overlayTemplate}
                 </div>
             `;

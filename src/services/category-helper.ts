@@ -1,16 +1,13 @@
 import { SearchResultItem } from "../types";
 
 export class CategoryHelper {
-
     static CATEGORY_MOVIES = "movies";
     static CATEGORY_SONGS = "songs";
     static CATEGORY_MUSICVIDEOS = "musicvideos";
     static CATEGORY_ARTISTS = "artists";
-    static CATEGORY_ALBUMS="albums";
-    static CATEGORY_EPISODES="episodes";
+    static CATEGORY_ALBUMS = "albums";
+    static CATEGORY_EPISODES = "episodes";
     static CATEGORY_TVSHOWS = "tvshows";
-
-    
 
     static getCategoryIcon(category: string): string {
         switch (category.toLowerCase()) {
@@ -34,7 +31,10 @@ export class CategoryHelper {
     static getThumbnailAspectRatio(category: string): string {
         switch (category.toLowerCase()) {
             case "movies":
+            case "tvshows":
                 return "2/3";
+            case "episodes":
+                return "16/9";
             default:
                 return "1/1";
         }
@@ -49,7 +49,7 @@ export class CategoryHelper {
     }
 
     static isGridLayout(category: string): boolean {
-        return ["albums", "artists", "movies"].includes(category.toLowerCase());
+        return ["albums", "artists", "movies", "tvshows"].includes(category.toLowerCase());
     }
 
     static isContainerCategory(category: string): boolean {

@@ -12,7 +12,7 @@ export class ResultsContainer extends LitElement {
     @property() results: SearchResults | null = null;
     @property() searchAction: "play" | "add" = "play";
     @property() thumbnailService?: ThumbnailService;
-    @property() imageUpdateCounter = 0;
+    // @property() imageUpdateCounter = 0;
     @property() isArtistView = false;
     @property() artistName = "";
 
@@ -88,7 +88,6 @@ export class ResultsContainer extends LitElement {
 
     private _renderSection(category: string, items: SearchResultItem[]) {
         const categoryLower = category.toLowerCase();
-
         if (this.isArtistView && categoryLower === "albums") {
             return html`
                 <div class="category-section">
@@ -99,7 +98,6 @@ export class ResultsContainer extends LitElement {
                     <kodi-album-detail-view
                         .items="${items}"
                         .thumbnailService="${this.thumbnailService}"
-                        .imageUpdateCounter="${this.imageUpdateCounter}"
                         .searchAction="${this.searchAction}">
                     </kodi-album-detail-view>
                 </div>
@@ -122,7 +120,7 @@ export class ResultsContainer extends LitElement {
                               .category="${category}"
                               .searchAction="${this.searchAction}"
                               .thumbnailService="${this.thumbnailService}"
-                              .imageUpdateCounter="${this.imageUpdateCounter}">
+                         >
                           </kodi-results-grid>
                       `
                     : html`
@@ -131,7 +129,7 @@ export class ResultsContainer extends LitElement {
                               .category="${category}"
                               .searchAction="${this.searchAction}"
                               .thumbnailService="${this.thumbnailService}"
-                              .imageUpdateCounter="${this.imageUpdateCounter}">
+                            >
                           </kodi-results-list>
                       `}
             </div>

@@ -1,3 +1,11 @@
+/**
+ * ============================================================================
+ * ALBUM DETAIL VIEW - Architecture simplifiée
+ * ============================================================================
+ * * Délègue entièrement la gestion des images au composant intelligent 
+ * <kodi-item-thumbnail>.
+ */
+
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { SearchResultItem } from "../types";
@@ -11,7 +19,6 @@ export class AlbumDetailView extends LitElement {
     @property() items: SearchResultItem[] = [];
     @property() searchAction: "play" | "add" = "play";
     @property() thumbnailService?: ThumbnailService;
-    @property() imageUpdateCounter = 0;
 
     static get styles() {
         return css`
@@ -134,42 +141,64 @@ export class AlbumDetailView extends LitElement {
 
     protected render() {
         return html`
-            <div class="artist-detailed-view">
-                ${this.items.map(album => this._renderDetailedAlbumRow(album))}
-            </div>
+            <div class="artist-detailed-view">${this.items.map(album => this._renderDetailedAlbumRow(album))}</div>
         `;
     }
 
     private _renderDetailedAlbumRow(album: SearchResultItem) {
         const icon = CategoryHelper.getCategoryIcon("albums");
 
-        let thumbnailUrl: string | undefined;
-        if (this.thumbnailService) {
-            thumbnailUrl = this.thumbnailService.getItemThumbnailUrl(album, "albums");
-            if (thumbnailUrl && !this.thumbnailService.isCached(thumbnailUrl)) {
-                this.thumbnailService.loadThumbnail(thumbnailUrl);
-            }
-        }
+        // Détermination de l'icône et du titre selon les contrôles globaux
+        const actionIcon = this.searchAction === "add" ? "mdi:plus" : "mdi:play";
+        const actionTitle = this.searchAction === "add" ? "Ajouter l'album" : "Jouer l'album";
+        const songActionTitle = this.searchAction === "add" ? "Ajouter la chanson" : "Jouer la chanson";
 
-        const isCached = this.thumbnailService ? this.thumbnailService.isCached(thumbnailUrl || "") : false;
-        const cachedUrl = this.thumbnailService?.getCachedThumbnail(thumbnailUrl || "");
+        // Action au clic sur la pochette de l'album
+        const handleAlbumClick = (e: Event) => {
+            e.stopPropagation();
+            this.dispatchEvent(
+                new CustomEvent("item-click", {
+                    detail: { item: album, category: "albums" },
+                    bubbles: false,
+                    composed: true,
+                })
+            );
+        };
 
         return html`
             <div class="album-detailed-row">
                 <div class="album-detailed-thumb-container">
-                    <kodi-item-thumbnail
-                        .imageUrl="${cachedUrl}"
-                        .icon="${icon}"
-                        .isCached="${isCached}"
-                        size="large"></kodi-item-thumbnail>
+                    <div style="cursor: pointer; width: 100%;" @click="${handleAlbumClick}">
+                        <kodi-item-thumbnail
+                            .item="${album}"
+                            .category="${"albums"}"
+                            .thumbnailService="${this.thumbnailService}"
+                            .icon="${icon}"
+                            size="large"
+                            .hasOverlay="${true}"
+                            .actionIcon="${actionIcon}">
+                        </kodi-item-thumbnail>
+                    </div>
                     <div class="album-detailed-title">${album.title || album.label}</div>
                     ${album.year ? html`<div class="album-detailed-year">(${album.year})</div>` : ""}
                 </div>
 
                 <div class="album-detailed-songs-list">
                     ${album.songs && album.songs.length > 0
-                        ? album.songs.map(
-                              (song, index) => html`
+                        ? album.songs.map((song, index) => {
+                              // Action au clic sur l'icône de la chanson
+                              const handleSongClick = (e: Event) => {
+                                  e.stopPropagation();
+                                  this.dispatchEvent(
+                                      new CustomEvent("item-click", {
+                                          detail: { item: song, category: "songs" },
+                                          bubbles: false,
+                                          composed: true,
+                                      })
+                                  );
+                              };
+
+                              return html`
                                   <div class="album-song-item">
                                       <span class="song-index">${index + 1}.</span>
                                       <span class="song-title">${song.title || song.label}</span>
@@ -177,20 +206,20 @@ export class AlbumDetailView extends LitElement {
 
                                       <div class="song-actions">
                                           <ha-icon
-                                              icon="mdi:play"
-                                              title="Jouer"
-                                              @click="${() => this.dispatchEvent(new CustomEvent("song-play", { detail: song }))}"></ha-icon>
-                                          <ha-icon
-                                              icon="mdi:plus"
-                                              title="Ajouter"
-                                              @click="${() => this.dispatchEvent(new CustomEvent("song-add", { detail: song }))}"></ha-icon>
+                                              .icon="${actionIcon}"
+                                              .title="${songActionTitle}"
+                                              style="cursor: pointer;"
+                                              @click="${handleSongClick}">
+                                          </ha-icon>
                                       </div>
                                   </div>
-                              `,
-                          )
+                              `;
+                          })
                         : html`<div class="no-songs-msg">Aucun morceau trouvé ou format non supporté</div>`}
                 </div>
             </div>
         `;
     }
 }
+
+export {};

@@ -8,6 +8,7 @@ interface WebSocketRequest {
     query?: string;
     category?: string;
     artistid?: number | string;
+    tvshow_id?: number | string;
 }
 
 interface WebSocketResponse {
@@ -64,6 +65,20 @@ export class SearchService {
             return {};
         }
     }
+
+    async searchTvShow(tvshowId: number | string): Promise<SearchResults> {
+    try {
+        const result = await this.hass.callWS<SearchResults>({
+            type: "kodi_media_sensors/search_tvshow",
+            entry_id: this.resolvedEntryId,
+            tvshow_id: tvshowId,
+        });
+        return result ?? {};
+    } catch (e) {
+        console.error("Error searching TV show:", e);
+        return {};
+    }
+}
 
     private async _navigation(type: string): Promise<SearchResults> {
         try {

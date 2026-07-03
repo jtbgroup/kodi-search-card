@@ -1,21 +1,12 @@
-/**
- * ============================================================================
- * ALBUM DETAIL VIEW - Architecture simplifiée
- * ============================================================================
- * * Délègue entièrement la gestion des images au composant intelligent
- * <kodi-item-thumbnail>.
- */
-
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { SearchResultItem } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
 import { CategoryHelper } from "../services/category-helper";
 import "./item-thumbnail";
-import { formatDuration } from "../utils/formatters";
 
-@customElement("kodi-album-detail-view")
-export class AlbumDetailView extends LitElement {
+@customElement("kodi-season-detail-view")
+export class SeasonDetailView extends LitElement {
     @property() items: SearchResultItem[] = [];
     @property() searchAction: "play" | "add" = "play";
     @property() thumbnailService?: ThumbnailService;
@@ -30,13 +21,13 @@ export class AlbumDetailView extends LitElement {
                 display: block;
             }
 
-            .artist-detailed-view {
+            .tvshow-detailed-view {
                 display: flex;
                 flex-direction: column;
                 gap: 20px;
             }
 
-            .album-detailed-row {
+            .season-detailed-row {
                 display: flex;
                 gap: 20px;
                 background: #1c1c1c;
@@ -47,12 +38,12 @@ export class AlbumDetailView extends LitElement {
             }
 
             @media (max-width: 600px) {
-                .album-detailed-row {
+                .season-detailed-row {
                     flex-direction: column;
                 }
             }
 
-            .album-detailed-thumb-container {
+            .season-detailed-thumb-container {
                 width: 120px;
                 flex-shrink: 0;
                 display: flex;
@@ -61,33 +52,29 @@ export class AlbumDetailView extends LitElement {
                 text-align: center;
             }
 
-            .album-detailed-thumb-container kodi-item-thumbnail {
-                width: 100px;
-                height: 100px;
+            /* Format d'affiche verticale (2/3) pour les séries/saisons */
+            .season-detailed-thumb-container kodi-item-thumbnail {
+                width: 110px;
+                height: 155px;
                 margin-bottom: 8px;
+                --thumb-ratio: 2/3;
             }
 
-            .album-detailed-title {
+            .season-detailed-title {
                 font-weight: 600;
                 font-size: 0.9rem;
                 color: #fff;
                 line-height: 1.2;
             }
 
-            .album-detailed-year {
-                font-size: 0.8rem;
-                color: #8a8a8a;
-                margin-top: 2px;
-            }
-
-            .album-detailed-songs-list {
+            .season-detailed-episodes-list {
                 flex-grow: 1;
                 display: flex;
                 flex-direction: column;
                 gap: 4px;
             }
 
-            .album-song-item {
+            .episode-item {
                 display: flex;
                 align-items: center;
                 padding: 6px 8px;
@@ -96,18 +83,11 @@ export class AlbumDetailView extends LitElement {
                 border-bottom: 1px solid #252525;
             }
 
-            .album-song-item:hover {
+            .episode-item:hover {
                 background: #2a2a2a;
             }
 
-            .song-index {
-                color: #8a8a8a;
-                margin-right: 8px;
-                width: 20px;
-                font-size: 0.85rem;
-            }
-
-            .song-title {
+            .episode-title {
                 flex-grow: 1;
                 color: #ffffff;
                 font-size: 0.9rem;
@@ -116,25 +96,18 @@ export class AlbumDetailView extends LitElement {
                 text-overflow: ellipsis;
             }
 
-            .song-duration {
-                color: #8a8a8a;
-                font-size: 0.8rem;
-                margin-right: 12px;
-                font-family: monospace;
-            }
-
-            .song-actions {
+            .episode-actions {
                 display: flex;
                 gap: 4px;
             }
 
-            .song-actions ha-icon {
+            .episode-actions ha-icon {
                 --mdc-icon-size: 20px;
                 padding: 4px;
                 cursor: pointer;
             }
 
-            .no-songs-msg {
+            .no-episodes-msg {
                 color: #8a8a8a;
                 font-style: italic;
                 padding: 12px;
@@ -145,24 +118,21 @@ export class AlbumDetailView extends LitElement {
 
     protected render() {
         return html`
-            <div class="artist-detailed-view">${this.items.map(album => this._renderDetailedAlbumRow(album))}</div>
+            <div class="tvshow-detailed-view">${this.items.map(season => this._renderDetailedSeasonRow(season))}</div>
         `;
     }
 
-    private _renderDetailedAlbumRow(album: SearchResultItem) {
-        const icon = CategoryHelper.getCategoryIcon("albums");
+    private _renderDetailedSeasonRow(season: SearchResultItem) {
+        const icon = CategoryHelper.getCategoryIcon("seasons") || "mdi:television-classic";
 
-        // Détermination de l'icône et du titre selon les contrôles globaux
         const actionIcon = this.searchAction === "add" ? "mdi:plus" : "mdi:play";
-        const actionTitle = this.searchAction === "add" ? "Ajouter l'album" : "Jouer l'album";
-        const songActionTitle = this.searchAction === "add" ? "Ajouter la chanson" : "Jouer la chanson";
+        const episodeActionTitle = this.searchAction === "add" ? "Add episode" : "Play episode";
 
-        // Action au clic sur la pochette de l'album
-        const handleAlbumClick = (e: Event) => {
+        const handleSeasonClick = (e: Event) => {
             e.stopPropagation();
             this.dispatchEvent(
                 new CustomEvent("item-click", {
-                    detail: { item: album, category: "albums" },
+                    detail: { item: season, category: "seasons" },
                     bubbles: false,
                     composed: true,
                 }),
@@ -170,12 +140,12 @@ export class AlbumDetailView extends LitElement {
         };
 
         return html`
-            <div class="album-detailed-row">
-                <div class="album-detailed-thumb-container">
-                    <div style="cursor: pointer; width: 100%;" @click="${handleAlbumClick}">
+            <div class="season-detailed-row">
+                <div class="season-detailed-thumb-container">
+                    <div style="cursor: pointer; width: 100%;" @click="${handleSeasonClick}">
                         <kodi-item-thumbnail
-                            .item="${album}"
-                            .category="${"albums"}"
+                            .item="${season}"
+                            .category="${"seasons"}"
                             .thumbnailService="${this.thumbnailService}"
                             .icon="${icon}"
                             size="large"
@@ -186,47 +156,47 @@ export class AlbumDetailView extends LitElement {
                             .actionIcon="${actionIcon}">
                         </kodi-item-thumbnail>
                     </div>
-                    <div class="album-detailed-title">${album.title || album.label}</div>
-                    ${album.year ? html`<div class="album-detailed-year">(${album.year})</div>` : ""}
+                    <div class="season-detailed-title">${season.title || season.label}</div>
                 </div>
 
-                <div class="album-detailed-songs-list">
-                    ${album.songs && album.songs.length > 0
-                        ? album.songs.map((song, index) => {
-                              // Action au clic sur l'icône de la chanson
-                              const handleSongClick = (e: Event) => {
+                <div class="season-detailed-episodes-list">
+                    ${season.episodes && season.episodes.length > 0
+                        ? season.episodes.map(episode => {
+                              const handleEpisodeClick = (e: Event) => {
                                   e.stopPropagation();
                                   this.dispatchEvent(
                                       new CustomEvent("item-click", {
-                                          detail: { item: song, category: "songs" },
+                                          detail: { item: episode, category: "episodes" },
                                           bubbles: false,
                                           composed: true,
                                       }),
                                   );
                               };
 
-                              return html`
-                                  <div class="album-song-item">
-                                      <span class="song-index">${index + 1}.</span>
-                                      <span class="song-title">${song.title || song.label}</span>
-                                      <span class="song-duration">${formatDuration(song.duration)}</span>
+                              // Formatage conforme à l'image :ex: "1x01. Noël mortel"
+                              const seasonNum = episode.season ?? season.season ?? 1;
+                              const episodeNum = String(episode.episode ?? "").padStart(2, "0");
+                              const displayTitle = episode.episode
+                                  ? `${seasonNum}x${episodeNum}. ${episode.title || episode.label}`
+                                  : episode.title || episode.label;
 
-                                      <div class="song-actions">
+                              return html`
+                                  <div class="episode-item">
+                                      <span class="episode-title">${displayTitle}</span>
+                                      <div class="episode-actions">
                                           <ha-icon
                                               .icon="${actionIcon}"
-                                              .title="${songActionTitle}"
+                                              .title="${episodeActionTitle}"
                                               style="cursor: pointer;"
-                                              @click="${handleSongClick}">
+                                              @click="${handleEpisodeClick}">
                                           </ha-icon>
                                       </div>
                                   </div>
                               `;
                           })
-                        : html`<div class="no-songs-msg">Aucun morceau trouvé ou format non supporté</div>`}
+                        : html`<div class="no-episodes-msg">No episodes found</div>`}
                 </div>
             </div>
         `;
     }
 }
-
-export {};

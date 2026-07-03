@@ -5,6 +5,10 @@ import { customElement, property } from "lit/decorators.js";
 export class SearchControls extends LitElement {
     @property() query = "";
     @property() searchAction: "play" | "add" = "play";
+    @property() showActionMode = true;
+    @property() showRecentlyAdded = true;
+    @property() showRecentlyPlayed = true;
+    @property() showCurrentArtist = true;
 
     static get styles() {
         return css`
@@ -119,39 +123,61 @@ export class SearchControls extends LitElement {
 
                 <div class="control-toolbar">
                     <div class="control-actions">
-                        <div
-                            class="action-btn ${this.searchAction === "play" ? "active" : ""}"
-                            @click="${() => this._handleActionChange("play")}">
-                            <ha-icon icon="mdi:play"></ha-icon>
-                            <span>Jouer</span>
-                        </div>
-                        <div
-                            class="action-btn ${this.searchAction === "add" ? "active" : ""}"
-                            @click="${() => this._handleActionChange("add")}">
-                            <ha-icon icon="mdi:plus"></ha-icon>
-                            <span>Ajouter</span>
-                        </div>
+                        ${this.showActionMode
+                            ? html`
+                                  <div
+                                      class="action-btn ${this.searchAction === "play" ? "active" : ""}"
+                                      @click="${() => this._handleActionChange("play")}">
+                                      <ha-icon icon="mdi:play"></ha-icon>
+                                      <span>Jouer</span>
+                                  </div>
+                                  <div
+                                      class="action-btn ${this.searchAction === "add" ? "active" : ""}"
+                                      @click="${() => this._handleActionChange("add")}">
+                                      <ha-icon icon="mdi:plus"></ha-icon>
+                                      <span>Ajouter</span>
+                                  </div>
+                              `
+                            : html``}
                     </div>
 
                     <div class="navigation-icons">
-                        <ha-icon
-                            icon="mdi:history"
-                            class="icon-btn"
-                            @click="${() =>
-                                this.dispatchEvent(new CustomEvent("navigate", { detail: "recently_played" }))}"
-                            title="Récemment écouté"></ha-icon>
-                        <ha-icon
-                            icon="mdi:clock-plus"
-                            class="icon-btn"
-                            @click="${() =>
-                                this.dispatchEvent(new CustomEvent("navigate", { detail: "recently_added" }))}"
-                            title="Nouveautés"></ha-icon>
-                        <ha-icon
-                            icon="mdi:account-music"
-                            class="icon-btn"
-                            @click="${() =>
-                                this.dispatchEvent(new CustomEvent("navigate", { detail: "current_artist" }))}"
-                            title="Artiste actuel"></ha-icon>
+                        ${this.showRecentlyPlayed
+                            ? html`
+                                  <ha-icon
+                                      icon="mdi:history"
+                                      class="icon-btn"
+                                      @click="${() =>
+                                          this.dispatchEvent(
+                                              new CustomEvent("navigate", { detail: "recently_played" }),
+                                          )}"
+                                      title="Récemment écouté"></ha-icon>
+                              `
+                            : html``}
+                        ${this.showRecentlyAdded
+                            ? html`
+                                  <ha-icon
+                                      icon="mdi:clock-plus"
+                                      class="icon-btn"
+                                      @click="${() =>
+                                          this.dispatchEvent(
+                                              new CustomEvent("navigate", { detail: "recently_added" }),
+                                          )}"
+                                      title="Nouveautés"></ha-icon>
+                              `
+                            : html``}
+                        ${this.showCurrentArtist
+                            ? html`
+                                  <ha-icon
+                                      icon="mdi:account-music"
+                                      class="icon-btn"
+                                      @click="${() =>
+                                          this.dispatchEvent(
+                                              new CustomEvent("navigate", { detail: "current_artist" }),
+                                          )}"
+                                      title="Artiste actuel"></ha-icon>
+                              `
+                            : html``}
                     </div>
                 </div>
             </div>
@@ -194,3 +220,4 @@ export class SearchControls extends LitElement {
         );
     }
 }
+

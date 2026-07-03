@@ -2,22 +2,23 @@ import { LitElement, html, css, PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { ThumbnailService } from "../services/thumbnail-service";
 import { SearchResultItem } from "../types";
+import { styleMap } from "lit/directives/style-map.js";
 
 @customElement("kodi-item-thumbnail")
 export class ItemThumbnail extends LitElement {
-    // ⬇️ NOUVELLES PROPRIÉTÉS ⬇️
     @property({ type: Object }) item?: SearchResultItem;
     @property({ type: String }) category = "";
     @property({ type: Object }) thumbnailService?: ThumbnailService;
 
-    // ⬇️ PROPRIÉTÉS CONSERVÉES ⬇️
     @property() icon = "mdi:image";
     @property() size: "small" | "large" = "large";
     @property({ type: Boolean }) isContainer = false;
     @property() actionIcon = "mdi:play";
-    @property({ type: Boolean }) hasOverlay = false;
+    @property({ type: Boolean }) showThumbnailOverlay = true;
+    @property({ type: Boolean }) showThumbnail = true;
+    @property({ type: Boolean }) showThumbnailBorder? = true;
+    @property({ type: String }) outlineColor = "var(--divider-color)";
 
-    // ⬇️ ÉTATS INTERNES (Remplacent imageUrl et isCached) ⬇️
     @state() private _imageUrl?: string;
     @state() private _isLoaded = false;
 
@@ -37,6 +38,10 @@ export class ItemThumbnail extends LitElement {
                 justify-content: center;
                 background: var(--secondary-background-color);
                 aspect-ratio: var(--thumb-ratio, 1/1);
+            }
+
+            .thumb-wrapper.with-border {
+                border: 1px solid var(--outline-color);
             }
 
             :host([size="large"]) .thumb-wrapper {
@@ -107,18 +112,16 @@ export class ItemThumbnail extends LitElement {
         `;
     }
 
-    // Intercepte les changements de propriétés pour lancer le chargement
     protected willUpdate(changedProperties: PropertyValues) {
         super.willUpdate(changedProperties);
 
-        // Si l'item ou le service change, on relance le processus d'image
-        if (changedProperties.has("item") || changedProperties.has("thumbnailService")) {
+        if ((changedProperties.has("item") || changedProperties.has("thumbnailService")) && this.showThumbnail) {
+            console.log("Changement détecté, rechargement de l'image...", this.item?.title);
             this._loadImage();
         }
     }
 
     private async _loadImage() {
-        // Reset d'abord l'état
         this._imageUrl = undefined;
         this._isLoaded = false;
 
@@ -140,33 +143,30 @@ export class ItemThumbnail extends LitElement {
         const loadedUrl = await this.thumbnailService.loadThumbnail(url);
         if (loadedUrl) {
             this._imageUrl = loadedUrl;
-            this._isLoaded = true; // ⚠️ Ceci déclenche un rendu UNIQUEMENT pour ce composant !
+            this._isLoaded = true;
         }
     }
 
     protected render() {
+         console.log("in grid outline ",this.outlineColor);
         const containerClass = this.isContainer ? "is-container" : "";
-        const overlayTemplate = this.hasOverlay
+        const thumbnailContent =
+            this._isLoaded && this._imageUrl
+                ? html`<img class="thumb-image" src="${this._imageUrl}" />`
+                : html`<div class="thumb-placeholder ${containerClass}"><ha-icon .icon="${this.icon}"></ha-icon></div>`;
+        const overlayTemplate = this.showThumbnailOverlay
             ? html`<div class="thumb-overlay"><ha-icon .icon="${this.actionIcon}"></ha-icon></div>`
             : "";
-
-        // On utilise maintenant nos états locaux _isLoaded et _imageUrl
-        if (this._isLoaded && this._imageUrl) {
-            return html`
-                <div class="thumb-wrapper">
-                    <img class="thumb-image" src="${this._imageUrl}" />
-                    ${overlayTemplate}
-                </div>
-            `;
-        }
+    
+       const cssVariables = this.showThumbnailBorder ? `--outline-color: ${this.outlineColor};` : "";
 
         return html`
-            <div class="thumb-wrapper">
-                <div class="thumb-placeholder ${containerClass}">
-                    <ha-icon .icon="${this.icon}"></ha-icon>
-                </div>
-                ${overlayTemplate}
+            <div
+                class="thumb-wrapper ${this.showThumbnailBorder ? "with-border" : ""} "
+                style="${cssVariables}">
+                ${thumbnailContent} ${overlayTemplate}
             </div>
         `;
     }
 }
+

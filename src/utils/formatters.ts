@@ -28,15 +28,19 @@ export function buildMetadataString(item: SearchResultItem, category: string): s
     }
 
     if (itemType === CategoryHelper.CATEGORY_EPISODES) {
-        // const showTitle = item.showtitle || "Unknown Show";
-        // const season = item.season ?? "?";
-        // const episode = item.episode ?? "?";
-        // return `${showTitle} • S${season}E${episode}`;
-        return "check formatters. not implemented";
+        const showtitle = item.showtitle;
+        const season = item.season ?? "?";
+        const episode = item.episode ?? "?";
+        return `${showtitle} (S${season}:E${episode})`;
     }
 
+    if (itemType === CategoryHelper.CATEGORY_ALBUMS) {
+        if (item.artist) {
+            return Array.isArray(item.artist) ? item.artist.join(", ") : item.artist;
+        }
+        return "";
+    }
     if (itemType === CategoryHelper.CATEGORY_MOVIES) {
-              
         if (item.genre) {
             return `${item.genre}`;
         }
@@ -57,14 +61,26 @@ export function formatGenre(genre: string | string[] | undefined): string {
 export function getItemIcon(item: SearchResultItem): string {
     const itemType = item.type;
 
-    if (itemType === "song" || itemType === "music") {
+    if (itemType === CategoryHelper.CATEGORY_SONGS || itemType === "music") {
         return "mdi:music";
     }
-    if (itemType === "movie") {
+    if (itemType === CategoryHelper.CATEGORY_MOVIES) {
         return "mdi:movie";
     }
-    if (itemType === "episode") {
+    if (itemType === CategoryHelper.CATEGORY_EPISODES) {
         return "mdi:television";
     }
     return "mdi:play";
 }
+
+  export function convertOutlineColor(color: string): string {
+        if (!color) return "var(--divider-color)";
+
+        if (Array.isArray(color)) {
+            const newColor = `rgb(${color.join(",")})`;
+            console.log("Converted array color to:", newColor);
+            return newColor;
+        }
+        return color;
+    }
+

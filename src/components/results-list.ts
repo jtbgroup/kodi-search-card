@@ -11,6 +11,11 @@ export class ResultsList extends LitElement {
     @property() category = "";
     @property() searchAction: "play" | "add" = "play";
     @property() thumbnailService?: ThumbnailService;
+    @property({ type: Boolean }) showThumbnail? = true;
+    @property({ type: Boolean }) showThumbnailOverlay? = true;
+    @property({ type: Boolean }) showThumbnailBorder? = true;
+    @property({ type: String }) outlineColor="var(--divider-color)";
+
     // @property() imageUpdateCounter = 0;
 
     static get styles() {
@@ -96,37 +101,6 @@ export class ResultsList extends LitElement {
         `;
     }
 
-    // private _getThumbnailForItem(
-    //     item: SearchResultItem,
-    //     category: string,
-    // ): { cachedUrl: string | undefined; isCached: boolean } {
-    //     if (!this.thumbnailService) {
-    //         return { cachedUrl: undefined, isCached: false };
-    //     }
-
-    //     // Étape 1: Résoudre l'URL
-    //     const url = this.thumbnailService.getItemThumbnailUrl(item, { category });
-    //     if (!url) {
-    //         return { cachedUrl: undefined, isCached: false };
-    //     }
-
-    //     // Étape 2: Vérifier le cache
-    //     const cachedUrl = this.thumbnailService.getCachedThumbnail(url);
-    //     const isCached = !!cachedUrl;
-
-    //     // Étape 3: Si pas en cache, charger en arrière-plan
-    //     if (!isCached) {
-    //         // 🔑 AMÉLIORATION: load() est intelligent
-    //         // Si un autre appel charge la même image, il attend le premier
-    //         // au lieu de lancer une requête HTTP dupliquée
-    //         this.thumbnailService.loadThumbnail(url).then(() => {
-    //             console.debug(`[Album Detail] Image chargée: ${url}`);
-    //         });
-    //     }
-
-    //     return { cachedUrl, isCached };
-    // }
-
     private _renderListItem(item: SearchResultItem) {
         const title = item.title || item.name || item.label || "";
         const genre = item.genre ? formatGenre(item.genre) : "";
@@ -154,10 +128,16 @@ export class ResultsList extends LitElement {
         return html`
             <div class="list-item" @click="${handleClick}">
                 <kodi-item-thumbnail
+                    .item="${item}"
+                    .category="${this.category}"
+                    .thumbnailService="${this.thumbnailService}"
                     .icon="${icon}"
                     .actionIcon="${actionIcon}"
-                    size="small"
-                    .hasOverlay="${true}">
+                    .showThumbnail="${this.showThumbnail}"
+                    .showThumbnailOverlay="${this.showThumbnailOverlay}"
+                    .outlineColor="${this.outlineColor}"
+                    .showThumbnailBorder="${this.showThumbnailBorder}"
+                    size="small">
                 </kodi-item-thumbnail>
 
                 <div class="item-info">

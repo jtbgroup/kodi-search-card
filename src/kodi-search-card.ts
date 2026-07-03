@@ -7,6 +7,7 @@ import { HomeAssistant, LovelaceCardEditor } from "custom-card-helpers";
 import { KodiSearchCardConfig, SearchResults, SearchResultItem, ItemClickDetail } from "./types";
 import { SearchService } from "./services/search-service";
 import { ThumbnailService } from "./services/thumbnail-service";
+import { convertOutlineColor } from "./utils/formatters";
 
 @customElement("kodi-search-card")
 export class KodiSearchCard extends LitElement {
@@ -18,12 +19,14 @@ export class KodiSearchCard extends LitElement {
     @state() private _searchAction: "play" | "add" = "play";
 
     @state() private _resolvedEntryId?: string;
+    @state() private _resolvedKodiEntityId?: string;
 
     @state() private _sensorState = "unavailable";
     @state() private _isArtistView = false;
     @state() private _artistName = "";
 
-    // @state() private _imageUpdateCounter = 0;
+    @state() private _isTvShowView = false;
+    @state() private _tvShowName = "";
 
     private _searchService?: SearchService;
     private _thumbnailService?: ThumbnailService;
@@ -130,11 +133,7 @@ export class KodiSearchCard extends LitElement {
             }
 
             if (!this._thumbnailService) {
-                // this._thumbnailService = new ThumbnailService(this.hass, () => {
-                //     this._imageUpdateCounter++;
-                //     this.requestUpdate();
-                // });
-                this._thumbnailService = new ThumbnailService(this.hass);
+                this._thumbnailService = new ThumbnailService(this.hass, this._resolvedKodiEntityId);
             }
         }
     }
@@ -153,11 +152,14 @@ export class KodiSearchCard extends LitElement {
         if (!this.hass || !this._config?.entity) return;
 
         const state = this.hass.states[this._config.entity];
+        console.log("State of the configured entity:", state);
         if (state && state.attributes.config_entry_id) {
             this._resolvedEntryId = state.attributes.config_entry_id;
+            this._resolvedKodiEntityId = state.attributes.kodi_entity_id;
         } else {
             console.error("L'entité sélectionnée n'a pas les attributs requis.");
         }
+        this._searchAction = this._config?.action_mode ?? "play";
     }
 
     private _getCurrentArtistInfo(): { id?: number | string } {
@@ -171,6 +173,7 @@ export class KodiSearchCard extends LitElement {
 
     private async _performSearch(): Promise<void> {
         this._isArtistView = false;
+        this._isTvShowView = false;
 
         if (!this._searchService || !this._query.trim()) {
             this._results = null;
@@ -188,6 +191,7 @@ export class KodiSearchCard extends LitElement {
 
     private async _handleNavigation(type: string): Promise<void> {
         this._isArtistView = false;
+        this._isTvShowView = false;
 
         if (!this._searchService) return;
 
@@ -223,6 +227,8 @@ export class KodiSearchCard extends LitElement {
         this._results = null;
         this._isArtistView = false;
         this._artistName = "";
+        this._isTvShowView = false;
+        this._tvShowName = "";
     }
 
     // This method coordiantes the actions to perform. Each submethod must manage the card behaviour such as th boolean  this._isArtistView
@@ -243,7 +249,6 @@ export class KodiSearchCard extends LitElement {
         e.stopImmediatePropagation();
 
         const { item, category } = e.detail;
-
         if (!item) {
             console.error("L'événement ne contient aucune donnée dans e.detail", e);
             return;
@@ -255,7 +260,7 @@ export class KodiSearchCard extends LitElement {
         }
 
         if (category === "tvshows" && item.tvshowid) {
-            console.log("TV show clicked:", item);
+            await this._drillDownTvShow(item);
             return;
         }
 
@@ -336,6 +341,20 @@ export class KodiSearchCard extends LitElement {
         }
     };
 
+    private async _drillDownTvShow(item: any): Promise<void> {
+        if (!this._searchService || !item.tvshowid) return;
+
+        try {
+            // On suppose que le searchService possède une méthode pour récupérer les saisons d'une série
+            this._results = await this._searchService.searchTvShow(item.tvshowid);
+            this._isTvShowView = true;
+            this._tvShowName = item.title || item.label || "Série TV";
+        } catch (e) {
+            this._isTvShowView = false;
+            console.error("Error drilling down TV show:", e);
+        }
+    }
+
     private async _drillDownArtist(item: any): Promise<void> {
         if (!this._searchService || !item.artistid) return;
 
@@ -356,7 +375,6 @@ export class KodiSearchCard extends LitElement {
     }
 
     protected render() {
-        console.log("results to render : " , this._results)
         let statusClass = "fixed-green";
 
         if (this._sensorState === "off") {
@@ -381,6 +399,10 @@ export class KodiSearchCard extends LitElement {
             <kodi-search-controls
                 .query="${this._query}"
                 .searchAction="${this._searchAction}"
+                .showActionMode="${this._config?.show_action_mode ?? true}"
+                .showRecentlyAdded="${this._config?.show_recently_added ?? true}"
+                .showRecentlyPlayed="${this._config?.show_recently_played ?? true}"
+                .showCurrentArtist="${this._config?.show_current_artist ?? true}"
                 @search="${this._handleSearchControls}"
                 @clear="${this._handleSearchControls}"
                 @navigate="${this._handleSearchControls}"
@@ -393,14 +415,24 @@ export class KodiSearchCard extends LitElement {
                     ? html`
                           <kodi-results-container
                               .results="${this._results}"
+                              .showThumbnail="${this._config?.show_thumbnail ?? true}"
+                              .showThumbnailOverlay="${this._config?.show_thumbnail_overlay ?? true}"
+                              .showThumbnailBorder="${this._config?.show_thumbnail_border ?? true}"
+                              .outlineColor="${convertOutlineColor(
+                                  this._config?.outline_color ?? "var(--divider-color)",
+                              )}"
+                              .albumDetailsSort="${this._config?.album_details_sort ?? "default"}"
+                              .mediaTypeOrder="${this._config?.media_type_order ?? []}"
                               .searchAction="${this._searchAction}"
                               .thumbnailService="${this._thumbnailService}"
                               .isArtistView="${this._isArtistView}"
                               .artistName="${this._artistName}"
+                              .isTvShowView="${this._isTvShowView}"
+                              .tvShowName="${this._tvShowName}"
                               @item-click="${this._handleResultsClick}">
                           </kodi-results-container>
                       `
-                    : ""}
+                    : html``}
             </div>
         `;
     }

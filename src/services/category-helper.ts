@@ -7,21 +7,23 @@ export class CategoryHelper {
     static CATEGORY_ARTISTS = "artists";
     static CATEGORY_ALBUMS = "albums";
     static CATEGORY_EPISODES = "episodes";
+    static CATEGORY_SEASONS = "seasons";
     static CATEGORY_TVSHOWS = "tvshows";
 
     static getCategoryIcon(category: string): string {
         switch (category.toLowerCase()) {
-            case "songs":
+            case CategoryHelper.CATEGORY_SONGS:
                 return "mdi:music";
-            case "albums":
+            case CategoryHelper.CATEGORY_ALBUMS:
                 return "mdi:album";
-            case "artists":
+            case CategoryHelper.CATEGORY_ARTISTS:
                 return "mdi:account-music";
-            case "movies":
+            case CategoryHelper.CATEGORY_MOVIES:
+            case CategoryHelper.CATEGORY_EPISODES:
                 return "mdi:movie-open";
-            case "tvshows":
+            case CategoryHelper.CATEGORY_TVSHOWS:
                 return "mdi:television-classic";
-            case "musicvideos":
+            case CategoryHelper.CATEGORY_MUSICVIDEOS:
                 return "mdi:video-music";
             default:
                 return "mdi:play-circle";
@@ -30,10 +32,10 @@ export class CategoryHelper {
 
     static getThumbnailAspectRatio(category: string): string {
         switch (category.toLowerCase()) {
-            case "movies":
-            case "tvshows":
+            case CategoryHelper.CATEGORY_MOVIES:
+            case CategoryHelper.CATEGORY_TVSHOWS:
                 return "2/3";
-            case "episodes":
+            case CategoryHelper.CATEGORY_EPISODES:
                 return "16/9";
             default:
                 return "1/1";
@@ -49,11 +51,11 @@ export class CategoryHelper {
     }
 
     static isGridLayout(category: string): boolean {
-        return ["albums", "artists", "movies", "tvshows"].includes(category.toLowerCase());
+        return [CategoryHelper.CATEGORY_ALBUMS, CategoryHelper.CATEGORY_ARTISTS, CategoryHelper.CATEGORY_MOVIES, CategoryHelper.CATEGORY_TVSHOWS, CategoryHelper.CATEGORY_EPISODES].includes(category.toLowerCase());
     }
 
     static isContainerCategory(category: string): boolean {
-        return ["tvshows", "artists"].includes(category.toLowerCase());
+        return [CategoryHelper.CATEGORY_TVSHOWS, CategoryHelper.CATEGORY_ARTISTS].includes(category.toLowerCase());
     }
 }
 

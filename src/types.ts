@@ -6,6 +6,7 @@ import { LovelaceCardConfig } from "custom-card-helpers";
 export interface SearchResults {
     movies?: SearchResultItem[];
     tvshows?: SearchResultItem[];
+    seasons?: SearchResultItem[];
     songs?: SearchResultItem[];
     albums?: SearchResultItem[];
     artists?: SearchResultItem[];
@@ -37,14 +38,24 @@ export interface SearchResultItem {
     duration?: number;
     genre?: string | string[];
     file?: string;
+    
+    // Partie Musique existante
     songs?: SearchResultItem[];
     songid?: number | string;
+    
+    // Partie Vidéo / TV existante & nouvelle
     movieid?: number | string;
     tvshowid?: number | string;
+    seasonid?: number | string;   
     episodeid?: number | string;
+    showtitle?: string;
+    
+    season?: number;             
+    episode?: number;             
+    episodes?: SearchResultItem[]; 
+    
     channelid?: number | string;
 }
-
 /**
  * Payload de l'événement item-click
  */
@@ -57,7 +68,7 @@ export interface ItemClickDetail {
  * Configuration de la carte - Toutes les options supportées
  */
 export interface KodiSearchCardConfig extends LovelaceCardConfig {
-    action_mode?: string;
+    action_mode?: "play" | "add";
     add_position?: number;
     album_details_sort?: string;
     entity: string;

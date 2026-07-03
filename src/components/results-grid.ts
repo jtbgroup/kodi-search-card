@@ -11,7 +11,10 @@ export class ResultsGrid extends LitElement {
     @property() category = "";
     @property() searchAction: "play" | "add" = "play";
     @property() thumbnailService?: ThumbnailService;
-    // @property() imageUpdateCounter = 0;
+    @property({ type: Boolean }) showThumbnail? = true;
+        @property({ type: Boolean }) showThumbnailOverlay? = true;
+         @property({ type: Boolean }) showThumbnailBorder? = true;
+    @property({ type: String }) outlineColor="var(--divider-color)";
 
     static get styles() {
         return css`
@@ -62,62 +65,29 @@ export class ResultsGrid extends LitElement {
     }
 
     protected render() {
-        return html` <div class="results-grid">${this.items.map(item => this._renderGridItem(item))}</div> `;
+       return html` <div class="results-grid">${this.items.map(item => this._renderGridItem(item))}</div> `;
     }
 
-    //     private _getThumbnailForItem(
-    //     item: SearchResultItem,
-    //     category: string
-    // ): { cachedUrl: string | undefined; isCached: boolean } {
-    //     if (!this.thumbnailService) {
-    //         return { cachedUrl: undefined, isCached: false };
-    //     }
-
-    //     // Étape 1: Résoudre l'URL
-    //     const url = this.thumbnailService.getItemThumbnailUrl(item, { category });
-    //     if (!url) {
-    //         return { cachedUrl: undefined, isCached: false };
-    //     }
-
-    //     // Étape 2: Vérifier le cache
-    //     const cachedUrl = this.thumbnailService.getCachedThumbnail(url);
-    //     const isCached = !!cachedUrl;
-
-    //     // Étape 3: Si pas en cache, charger en arrière-plan
-    //     if (!isCached) {
-    //         // 🔑 AMÉLIORATION: load() est intelligent
-    //         // Si un autre appel charge la même image, il attend le premier
-    //         // au lieu de lancer une requête HTTP dupliquée
-    //         this.thumbnailService.loadThumbnail(url).then(() => {
-    //             console.debug(`[Album Detail] Image chargée: ${url}`);
-    //         });
-    //     }
-
-    //     return { cachedUrl, isCached };
-    // }
-    
     private _renderGridItem(item: SearchResultItem) {
         const icon = CategoryHelper.getCategoryIcon(this.category);
         const isContainer = CategoryHelper.isContainerCategory(this.category);
 
         const ratio = CategoryHelper.getThumbnailAspectRatio(this.category);
         const customStyle = `--thumb-ratio: ${ratio}`;
-        
+
         let actionIcon = CategoryHelper.getActionIcon(this.category, this.searchAction);
         if (this.category === "artists" || this.category === "tvshow") {
             actionIcon = "mdi:information";
         }
 
-        //  const { cachedUrl, isCached } = this._getThumbnailForItem(item, this.category);
-
         const handleClick = () => {
             const detail: ItemClickDetail = { item, category: this.category };
             this.dispatchEvent(
-                new CustomEvent("item-click", { 
+                new CustomEvent("item-click", {
                     detail,
                     bubbles: false,
-                    composed: true
-                })
+                    composed: true,
+                }),
             );
         };
 
@@ -126,19 +96,21 @@ export class ResultsGrid extends LitElement {
         return html`
             <div class="grid-card" @click="${handleClick}">
                 <kodi-item-thumbnail
-                  .item="${item}"
-    .category="${this.category}"
-    .thumbnailService="${this.thumbnailService}"
-    .icon="${icon}"
-    .isContainer="${isContainer}"
-    .actionIcon="${actionIcon}"
-    .hasOverlay="${true}"
-    size="large"
-    style="${customStyle}"
-                    >
+                    .item="${item}"
+                    .category="${this.category}"
+                    .thumbnailService="${this.thumbnailService}"
+                    .icon="${icon}"
+                    .isContainer="${isContainer}"
+                    .actionIcon="${actionIcon}"
+                    .showThumbnail="${this.showThumbnail}"
+                    .showThumbnailOverlay="${this.showThumbnailOverlay}"
+                    .outlineColor="${this.outlineColor}"
+                    .showThumbnailBorder="${this.showThumbnailBorder}"
+                    size="large"
+                    style="${customStyle}">
                 </kodi-item-thumbnail>
-                <div class="grid-title">${item.title || item.label} ${item.year ? "(" + item.year + ")" :""}</div>
-                <div class="grid-meta" title="${meta}" >${meta}</div>
+                <div class="grid-title">${item.title || item.label} ${item.year ? "(" + item.year + ")" : ""}</div>
+                <div class="grid-meta" title="${meta}">${meta}</div>
             </div>
         `;
     }

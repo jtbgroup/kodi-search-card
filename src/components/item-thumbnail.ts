@@ -116,7 +116,6 @@ export class ItemThumbnail extends LitElement {
         super.willUpdate(changedProperties);
 
         if ((changedProperties.has("item") || changedProperties.has("thumbnailService")) && this.showThumbnail) {
-            console.log("Changement détecté, rechargement de l'image...", this.item?.title);
             this._loadImage();
         }
     }
@@ -127,11 +126,11 @@ export class ItemThumbnail extends LitElement {
 
         if (!this.item || !this.thumbnailService) return;
 
-        // 1. Récupérer l'URL théorique
+        // 1. Retrieve the theoretical URL.
         const url = this.thumbnailService.getItemThumbnailUrl(this.item, { category: this.category });
         if (!url) return;
 
-        // 2. Vérifier le cache (Synchrone)
+        // 2. Check the cache (synchronously).
         const cachedUrl = this.thumbnailService.getCachedThumbnail(url);
         if (cachedUrl) {
             this._imageUrl = cachedUrl;
@@ -139,7 +138,7 @@ export class ItemThumbnail extends LitElement {
             return;
         }
 
-        // 3. Charger l'image (Asynchrone)
+        // 3. Load the image (asynchronously).
         const loadedUrl = await this.thumbnailService.loadThumbnail(url);
         if (loadedUrl) {
             this._imageUrl = loadedUrl;
@@ -148,7 +147,6 @@ export class ItemThumbnail extends LitElement {
     }
 
     protected render() {
-         console.log("in grid outline ",this.outlineColor);
         const containerClass = this.isContainer ? "is-container" : "";
         const thumbnailContent =
             this._isLoaded && this._imageUrl

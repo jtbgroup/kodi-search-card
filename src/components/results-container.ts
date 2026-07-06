@@ -6,7 +6,7 @@ import { CategoryHelper } from "../services/category-helper";
 import "./results-grid";
 import "./results-list";
 import "./album-detail-view";
-import "./season-detail-view"; // Assure-toi que le fichier est bien dans le même dossier
+import "./season-detail-view"; // Make sure the file is in the same folder.
 
 @customElement("kodi-results-container")
 export class ResultsContainer extends LitElement {
@@ -14,7 +14,6 @@ export class ResultsContainer extends LitElement {
     @property({ type: String }) searchAction: "play" | "add" = "play";
     @property({ type: Object }) thumbnailService?: ThumbnailService;
 
-    // Propriétés pour les vues de Drilldown
     @property({ type: Boolean }) isArtistView = false;
     @property({ type: String }) artistName = "";
     @property({ type: Boolean }) isTvShowView = false;
@@ -76,19 +75,16 @@ export class ResultsContainer extends LitElement {
             return html``;
         }
 
-        // --- NORMALISATION DES DONNÉES ---
-        // Permet d'accepter { albums: [...] } (Artistes) OU { results: { seasons: [...] } } (Séries)
         const rawResults = this.results as any;
         const dataToRender: SearchResults =
             rawResults && rawResults.results && !Array.isArray(rawResults.results) ? rawResults.results : this.results;
 
-        // --- VÉRIFICATION ---
         const hasResults =
             Object.keys(dataToRender).length > 0 &&
             Object.values(dataToRender).some(items => Array.isArray(items) && items.length > 0);
 
         if (!hasResults) {
-            return html`<div class="no-results-msg">Aucun résultat</div>`;
+            return html`<div class="no-results-msg">No results</div>`;
         }
 
         return html`
@@ -107,7 +103,7 @@ export class ResultsContainer extends LitElement {
         const categoryLower = category.toLowerCase();
         
 
-        // 1. Vue détaillée : ARTISTE -> Albums/Chansons
+        // 1. Detailed view: ARTIST -> Albums/Songs
         if (this.isArtistView && categoryLower === "albums") {
             return html`
                 <div class="category-section">
@@ -128,7 +124,7 @@ export class ResultsContainer extends LitElement {
             `;
         }
 
-        // 2. Vue détaillée : SÉRIE TV -> Saisons/Épisodes
+        // 2. Detailed view: TV SHOW -> Seasons/Episodes
         if (this.isTvShowView && categoryLower === "seasons") {
             return html`
                 <div class="category-section">
@@ -149,7 +145,7 @@ export class ResultsContainer extends LitElement {
             `;
         }
 
-        // 3. Vue standard pour les autres catégories (Recherche globale)
+        // 3. Standard view for the other categories (global search)
         const isGridLayout = CategoryHelper.isGridLayout(category);
         const sectionIcon = CategoryHelper.getCategoryIcon(category);
 
@@ -189,7 +185,7 @@ export class ResultsContainer extends LitElement {
     }
 
     private _onItemClick = (e: CustomEvent<ItemClickDetail>) => {
-        // Laisse remonter l'événement vers la carte principale (kodi-search-card.ts)
+        // Let the event bubble up to the main card (kodi-search-card.ts).
         this.dispatchEvent(
             new CustomEvent("item-click", {
                 detail: e.detail,

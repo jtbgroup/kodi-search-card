@@ -28,7 +28,6 @@ export interface ThumbnailOptions {
 
 export class ThumbnailService {
     private hass: HomeAssistant;
-    // 💡 Uniformisé en kodiEntityId (CamelCase) partout
     public kodiEntityId: string | undefined;
 
     private readonly thumbnailCache: Map<string, string> = new Map();
@@ -39,20 +38,20 @@ export class ThumbnailService {
         this.kodiEntityId = kodiEntityId;
     }
 
-    /**
-     * Nettoie les URLs spécifiques de Kodi (ex: image://http%3a%2f%2f...)
-     * pour les transformer en URLs web standards (http://...)
-     */
     private _cleanKodiUrl(url: any): string | undefined {
         if (typeof url !== "string") return undefined;
-        if (url.startsWith("image://http")) {
-            return decodeURIComponent(url.replace("image://", ""));
+        let result = url;
+        if (result.startsWith("image://http")) {
+            result = decodeURIComponent(result.replace("image://", ""));
         }
-        return url;
+        if(result.endsWith("/")){
+            result = result.substring(0, result.length-1);
+        }
+        return result;
     }
 
     /**
-     * Résout l'URL de miniature appropriée selon le type de média
+     * Resolves the appropriate thumbnail URL based on the media type.
      */
     public getItemThumbnailUrl(
         item: SearchResultItem | null | undefined,
@@ -62,12 +61,11 @@ export class ThumbnailService {
 
         const cat = (options.category || "").toLowerCase();
 
-        // Extraire la source d'image brute potentielle
+        // Extract the potential raw image source.
         const rawArt = item.art?.poster || item.art?.thumb || item.thumbnail;
-        // 💡 Correction : On nettoie l'URL immédiatement pour TOUS les cas de figure
         const cleanedArt = this._cleanKodiUrl(rawArt);
 
-        // 1. Priorité aux Movies (via 'art' ou 'poster')
+        // Movies
         if (cat === CategoryHelper.CATEGORY_MOVIES && item.movieid) {
             if (cleanedArt && cleanedArt.startsWith("http")) {
                 return cleanedArt;
@@ -75,18 +73,18 @@ export class ThumbnailService {
 
             if (!this.kodiEntityId) {
                 console.warn(
-                    "[ThumbnailService] kodiEntityId est undefined, impossible de générer l'URL proxy pour le film",
+                    "[ThumbnailService] kodiEntityId is undefined, cannot generate the proxy URL for the movie",
                 );
                 return "";
             }
             return `/api/media_player_proxy/${this.kodiEntityId}/browse_media/movie/${item.movieid}`;
         }
 
-        // Séries & Épisodes
+        // TV Shows, Seasons & Épisodes || Music Videos
         if (
             (cat === CategoryHelper.CATEGORY_EPISODES && item.episodeid) ||
             (cat === CategoryHelper.CATEGORY_TVSHOWS && item.tvshowid) ||
-            (cat === CategoryHelper.CATEGORY_SEASONS && item.seasonid)
+            (cat === CategoryHelper.CATEGORY_SEASONS && item.seasonid) || (cat === CategoryHelper.CATEGORY_MUSICVIDEOS && item.musicvideoid)
         ) {
             if (cleanedArt && cleanedArt.startsWith("http")) {
                 return cleanedArt;
@@ -101,7 +99,7 @@ export class ThumbnailService {
 
             if (!this.kodiEntityId) {
                 console.warn(
-                    "[ThumbnailService] kodiEntityId est undefined, impossible de générer l'URL proxy pour l'album",
+                    "[ThumbnailService] kodiEntityId is undefined, cannot generate the proxy URL for the album",
                 );
                 return "";
             }
@@ -117,28 +115,24 @@ export class ThumbnailService {
 
             if (!this.kodiEntityId) {
                 console.warn(
-                    "[ThumbnailService] kodiEntityId est undefined, impossible de générer l'URL proxy pour la chanson",
+                    "[ThumbnailService] kodiEntityId is undefined, cannot generate the proxy URL for the song",
                 );
                 return "";
             }
 
-            // Étape clé : Pour une chanson, on utilise le proxy 'track' de HA avec le 'songid'
-            // if (item.songid) {
-            //     return `/api/media_player_proxy/${this.kodiEntityId}/browse_media/track/${String(item.songid)}`;
-            // }
 
-            // Fallback de secours : si Kodi a quand même fourni l'albumid mais pas de songid
+            // Fallback: if Kodi still provided an album ID but no song ID.
             if (item.albumid) {
                 return `/api/media_player_proxy/${this.kodiEntityId}/browse_media/album/${String(item.albumid)}`;
             }
         }
 
-        // 3. Fallback global: On retourne l'art nettoyé s'il existe, sinon le thumbnail brut nettoyé
+        // 3. Global fallback: return the cleaned art if it exists, otherwise the cleaned raw thumbnail.
         return cleanedArt || this._cleanKodiUrl(item.thumbnail);
     }
 
     /**
-     * Charge une miniature et la cache
+     * Loads a thumbnail and caches it.
      */
     public async loadThumbnail(url: string): Promise<string | undefined> {
         if (!url || url === "") return "";
@@ -148,7 +142,7 @@ export class ThumbnailService {
         }
 
         if (this.thumbnailLoadingQueue.has(url)) {
-            console.debug(`[ThumbnailService] URL déjà en cours de chargement, attend: ${url}`);
+            console.debug(`[ThumbnailService] URL is already being loaded, waiting: ${url}`);
             return await this.thumbnailLoadingQueue.get(url);
         }
 
@@ -164,22 +158,21 @@ export class ThumbnailService {
     private async _performLoad(url: string): Promise<string> {
         try {
             if (url.startsWith("http")) {
-                console.debug(`[ThumbnailService] URL distante (HTTP): ${url}`);
+                console.debug(`[ThumbnailService] Remote URL (HTTP): ${url}`);
                 this.thumbnailCache.set(url, url);
                 return url;
             } else if (url.startsWith("/")) {
-                console.debug(`[ThumbnailService] URL locale, conversion base64: ${url}`);
                 const base64 = await this._loadLocalImageAsBase64(url);
                 const result = base64 || "";
                 this.thumbnailCache.set(url, result);
                 return result;
             } else {
-                console.warn(`[ThumbnailService] Format d'URL inconnu ou non nettoyé: ${url}`);
+                console.warn(`[ThumbnailService] Unknown or uncleaned URL format: ${url}`);
                 this.thumbnailCache.set(url, "");
                 return "";
             }
         } catch (error) {
-            console.error(`[ThumbnailService] Erreur lors du chargement de ${url}:`, error);
+            console.error(`[ThumbnailService] Error loading ${url}:`, error);
             this.thumbnailCache.set(url, "");
             return "";
         }
@@ -202,20 +195,20 @@ export class ThumbnailService {
     public clearCache(): void {
         this.thumbnailCache.clear();
         this.thumbnailLoadingQueue.clear();
-        console.debug("[ThumbnailService] Cache et queue nettoyés");
+        console.debug("[ThumbnailService] Cache and queue cleared");
     }
 
     private async _loadLocalImageAsBase64(url: string): Promise<string | undefined> {
         try {
             const response = await this.hass.fetchWithAuth(url);
             if (!response.ok) {
-                console.warn(`[ThumbnailService] Image non accessible (HTTP ${response.status}) pour ${url}`);
+                console.warn(`[ThumbnailService] Image not accessible (HTTP ${response.status}) for ${url}`);
                 return undefined;
             }
             const blob = await response.blob();
             return await this._blobToBase64(blob);
         } catch (error) {
-            console.warn("[ThumbnailService] Échec du chargement via proxy:", error);
+            console.warn("[ThumbnailService] Failed to load via proxy:", error);
             return undefined;
         }
     }
@@ -225,7 +218,7 @@ export class ThumbnailService {
             const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result as string);
             reader.onerror = () => {
-                console.warn("[ThumbnailService] Erreur lors de la lecture du blob");
+                console.warn("[ThumbnailService] Error reading the blob");
                 reject(new Error("Failed to read blob"));
             };
             reader.readAsDataURL(blob);

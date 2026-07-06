@@ -36,6 +36,7 @@ export class CategoryHelper {
             case CategoryHelper.CATEGORY_TVSHOWS:
                 return "2/3";
             case CategoryHelper.CATEGORY_EPISODES:
+            case CategoryHelper.CATEGORY_MUSICVIDEOS:
                 return "16/9";
             default:
                 return "1/1";
@@ -51,7 +52,14 @@ export class CategoryHelper {
     }
 
     static isGridLayout(category: string): boolean {
-        return [CategoryHelper.CATEGORY_ALBUMS, CategoryHelper.CATEGORY_ARTISTS, CategoryHelper.CATEGORY_MOVIES, CategoryHelper.CATEGORY_TVSHOWS, CategoryHelper.CATEGORY_EPISODES].includes(category.toLowerCase());
+        return [
+            CategoryHelper.CATEGORY_ALBUMS,
+            CategoryHelper.CATEGORY_ARTISTS,
+            CategoryHelper.CATEGORY_MOVIES,
+            CategoryHelper.CATEGORY_MUSICVIDEOS,
+            CategoryHelper.CATEGORY_TVSHOWS,
+            CategoryHelper.CATEGORY_EPISODES,
+        ].includes(category.toLowerCase());
     }
 
     static isContainerCategory(category: string): boolean {

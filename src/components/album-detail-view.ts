@@ -2,7 +2,7 @@
  * ============================================================================
  * ALBUM DETAIL VIEW - Architecture simplifiée
  * ============================================================================
- * * Délègue entièrement la gestion des images au composant intelligent
+ * * Fully delegates image handling to the intelligent component.
  * <kodi-item-thumbnail>.
  */
 
@@ -152,12 +152,12 @@ export class AlbumDetailView extends LitElement {
     private _renderDetailedAlbumRow(album: SearchResultItem) {
         const icon = CategoryHelper.getCategoryIcon("albums");
 
-        // Détermination de l'icône et du titre selon les contrôles globaux
+        // Determine the icon and title based on the global controls.
         const actionIcon = this.searchAction === "add" ? "mdi:plus" : "mdi:play";
         const actionTitle = this.searchAction === "add" ? "Ajouter l'album" : "Jouer l'album";
         const songActionTitle = this.searchAction === "add" ? "Ajouter la chanson" : "Jouer la chanson";
 
-        // Action au clic sur la pochette de l'album
+        // Action on album cover click.
         const handleAlbumClick = (e: Event) => {
             e.stopPropagation();
             this.dispatchEvent(
@@ -193,7 +193,7 @@ export class AlbumDetailView extends LitElement {
                 <div class="album-detailed-songs-list">
                     ${album.songs && album.songs.length > 0
                         ? album.songs.map((song, index) => {
-                              // Action au clic sur l'icône de la chanson
+                              // Action on song icon click.
                               const handleSongClick = (e: Event) => {
                                   e.stopPropagation();
                                   this.dispatchEvent(
@@ -222,7 +222,7 @@ export class AlbumDetailView extends LitElement {
                                   </div>
                               `;
                           })
-                        : html`<div class="no-songs-msg">Aucun morceau trouvé ou format non supporté</div>`}
+                        : html`<div class="no-songs-msg">No tracks found or format not supported</div>`}
                 </div>
             </div>
         `;

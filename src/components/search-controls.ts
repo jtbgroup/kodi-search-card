@@ -111,7 +111,7 @@ export class SearchControls extends LitElement {
                     <input
                         type="text"
                         .value="${this.query}"
-                        placeholder="Rechercher sur Kodi..."
+                        placeholder="Search on Kodi..."
                         @input="${this._handleInputChange}"
                         @keydown="${this._handleKeyDown}" />
                     <ha-icon
@@ -129,13 +129,13 @@ export class SearchControls extends LitElement {
                                       class="action-btn ${this.searchAction === "play" ? "active" : ""}"
                                       @click="${() => this._handleActionChange("play")}">
                                       <ha-icon icon="mdi:play"></ha-icon>
-                                      <span>Jouer</span>
+                                      <span>Play</span>
                                   </div>
                                   <div
                                       class="action-btn ${this.searchAction === "add" ? "active" : ""}"
                                       @click="${() => this._handleActionChange("add")}">
                                       <ha-icon icon="mdi:plus"></ha-icon>
-                                      <span>Ajouter</span>
+                                      <span>Add</span>
                                   </div>
                               `
                             : html``}
@@ -151,7 +151,7 @@ export class SearchControls extends LitElement {
                                           this.dispatchEvent(
                                               new CustomEvent("navigate", { detail: "recently_played" }),
                                           )}"
-                                      title="Récemment écouté"></ha-icon>
+                                      title="Recently played"></ha-icon>
                               `
                             : html``}
                         ${this.showRecentlyAdded
@@ -163,7 +163,7 @@ export class SearchControls extends LitElement {
                                           this.dispatchEvent(
                                               new CustomEvent("navigate", { detail: "recently_added" }),
                                           )}"
-                                      title="Nouveautés"></ha-icon>
+                                      title="Recently added"></ha-icon>
                               `
                             : html``}
                         ${this.showCurrentArtist
@@ -175,7 +175,7 @@ export class SearchControls extends LitElement {
                                           this.dispatchEvent(
                                               new CustomEvent("navigate", { detail: "current_artist" }),
                                           )}"
-                                      title="Artiste actuel"></ha-icon>
+                                      title="Current artist"></ha-icon>
                               `
                             : html``}
                     </div>
@@ -184,9 +184,9 @@ export class SearchControls extends LitElement {
         `;
     }
 
-    // Nouvelle méthode d'aide à ajouter dans la classe SearchControls :
+    // New helper method to add to the SearchControls class:
     private _handleClear(): void {
-        this.query = ""; // Vide le champ texte localement
+        this.query = ""; // Clear the text field locally.
         this.dispatchEvent(new CustomEvent("clear", { bubbles: true, composed: true }));
     }
 

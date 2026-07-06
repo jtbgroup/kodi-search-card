@@ -31,8 +31,9 @@ export class KodiSearchCard extends LitElement {
     private _searchService?: SearchService;
     private _thumbnailService?: ThumbnailService;
 
+
     public static async getConfigElement(): Promise<LovelaceCardEditor> {
-        return document.createElement("kodi-search-card-editor");
+        return document.createElement("kodi-search-card-editor") as LovelaceCardEditor;
     }
 
     static getStubConfig(): Record<string, string> {
@@ -112,7 +113,7 @@ export class KodiSearchCard extends LitElement {
 
     public setConfig(config: KodiSearchCardConfig): void {
         if (!config || !config.entity) {
-            throw new Error("L'entité de configuration Kodi est requise");
+            throw new Error("The Kodi configuration entity is required");
         }
         this._config = config;
     }
@@ -152,12 +153,11 @@ export class KodiSearchCard extends LitElement {
         if (!this.hass || !this._config?.entity) return;
 
         const state = this.hass.states[this._config.entity];
-        console.log("State of the configured entity:", state);
         if (state && state.attributes.config_entry_id) {
             this._resolvedEntryId = state.attributes.config_entry_id;
             this._resolvedKodiEntityId = state.attributes.kodi_entity_id;
         } else {
-            console.error("L'entité sélectionnée n'a pas les attributs requis.");
+            console.error("The selected entity does not have the required attributes.");
         }
         this._searchAction = this._config?.action_mode ?? "play";
     }
@@ -182,7 +182,6 @@ export class KodiSearchCard extends LitElement {
 
         try {
             this._results = await this._searchService.search(this._query);
-            console.log("search results: ", this._results);
         } catch (error) {
             console.error("Search error:", error);
             this._results = {};
@@ -205,7 +204,7 @@ export class KodiSearchCard extends LitElement {
                 const artistInfo = this._getCurrentArtistInfo();
 
                 if (!artistInfo.id) {
-                    console.warn("No artist currently playing");
+                    console.warn("No artist is currently playing");
                     return;
                 }
 
@@ -231,7 +230,7 @@ export class KodiSearchCard extends LitElement {
         this._tvShowName = "";
     }
 
-    // This method coordiantes the actions to perform. Each submethod must manage the card behaviour such as th boolean  this._isArtistView
+    // This method coordinates the actions to perform. Each submethod must manage the card behavior, such as the boolean this._isArtistView.
     private _handleSearchControls(e: CustomEvent): void {
         const type = e.type;
 
@@ -250,7 +249,7 @@ export class KodiSearchCard extends LitElement {
 
         const { item, category } = e.detail;
         if (!item) {
-            console.error("L'événement ne contient aucune donnée dans e.detail", e);
+            console.error("The event does not contain any data in e.detail", e);
             return;
         }
 
@@ -264,7 +263,7 @@ export class KodiSearchCard extends LitElement {
             return;
         }
 
-        // ===== LOGIQUE PLAY/ADD pour les autres catégories =====
+        // ===== PLAY/ADD LOGIC FOR THE OTHER CATEGORIES =====
         let id: string | number | undefined;
         let itemName: string | undefined;
 
@@ -288,6 +287,9 @@ export class KodiSearchCard extends LitElement {
             } else if (item.movieid !== undefined) {
                 id = item.movieid;
                 itemName = "movieid";
+             } else if (item.musicvideoid !== undefined) {
+                id = item.musicvideoid;
+                itemName = "musicvideoid";
             } else if (item.episodeid !== undefined) {
                 id = item.episodeid;
                 itemName = "episodeid";
@@ -303,19 +305,19 @@ export class KodiSearchCard extends LitElement {
         if (itemName !== "filemusicplaylist" && id !== undefined) {
             const parsed = parseInt(String(id), 10);
             if (isNaN(parsed)) {
-                console.error(`Impossible d'exécuter l'action : item_id (${id}) n'est pas un entier valide.`);
+                console.error(`Unable to execute the action: item_id (${id}) is not a valid integer.`);
                 return;
             }
             id = parsed;
         }
 
         if (id === undefined || !itemName) {
-            console.error("Impossible de déterminer l'identifiant ou le type de l'élément", item);
+            console.error("Unable to determine the item identifier or type", item);
             return;
         }
 
         if (!this._resolvedEntryId) {
-            console.error("Données d'authentification (entry_id) manquantes. L'intégration n'est pas prête.");
+            console.error("Authentication data (entry_id) is missing. The integration is not ready.");
             return;
         }
 
@@ -335,9 +337,8 @@ export class KodiSearchCard extends LitElement {
 
         try {
             await this.hass.connection.sendMessagePromise(servicePayload);
-            console.log(`Action WebSocket [${wsType}] exécutée avec succès :`, servicePayload);
         } catch (err) {
-            console.error(`Erreur WebSocket retournée par Home Assistant pour [${wsType}] :`, err);
+            console.error(`WebSocket error returned by Home Assistant for [${wsType}]:`, err);
         }
     };
 
@@ -345,10 +346,10 @@ export class KodiSearchCard extends LitElement {
         if (!this._searchService || !item.tvshowid) return;
 
         try {
-            // On suppose que le searchService possède une méthode pour récupérer les saisons d'une série
+            // Assume that the searchService has a method to retrieve a TV show's seasons.
             this._results = await this._searchService.searchTvShow(item.tvshowid);
             this._isTvShowView = true;
-            this._tvShowName = item.title || item.label || "Série TV";
+            this._tvShowName = item.title || item.label || "TV show";
         } catch (e) {
             this._isTvShowView = false;
             console.error("Error drilling down TV show:", e);

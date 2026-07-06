@@ -34,7 +34,7 @@ export function buildMetadataString(item: SearchResultItem, category: string): s
         return `${showtitle} (S${season}:E${episode})`;
     }
 
-    if (itemType === CategoryHelper.CATEGORY_ALBUMS) {
+    if (itemType === CategoryHelper.CATEGORY_ALBUMS || itemType === CategoryHelper.CATEGORY_MUSICVIDEOS  ) {
         if (item.artist) {
             return Array.isArray(item.artist) ? item.artist.join(", ") : item.artist;
         }
@@ -78,7 +78,6 @@ export function getItemIcon(item: SearchResultItem): string {
 
         if (Array.isArray(color)) {
             const newColor = `rgb(${color.join(",")})`;
-            console.log("Converted array color to:", newColor);
             return newColor;
         }
         return color;

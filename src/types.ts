@@ -1,7 +1,7 @@
 import { LovelaceCardConfig } from "custom-card-helpers";
 
 /**
- * Résultats de recherche Kodi
+ * Kodi search results.
  */
 export interface SearchResults {
     movies?: SearchResultItem[];
@@ -18,7 +18,7 @@ export interface SearchResults {
 }
 
 /**
- * Élément de résultat de recherche
+ * Search result item.
  */
 export interface SearchResultItem {
     title?: string;
@@ -39,16 +39,17 @@ export interface SearchResultItem {
     genre?: string | string[];
     file?: string;
     
-    // Partie Musique existante
+    // Existing music section.
     songs?: SearchResultItem[];
     songid?: number | string;
     
-    // Partie Vidéo / TV existante & nouvelle
+    // Existing and new video/TV section.
     movieid?: number | string;
     tvshowid?: number | string;
     seasonid?: number | string;   
     episodeid?: number | string;
     showtitle?: string;
+    musicvideoid?: number | string;
     
     season?: number;             
     episode?: number;             
@@ -57,7 +58,7 @@ export interface SearchResultItem {
     channelid?: number | string;
 }
 /**
- * Payload de l'événement item-click
+ * Payload for the item-click event.
  */
 export interface ItemClickDetail {
     item: SearchResultItem;
@@ -65,7 +66,7 @@ export interface ItemClickDetail {
 }
 
 /**
- * Configuration de la carte - Toutes les options supportées
+ * Card configuration - all supported options.
  */
 export interface KodiSearchCardConfig extends LovelaceCardConfig {
     action_mode?: "play" | "add";
@@ -85,19 +86,19 @@ export interface KodiSearchCardConfig extends LovelaceCardConfig {
 }
 
 /**
- * Valeurs de configuration par défaut
+ * Default configuration values.
  */
 export const DEFAULT_CONFIG: Readonly<Partial<KodiSearchCardConfig>> = {
     title: "Kodi Search",
 };
 
 /**
- * Type de champ éditeur
+ * Editor field type.
  */
 export type EditorFieldType = "text" | "number" | "boolean" | "color" | "select";
 
 /**
- * Option pour les champs de type select
+ * Option for select-type fields.
  */
 export interface EditorOption {
     label: string;
@@ -105,7 +106,7 @@ export interface EditorOption {
 }
 
 /**
- * Définition de champ éditeur
+ * Editor field definition.
  */
 export interface EditorField {
     key: keyof KodiSearchCardConfig;

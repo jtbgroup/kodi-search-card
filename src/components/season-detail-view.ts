@@ -52,7 +52,7 @@ export class SeasonDetailView extends LitElement {
                 text-align: center;
             }
 
-            /* Format d'affiche verticale (2/3) pour les séries/saisons */
+            /* Vertical display format (2/3) for series/seasons. */
             .season-detailed-thumb-container kodi-item-thumbnail {
                 width: 110px;
                 height: 155px;
@@ -173,7 +173,7 @@ export class SeasonDetailView extends LitElement {
                                   );
                               };
 
-                              // Formatage conforme à l'image :ex: "1x01. Noël mortel"
+                              // Formatting matching the image, e.g. "1x01. Fatal Christmas"
                               const seasonNum = episode.season ?? season.season ?? 1;
                               const episodeNum = String(episode.episode ?? "").padStart(2, "0");
                               const displayTitle = episode.episode

@@ -24,7 +24,7 @@ export class CategoryHelper {
             case CategoryHelper.CATEGORY_TVSHOWS:
                 return "mdi:television-classic";
             case CategoryHelper.CATEGORY_MUSICVIDEOS:
-                return "mdi:video-music";
+                return "mdi:video-box";
             default:
                 return "mdi:play-circle";
         }

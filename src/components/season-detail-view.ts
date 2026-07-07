@@ -77,7 +77,7 @@ export class SeasonDetailView extends LitElement {
             .episode-item {
                 display: flex;
                 align-items: center;
-                padding: 6px 8px;
+                padding: 3px 5px;
                 border-radius: 4px;
                 transition: background 0.2s;
                 border-bottom: 1px solid #252525;
@@ -91,7 +91,7 @@ export class SeasonDetailView extends LitElement {
                 flex-grow: 1;
                 color: #ffffff;
                 font-size: 0.9rem;
-                white-space: nowrap;
+                white-space: normal;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }

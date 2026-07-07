@@ -90,7 +90,7 @@ export class AlbumDetailView extends LitElement {
             .album-song-item {
                 display: flex;
                 align-items: center;
-                padding: 6px 8px;
+                padding: 3px 5px;
                 border-radius: 4px;
                 transition: background 0.2s;
                 border-bottom: 1px solid #252525;
@@ -111,7 +111,7 @@ export class AlbumDetailView extends LitElement {
                 flex-grow: 1;
                 color: #ffffff;
                 font-size: 0.9rem;
-                white-space: nowrap;
+                white-space: normal;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
@@ -154,8 +154,8 @@ export class AlbumDetailView extends LitElement {
 
         // Determine the icon and title based on the global controls.
         const actionIcon = this.searchAction === "add" ? "mdi:plus" : "mdi:play";
-        const actionTitle = this.searchAction === "add" ? "Ajouter l'album" : "Jouer l'album";
-        const songActionTitle = this.searchAction === "add" ? "Ajouter la chanson" : "Jouer la chanson";
+        const actionTitle = this.searchAction === "add" ? "Add album" : "Play album";
+        const songActionTitle = this.searchAction === "add" ? "Add Song" : "Play song";
 
         // Action on album cover click.
         const handleAlbumClick = (e: Event) => {

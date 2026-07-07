@@ -419,19 +419,14 @@ export class KodiSearchCard extends LitElement {
         const sortMethod = this._config?.album_details_sort ?? DEFAULT_ALBUM_DETAILS_SORT;
         if (!this._results) return;
 
-        // 1. On cherche où se trouve le tableau d'albums de manière sécurisée pour TS
-        // On regarde d'abord à la racine, sinon dans la propriété .results
         const rawAlbums = this._results.albums || (this._results as any).results?.albums;
 
         if (!Array.isArray(rawAlbums)) {
-            console.log("→ STOP : Impossible de trouver le tableau d'albums.");
             return;
         }
 
-        // 2. On crée une copie propre du tableau pour le trier
         const albumsCopy = [...rawAlbums] as SearchResultItem[];
 
-        // 3. On applique le tri
         switch (sortMethod) {
             case ALBUM_SORT.title_asc.id:
                 albumsCopy.sort((a, b) =>
@@ -457,7 +452,6 @@ export class KodiSearchCard extends LitElement {
                 return;
         }
 
-        // 4. On réinjecte le tableau trié au bon endroit dans une copie de l'état d'origine
         if (this._results.albums) {
             this._results = {
                 ...this._results,
@@ -487,7 +481,6 @@ export class KodiSearchCard extends LitElement {
             statusClass = "fixed-orange";
         }
 
-        console.log(this._results);
         if (this._isArtistView) {
             this._sortAlbums();
         }

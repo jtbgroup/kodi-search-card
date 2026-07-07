@@ -45,7 +45,7 @@ export class ResultsContainer extends LitElement {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                border-bottom: 2px solid #333;
+                border-bottom: 2px solid var(--accent-color, #333);
                 padding-bottom: 6px;
                 margin: 16px 0 12px 0;
                 color: #ffffff;
@@ -57,6 +57,10 @@ export class ResultsContainer extends LitElement {
             .category-header ha-icon {
                 --mdc-icon-size: 18px;
                 opacity: 0.7;
+                color: var(--accent-color, #03a9f4);
+            }
+
+            .category-header span {
                 color: var(--accent-color, #03a9f4);
             }
 

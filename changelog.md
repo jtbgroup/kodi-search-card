@@ -1,5 +1,12 @@
 # SEARCH CARD - Changelog
 
+## 5.0.0
+
+***BREAKING CHANGES***
+
+This new version needs the kodi-media-sensor integration v6.0.0.
+To avoid issues, delete the card and reinstall it.
+
 ## 4.0.2
 
 - Fixed [Issue #19](https://github.com/jtbgroup/kodi-search-card/issues/19)

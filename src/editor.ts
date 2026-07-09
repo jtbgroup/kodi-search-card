@@ -25,6 +25,10 @@ export class KodiSearchCardEditor extends LitElement implements LovelaceCardEdit
             selector: { text: {} },
         },
         {
+            name: "show_version",
+            selector: { boolean: {} },
+        },
+        {
             type: "grid",
             name: "",
             schema: [
@@ -86,6 +90,7 @@ export class KodiSearchCardEditor extends LitElement implements LovelaceCardEdit
             action_mode: "Action Mode",
             album_details_sort: "Album Sort Order",
             add_position: "Add Position (if action = Add)",
+            show_version: "Show card version"
         };
         return labels[schema.name] ?? schema.name;
     };

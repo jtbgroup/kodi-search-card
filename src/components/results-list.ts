@@ -1,9 +1,9 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html, css, CSSResultGroup } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { SearchResultItem, ItemClickDetail } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
-import { CategoryHelper } from "../services/category-helper";
-import { buildMetadataString, formatDuration, formatGenre } from "../utils/formatters";
+import { buildMetadataString, formatDuration, formatGenre, getActionIcon, getCategoryIcon } from "../utils/formatters";
+import { resultListCSS } from "../styles/results-list.style";
 
 @customElement("kodi-results-list")
 export class ResultsList extends LitElement {
@@ -16,81 +16,8 @@ export class ResultsList extends LitElement {
     @property({ type: Boolean }) showThumbnailBorder? = true;
     @property({ type: String }) outlineColor="var(--divider-color)";
 
-    // @property() imageUpdateCounter = 0;
-
-    static get styles() {
-        return css`
-            :host {
-                display: block;
-            }
-
-            .results-list {
-                list-style: none;
-                padding: 0;
-                margin: 0;
-            }
-
-            .list-item {
-                display: flex;
-                align-items: center;
-                padding: 10px 0;
-                border-bottom: 1px solid #252525;
-                cursor: pointer;
-                gap: 12px;
-            }
-
-            .list-item:last-child {
-                border-bottom: none;
-            }
-
-            .list-item:hover {
-                opacity: 0.8;
-                background: var(--secondary-background-color);
-            }
-
-            .item-info {
-                display: flex;
-                flex-direction: column;
-                flex: 1;
-                overflow: hidden;
-            }
-
-            .item-title {
-                color: var(--secondary-text-color);
-                font-weight: 500;
-                font-size: 0.95rem;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .item-genre {
-                font-style: italic;
-                margin-top: 2px;
-                font-size: 0.8rem;
-                color: var(--secondary-text-color);
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .item-subtext {
-                color: #8a8a8a;
-                font-size: 0.8rem;
-                margin-top: 2px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .item-duration {
-                color: #8a8a8a;
-                font-size: 0.8rem;
-                font-family: monospace;
-                margin-left: 12px;
-                flex-shrink: 0;
-            }
-        `;
+    static get styles(): CSSResultGroup {
+        return [resultListCSS];
     }
 
     protected render() {
@@ -105,9 +32,9 @@ export class ResultsList extends LitElement {
         const title = item.title || item.name || item.label || "";
         const genre = item.genre ? formatGenre(item.genre) : "";
         const subtext = buildMetadataString(item, this.category);
-        const icon = CategoryHelper.getCategoryIcon(this.category);
+        const icon = getCategoryIcon(this.category);
 
-        let actionIcon = CategoryHelper.getActionIcon(this.category, this.searchAction);
+        let actionIcon = getActionIcon(this.category, this.searchAction);
         if (this.category === "artists" || this.category === "tvshow") {
             actionIcon = "mdi:information";
         }

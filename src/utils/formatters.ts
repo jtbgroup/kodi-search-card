@@ -1,5 +1,5 @@
 // src/utils/formatters.ts
-import { CategoryHelper } from "../services/category-helper";
+import { CATEGORY_ALBUMS, CATEGORY_ARTISTS, CATEGORY_EPISODES, CATEGORY_MOVIES, CATEGORY_MUSICVIDEOS, CATEGORY_SONGS, CATEGORY_TVSHOWS } from "../const";
 import { SearchResultItem } from "../types";
 
 export function formatDuration(seconds: number | undefined): string {
@@ -12,7 +12,7 @@ export function formatDuration(seconds: number | undefined): string {
 export function buildMetadataString(item: SearchResultItem, category: string): string {
     const itemType = category;
 
-    if (itemType === CategoryHelper.CATEGORY_SONGS || itemType === "musics") {
+    if (itemType === CATEGORY_SONGS || itemType === "musics") {
         const parts: string[] = [];
 
         if (item.year) {
@@ -27,20 +27,20 @@ export function buildMetadataString(item: SearchResultItem, category: string): s
         return parts.length > 0 ? parts.join(" • ") : category;
     }
 
-    if (itemType === CategoryHelper.CATEGORY_EPISODES) {
+    if (itemType === CATEGORY_EPISODES) {
         const showtitle = item.showtitle;
         const season = item.season ?? "?";
         const episode = item.episode ?? "?";
         return `${showtitle} (S${season}:E${episode})`;
     }
 
-    if (itemType === CategoryHelper.CATEGORY_ALBUMS || itemType === CategoryHelper.CATEGORY_MUSICVIDEOS) {
+    if (itemType === CATEGORY_ALBUMS || itemType === CATEGORY_MUSICVIDEOS) {
         if (item.artist) {
             return Array.isArray(item.artist) ? item.artist.join(", ") : item.artist;
         }
         return "";
     }
-    if (itemType === CategoryHelper.CATEGORY_MOVIES) {
+    if (itemType === CATEGORY_MOVIES) {
         if (item.genre) {
             return `${item.genre}`;
         }
@@ -67,4 +67,62 @@ export function convertOutlineColor(color: string): string {
     }
     return color;
 }
+
+
+
+    export function getCategoryIcon(category: string): string {
+        switch (category.toLowerCase()) {
+            case CATEGORY_SONGS:
+                return "mdi:music";
+            case CATEGORY_ALBUMS:
+                return "mdi:album";
+            case CATEGORY_ARTISTS:
+                return "mdi:account-music";
+            case CATEGORY_MOVIES:
+            case CATEGORY_EPISODES:
+                return "mdi:movie-open";
+            case CATEGORY_TVSHOWS:
+                return "mdi:television-classic";
+            case CATEGORY_MUSICVIDEOS:
+                return "mdi:video-box";
+            default:
+                return "mdi:play-circle";
+        }
+    }
+
+    export function getThumbnailAspectRatio(category: string): string {
+        switch (category.toLowerCase()) {
+            case CATEGORY_MOVIES:
+            case CATEGORY_TVSHOWS:
+                return "2/3";
+            case CATEGORY_EPISODES:
+            case CATEGORY_MUSICVIDEOS:
+                return "16/9";
+            default:
+                return "1/1";
+        }
+    }
+
+    export function getActionIcon(category: string, searchAction: "play" | "add"): string {
+        const categoriesToNavigate = ["tvshows", "artists"];
+        if (categoriesToNavigate.includes(category.toLowerCase())) {
+            return "mdi:menu";
+        }
+        return searchAction === "play" ? "mdi:play" : "mdi:plus";
+    }
+
+    export function isGridLayout(category: string): boolean {
+        return [
+            CATEGORY_ALBUMS,
+            CATEGORY_ARTISTS,
+            CATEGORY_MOVIES,
+            CATEGORY_MUSICVIDEOS,
+            CATEGORY_TVSHOWS,
+            CATEGORY_EPISODES,
+        ].includes(category.toLowerCase());
+    }
+
+    export function isContainerCategory(category: string): boolean {
+        return [CATEGORY_TVSHOWS, CATEGORY_ARTISTS].includes(category.toLowerCase());
+    }
 

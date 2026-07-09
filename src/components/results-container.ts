@@ -1,12 +1,13 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html, css, CSSResultGroup } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { SearchResults, SearchResultItem, ItemClickDetail } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
-import { CategoryHelper } from "../services/category-helper";
 import "./results-grid";
 import "./results-list";
 import "./album-detail-view";
 import "./season-detail-view"; // Make sure the file is in the same folder.
+import { getCategoryIcon, isGridLayout } from "../utils/formatters";
+import { resultContainerCSS } from "../styles/results-container.style";
 
 @customElement("kodi-results-container")
 export class ResultsContainer extends LitElement {
@@ -26,52 +27,8 @@ export class ResultsContainer extends LitElement {
     @property({ type: String }) albumDetailsSort = "default";
     @property({ type: Array }) mediaTypeOrder: string[] = [];
 
-    static get styles() {
-        return css`
-            :host {
-                display: block;
-            }
-
-            .results-wrapper {
-                background-color: #141414;
-                padding: 0 16px 16px 16px;
-            }
-
-            .category-section {
-                margin-bottom: 24px;
-            }
-
-            .category-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                border-bottom: 2px solid var(--accent-color, #333);
-                padding-bottom: 6px;
-                margin: 16px 0 12px 0;
-                color: #ffffff;
-                font-size: 0.95rem;
-                font-weight: 600;
-                letter-spacing: 0.5px;
-            }
-
-            .category-header ha-icon {
-                --mdc-icon-size: 18px;
-                opacity: 0.7;
-                color: var(--accent-color, #03a9f4);
-            }
-
-            .category-header span {
-                color: var(--accent-color, #03a9f4);
-            }
-
-            .no-results-msg {
-                color: #8a8a8a;
-                text-align: center;
-                padding: 32px;
-                font-size: 0.95rem;
-                background-color: #141414;
-            }
-        `;
+    static get styles(): CSSResultGroup {
+        return [resultContainerCSS];
     }
 
     protected render() {
@@ -105,7 +62,6 @@ export class ResultsContainer extends LitElement {
 
     private _renderSection(category: string, items: SearchResultItem[]) {
         const categoryLower = category.toLowerCase();
-        
 
         // 1. Detailed view: ARTIST -> Albums/Songs
         if (this.isArtistView && categoryLower === "albums") {
@@ -150,8 +106,8 @@ export class ResultsContainer extends LitElement {
         }
 
         // 3. Standard view for the other categories (global search)
-        const isGridLayout = CategoryHelper.isGridLayout(category);
-        const sectionIcon = CategoryHelper.getCategoryIcon(category);
+        const isGrid = isGridLayout(category);
+        const sectionIcon = getCategoryIcon(category);
 
         return html`
             <div class="category-section">
@@ -159,7 +115,7 @@ export class ResultsContainer extends LitElement {
                     <span>${category.toUpperCase()}</span>
                     <ha-icon icon="${sectionIcon}"></ha-icon>
                 </h3>
-                ${isGridLayout
+                ${isGrid
                     ? html`
                           <kodi-results-grid
                               .items="${items}"

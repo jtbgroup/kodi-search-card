@@ -1,9 +1,9 @@
-import { LitElement, html, css } from "lit";
+import { LitElement, html, css, CSSResultGroup } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { SearchResultItem, ItemClickDetail } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
-import { CategoryHelper } from "../services/category-helper";
-import { buildMetadataString } from "../utils/formatters";
+import { buildMetadataString, getActionIcon, getCategoryIcon, getThumbnailAspectRatio, isContainerCategory } from "../utils/formatters";
+import { resultGridCSS } from "../styles/results-grid.style";
 
 @customElement("kodi-results-grid")
 export class ResultsGrid extends LitElement {
@@ -16,52 +16,8 @@ export class ResultsGrid extends LitElement {
          @property({ type: Boolean }) showThumbnailBorder? = true;
     @property({ type: String }) outlineColor="var(--divider-color)";
 
-    static get styles() {
-        return css`
-            :host {
-                display: block;
-            }
-
-            .results-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-                gap: 16px;
-                padding-top: 4px;
-            }
-
-            .grid-card {
-                display: flex;
-                flex-direction: column;
-                cursor: pointer;
-            }
-
-            .grid-card:hover {
-                opacity: 0.8;
-            }
-
-            .grid-title {
-                color: #ffffff;
-                font-size: 0.85rem;
-                font-weight: 500;
-                line-height: 1.2;
-                max-height: 2.4em;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                margin-top: 8px;
-            }
-
-            .grid-meta {
-                color: #8a8a8a;
-                font-size: 0.75rem;
-                margin-top: 2px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-        `;
+    static get styles(): CSSResultGroup {
+        return [resultGridCSS];
     }
 
     protected render() {
@@ -69,13 +25,13 @@ export class ResultsGrid extends LitElement {
     }
 
     private _renderGridItem(item: SearchResultItem) {
-        const icon = CategoryHelper.getCategoryIcon(this.category);
-        const isContainer = CategoryHelper.isContainerCategory(this.category);
+        const icon = getCategoryIcon(this.category);
+        const isContainer = isContainerCategory(this.category);
 
-        const ratio = CategoryHelper.getThumbnailAspectRatio(this.category);
+        const ratio = getThumbnailAspectRatio(this.category);
         const customStyle = `--thumb-ratio: ${ratio}`;
 
-        let actionIcon = CategoryHelper.getActionIcon(this.category, this.searchAction);
+        let actionIcon = getActionIcon(this.category, this.searchAction);
         if (this.category === "artists" || this.category === "tvshow") {
             actionIcon = "mdi:information";
         }

@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 5.0.1
+
+- Code clean up
+
 ## 5.0.0
 
 ***BREAKING CHANGES***
@@ -12,7 +16,6 @@ To avoid issues, delete the card and reinstall it.
 - Fixed [Issue #19](https://github.com/jtbgroup/kodi-search-card/issues/19)
 - Fixed [Issue #20](https://github.com/jtbgroup/kodi-search-card/issues/20)
 - dependencies updated
--
 
 ## 3.8.1
 

@@ -1,5 +1,5 @@
 import { HomeAssistant } from "custom-card-helpers";
-import { CategoryHelper } from "./category-helper";
+import { CATEGORY_ALBUMS, CATEGORY_EPISODES, CATEGORY_MOVIES, CATEGORY_MUSICVIDEOS, CATEGORY_SEASONS, CATEGORY_SONGS, CATEGORY_TVSHOWS } from "../const";
 
 export interface SearchResultItem {
     movieid?: string | number;
@@ -66,7 +66,7 @@ export class ThumbnailService {
         const cleanedArt = this._cleanKodiUrl(rawArt);
 
         // Movies
-        if (cat === CategoryHelper.CATEGORY_MOVIES && item.movieid) {
+        if (cat === CATEGORY_MOVIES && item.movieid) {
             if (cleanedArt && cleanedArt.startsWith("http")) {
                 return cleanedArt;
             }
@@ -82,9 +82,9 @@ export class ThumbnailService {
 
         // TV Shows, Seasons & Épisodes || Music Videos
         if (
-            (cat === CategoryHelper.CATEGORY_EPISODES && item.episodeid) ||
-            (cat === CategoryHelper.CATEGORY_TVSHOWS && item.tvshowid) ||
-            (cat === CategoryHelper.CATEGORY_SEASONS && item.seasonid) || (cat === CategoryHelper.CATEGORY_MUSICVIDEOS && item.musicvideoid)
+            (cat === CATEGORY_EPISODES && item.episodeid) ||
+            (cat === CATEGORY_TVSHOWS && item.tvshowid) ||
+            (cat === CATEGORY_SEASONS && item.seasonid) || (cat === CATEGORY_MUSICVIDEOS && item.musicvideoid)
         ) {
             if (cleanedArt && cleanedArt.startsWith("http")) {
                 return cleanedArt;
@@ -92,7 +92,7 @@ export class ThumbnailService {
         }
 
         // 2a. Musique : Albums complets
-        if (cat === CategoryHelper.CATEGORY_ALBUMS && item.albumid) {
+        if (cat === CATEGORY_ALBUMS && item.albumid) {
             if (cleanedArt && cleanedArt.startsWith("http")) {
                 return cleanedArt;
             }
@@ -107,7 +107,7 @@ export class ThumbnailService {
         }
 
         // 2b. Musique : Chansons / Morceaux individuels (Songs)
-        if (cat === CategoryHelper.CATEGORY_SONGS) {
+        if (cat === CATEGORY_SONGS) {
             // Si l'image est déjà une URL internet directe résolue, on l'utilise directement
             if (cleanedArt && cleanedArt.startsWith("http")) {
                 return cleanedArt;

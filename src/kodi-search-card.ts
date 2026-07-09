@@ -1,7 +1,7 @@
 import "./editor";
 import "./components/search-controls";
 import "./components/results-container";
-import { LitElement, html, css, PropertyValues } from "lit";
+import { LitElement, html, css, PropertyValues, CSSResultGroup } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { HomeAssistant, LovelaceCardEditor } from "custom-card-helpers";
 import { KodiSearchCardConfig, SearchResults, SearchResultItem, ItemClickDetail } from "./types";
@@ -21,7 +21,10 @@ import {
     DEFAULT_SHOW_THUMBNAIL_BORDER,
     DEFAULT_SHOW_THUMBNAIL_OVERLAY,
     ALBUM_SORT,
+    DEFAULT_SHOW_VERSION,
+    CARD_VERSION,
 } from "./const";
+import { kodiSearchCardCSS } from "./styles/kodi-search-card.style";
 
 @customElement("kodi-search-card")
 export class KodiSearchCard extends LitElement {
@@ -63,78 +66,13 @@ export class KodiSearchCard extends LitElement {
             action_mode: DEFAULT_ACTION_MODE,
             add_position: DEFAULT_ADD_POSITION,
             order: DEFAULT_MEDIA_TYPE_ORDER,
+            show_version: DEFAULT_SHOW_VERSION,
         };
     }
 
-    static get styles() {
-        return css`
-            :host {
-                display: block;
-                background: var(--ha-card-background, var(--card-background-color, #ffffff));
-                border-radius: var(--ha-card-border-radius, 12px);
-                border: 1px solid var(--divider-color);
-                overflow: hidden;
-            }
-
-            .card-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 16px;
-            }
-
-            .card-title {
-                margin: 0;
-                font-size: 1.25rem;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-
-            .kodi-icon {
-                color: var(--accent-color);
-            }
-
-            @keyframes pulse-dot {
-                0%,
-                100% {
-                    opacity: 1;
-                }
-                50% {
-                    opacity: 0.3;
-                }
-            }
-
-            .status-dot {
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-                transition: background 0.3s ease;
-            }
-
-            .status-dot.fixed-green {
-                background: var(--success-color);
-            }
-
-            .status-dot.fixed-orange {
-                background: var(--warning-color);
-            }
-
-            .status-dot.fixed-red {
-                background: var(--error-color);
-            }
-
-            .status-dot.flashing-green {
-                background: var(--success-color);
-                animation: pulse-dot 1s infinite;
-            }
-
-            .search-content {
-                background-color: #141414;
-            }
-        `;
+   static get styles(): CSSResultGroup {
+        return [kodiSearchCardCSS];
     }
-
     public setConfig(config: KodiSearchCardConfig): void {
         if (!config || !config.entity) {
             throw new Error("The Kodi configuration entity is required");
@@ -470,6 +408,7 @@ export class KodiSearchCard extends LitElement {
 
     protected render() {
         let statusClass = "fixed-green";
+        const showVersion = this._config?.show_version ?? false;
 
         if (this._sensorState === "off") {
             statusClass = "fixed-red";
@@ -536,6 +475,7 @@ export class KodiSearchCard extends LitElement {
                       `
                     : html``}
             </div>
+             ${showVersion ? html` <div class="version-footer">Version: ${CARD_VERSION}</div> ` : ""}
         `;
     }
 }

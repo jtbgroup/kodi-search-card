@@ -19,10 +19,7 @@ interface WebSocketResponse {
 }
 
 export class SearchService {
-    constructor(
-        private hass: HomeAssistant,
-        private resolvedEntryId: string,
-    ) {}
+    constructor(private hass: HomeAssistant, private resolvedEntryId: string) {}
 
     async search(query: string): Promise<SearchResults> {
         if (!query.trim()) {
@@ -45,11 +42,13 @@ export class SearchService {
     }
 
     async searchRecentlyPlayed(): Promise<SearchResults> {
-        return this._navigation("recently_played");
+        const response = (await this._navigation("recently_played")) as any;
+        return response as SearchResults;
     }
 
     async searchRecentlyAdded(): Promise<SearchResults> {
-        return this._navigation("recently_added");
+        const response = (await this._navigation("recently_added")) as any;
+        return response as SearchResults;
     }
 
     async searchCurrentArtist(artistId: number | string): Promise<SearchResults> {
@@ -67,18 +66,18 @@ export class SearchService {
     }
 
     async searchTvShow(tvshowId: number | string): Promise<SearchResults> {
-    try {
-        const result = await this.hass.callWS<SearchResults>({
-            type: "kodi_media_sensors/search_tvshow",
-            entry_id: this.resolvedEntryId,
-            tvshow_id: tvshowId,
-        });
-        return result ?? {};
-    } catch (e) {
-        console.error("Error searching TV show:", e);
-        return {};
+        try {
+            const result = await this.hass.callWS<SearchResults>({
+                type: "kodi_media_sensors/search_tvshow",
+                entry_id: this.resolvedEntryId,
+                tvshow_id: tvshowId,
+            });
+            return result ?? {};
+        } catch (e) {
+            console.error("Error searching TV show:", e);
+            return {};
+        }
     }
-}
 
     private async _navigation(type: string): Promise<SearchResults> {
         try {
@@ -108,3 +107,4 @@ export class SearchService {
         }
     }
 }
+

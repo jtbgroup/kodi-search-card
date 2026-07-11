@@ -165,18 +165,19 @@ export class KodiSearchCard extends LitElement {
                 this._query = "";
                 const artistInfo = this._getCurrentArtistInfo();
 
-                if (!artistInfo.id) {
-                    console.warn("No artist is currently playing");
-                    return;
-                }
+                // if (!artistInfo.id) {
+                //     console.warn("No artist is currently playing");
+                //     return;
+                // }
 
-                this._results = await this._searchService.searchCurrentArtist(artistInfo.id);
-                this._isArtistView = true;
+                // this._results = await this._searchService.searchCurrentArtist(artistInfo.id);
+                // this._isArtistView = true;
 
-                const albums = this._results.albums || [];
-                if (albums.length > 0 && albums[0].artist) {
-                    this._artistName = Array.isArray(albums[0].artist) ? albums[0].artist[0] : albums[0].artist;
-                }
+                // const albums = this._results.albums || [];
+                // if (albums.length > 0 && albums[0].artist) {
+                //     this._artistName = Array.isArray(albums[0].artist) ? albums[0].artist[0] : albums[0].artist;
+                // }
+                this._drillDownArtist(artistInfo.id);
             }
         } catch (e) {
             console.error(`Navigation error [${type}]:`, e);
@@ -208,7 +209,7 @@ export class KodiSearchCard extends LitElement {
     private _handleResultsClick = async (e: CustomEvent<ItemClickDetail>): Promise<void> => {
         e.stopPropagation();
         e.stopImmediatePropagation();
-
+        
         const { item, category } = e.detail;
         if (!item) {
             console.error("The event does not contain any data in e.detail", e);
@@ -216,7 +217,7 @@ export class KodiSearchCard extends LitElement {
         }
 
         if (category === "artists" && item.artistid) {
-            await this._drillDownArtist(item);
+            await this._drillDownArtist(item.artistid);
             return;
         }
 
@@ -318,24 +319,43 @@ export class KodiSearchCard extends LitElement {
         }
     }
 
-    private async _drillDownArtist(item: any): Promise<void> {
-        if (!this._searchService || !item.artistid) return;
+    private async _drillDownArtist(artistId?: number | string): Promise<void> {
+        if (!this._searchService || !artistId) return;
 
         try {
-            this._results = await this._searchService.searchCurrentArtist(item.artistid);
+            this._results = await this._searchService.searchCurrentArtist(artistId);
             this._isArtistView = true;
 
             const albums = this._results.albums || [];
             if (albums.length > 0 && albums[0].artist) {
                 this._artistName = Array.isArray(albums[0].artist) ? albums[0].artist[0] : albums[0].artist;
             } else {
-                this._artistName = item.title || item.label || "Artist";
+                this._artistName = "Artist unknown";
             }
         } catch (e) {
             this._isArtistView = false;
             console.error("Error drilling down artist:", e);
         }
     }
+
+    // private async _drillDownArtist(item: any): Promise<void> {
+    //     if (!this._searchService || !item.artistid) return;
+
+    //     try {
+    //         this._results = await this._searchService.searchCurrentArtist(item.artistid);
+    //         this._isArtistView = true;
+
+    //         const albums = this._results.albums || [];
+    //         if (albums.length > 0 && albums[0].artist) {
+    //             this._artistName = Array.isArray(albums[0].artist) ? albums[0].artist[0] : albums[0].artist;
+    //         } else {
+    //             this._artistName = item.title || item.label || "Artist";
+    //         }
+    //     } catch (e) {
+    //         this._isArtistView = false;
+    //         console.error("Error drilling down artist:", e);
+    //     }
+    // }
 
     private _reorderResult() {
         const order: string[] = this._config?.media_type_order ?? DEFAULT_MEDIA_TYPE_ORDER;

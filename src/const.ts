@@ -8,6 +8,7 @@ export const CATEGORY_ALBUMS = "albums";
 export const CATEGORY_EPISODES = "episodes";
 export const CATEGORY_SEASONS = "seasons";
 export const CATEGORY_TVSHOWS = "tvshows";
+export const CATEGORY_CHANNELS = "channels";
 
 // order: must be >= 0 to be taken into consideration. -1 means single-displayable (detail views).
 export const MEDIA_TYPE_PARAMS = {

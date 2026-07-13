@@ -56,6 +56,7 @@ export interface SearchResultItem {
     episodes?: SearchResultItem[]; 
     
     channelid?: number | string;
+    channeltype?: string;
 }
 /**
  * Payload for the item-click event.

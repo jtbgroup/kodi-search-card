@@ -1,5 +1,14 @@
 // src/utils/formatters.ts
-import { CATEGORY_ALBUMS, CATEGORY_ARTISTS, CATEGORY_EPISODES, CATEGORY_MOVIES, CATEGORY_MUSICVIDEOS, CATEGORY_SONGS, CATEGORY_TVSHOWS } from "../const";
+import {
+    CATEGORY_ALBUMS,
+    CATEGORY_ARTISTS,
+    CATEGORY_EPISODES,
+    CATEGORY_MOVIES,
+    CATEGORY_MUSICVIDEOS,
+    CATEGORY_SONGS,
+    CATEGORY_TVSHOWS,
+    CATEGORY_CHANNELS,
+} from "../const";
 import { SearchResultItem } from "../types";
 
 export function formatDuration(seconds: number | undefined): string {
@@ -68,61 +77,60 @@ export function convertOutlineColor(color: string): string {
     return color;
 }
 
-
-
-    export function getCategoryIcon(category: string): string {
-        switch (category.toLowerCase()) {
-            case CATEGORY_SONGS:
-                return "mdi:music";
-            case CATEGORY_ALBUMS:
-                return "mdi:album";
-            case CATEGORY_ARTISTS:
-                return "mdi:account-music";
-            case CATEGORY_MOVIES:
-            case CATEGORY_EPISODES:
-                return "mdi:movie-open";
-            case CATEGORY_TVSHOWS:
-                return "mdi:television-classic";
-            case CATEGORY_MUSICVIDEOS:
-                return "mdi:video-box";
-            default:
-                return "mdi:play-circle";
-        }
+export function getCategoryIcon(category: string): string {
+    switch (category.toLowerCase()) {
+        case CATEGORY_SONGS:
+            return "mdi:music";
+        case CATEGORY_ALBUMS:
+            return "mdi:album";
+        case CATEGORY_ARTISTS:
+            return "mdi:account-music";
+        case CATEGORY_MOVIES:
+        case CATEGORY_EPISODES:
+            return "mdi:movie-open";
+        case CATEGORY_TVSHOWS:
+            return "mdi:television-classic";
+        case CATEGORY_MUSICVIDEOS:
+            return "mdi:video-box";
+        default:
+            return "mdi:play-circle";
     }
+}
 
-    export function getThumbnailAspectRatio(category: string): string {
-        switch (category.toLowerCase()) {
-            case CATEGORY_MOVIES:
-            case CATEGORY_TVSHOWS:
-                return "2/3";
-            case CATEGORY_EPISODES:
-            case CATEGORY_MUSICVIDEOS:
-                return "16/9";
-            default:
-                return "1/1";
-        }
+export function getThumbnailAspectRatio(category: string): string {
+    switch (category.toLowerCase()) {
+        case CATEGORY_MOVIES:
+        case CATEGORY_TVSHOWS:
+            return "2/3";
+        case CATEGORY_EPISODES:
+        case CATEGORY_MUSICVIDEOS:
+            return "16/9";
+        default:
+            return "1/1";
     }
+}
 
-    export function getActionIcon(category: string, searchAction: "play" | "add"): string {
-        const categoriesToNavigate = ["tvshows", "artists"];
-        if (categoriesToNavigate.includes(category.toLowerCase())) {
-            return "mdi:menu";
-        }
-        return searchAction === "play" ? "mdi:play" : "mdi:plus";
+export function getActionIcon(category: string, searchAction: "play" | "add"): string {
+    const categoriesToNavigate = ["tvshows", "artists"];
+    if (categoriesToNavigate.includes(category.toLowerCase())) {
+        return "mdi:menu";
     }
+    return searchAction === "play" ? "mdi:play" : "mdi:plus";
+}
 
-    export function isGridLayout(category: string): boolean {
-        return [
-            CATEGORY_ALBUMS,
-            CATEGORY_ARTISTS,
-            CATEGORY_MOVIES,
-            CATEGORY_MUSICVIDEOS,
-            CATEGORY_TVSHOWS,
-            CATEGORY_EPISODES,
-        ].includes(category.toLowerCase());
-    }
+export function isGridLayout(category: string): boolean {
+    return [
+        CATEGORY_ALBUMS,
+        CATEGORY_ARTISTS,
+        CATEGORY_MOVIES,
+        CATEGORY_MUSICVIDEOS,
+        CATEGORY_TVSHOWS,
+        CATEGORY_EPISODES,
+        CATEGORY_CHANNELS,
+    ].includes(category.toLowerCase());
+}
 
-    export function isContainerCategory(category: string): boolean {
-        return [CATEGORY_TVSHOWS, CATEGORY_ARTISTS].includes(category.toLowerCase());
-    }
+export function isContainerCategory(category: string): boolean {
+    return [CATEGORY_TVSHOWS, CATEGORY_ARTISTS].includes(category.toLowerCase());
+}
 

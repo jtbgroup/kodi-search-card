@@ -2,7 +2,13 @@ import { LitElement, html, css, CSSResultGroup } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { SearchResultItem, ItemClickDetail } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
-import { buildMetadataString, getActionIcon, getCategoryIcon, getThumbnailAspectRatio, isContainerCategory } from "../utils/formatters";
+import {
+    buildMetadataString,
+    getActionIcon,
+    getCategoryIcon,
+    getThumbnailAspectRatio,
+    isContainerCategory,
+} from "../utils/formatters";
 import { resultGridCSS } from "../styles/results-grid.style";
 
 @customElement("kodi-results-grid")
@@ -12,16 +18,16 @@ export class ResultsGrid extends LitElement {
     @property() searchAction: "play" | "add" = "play";
     @property() thumbnailService?: ThumbnailService;
     @property({ type: Boolean }) showThumbnail? = true;
-        @property({ type: Boolean }) showThumbnailOverlay? = true;
-         @property({ type: Boolean }) showThumbnailBorder? = true;
-    @property({ type: String }) outlineColor="var(--divider-color)";
+    @property({ type: Boolean }) showThumbnailOverlay? = true;
+    @property({ type: Boolean }) showThumbnailBorder? = true;
+    @property({ type: String }) outlineColor = "var(--divider-color)";
 
     static get styles(): CSSResultGroup {
         return [resultGridCSS];
     }
 
     protected render() {
-       return html` <div class="results-grid">${this.items.map(item => this._renderGridItem(item))}</div> `;
+        return html` <div class="results-grid">${this.items.map(item => this._renderGridItem(item))}</div> `;
     }
 
     private _renderGridItem(item: SearchResultItem) {
@@ -71,3 +77,4 @@ export class ResultsGrid extends LitElement {
         `;
     }
 }
+

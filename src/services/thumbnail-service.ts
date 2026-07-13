@@ -1,5 +1,5 @@
 import { HomeAssistant } from "custom-card-helpers";
-import { CATEGORY_ALBUMS, CATEGORY_EPISODES, CATEGORY_MOVIES, CATEGORY_MUSICVIDEOS, CATEGORY_SEASONS, CATEGORY_SONGS, CATEGORY_TVSHOWS } from "../const";
+import { CATEGORY_ALBUMS, CATEGORY_CHANNELS, CATEGORY_EPISODES, CATEGORY_MOVIES, CATEGORY_MUSICVIDEOS, CATEGORY_SEASONS, CATEGORY_SONGS, CATEGORY_TVSHOWS } from "../const";
 
 export interface SearchResultItem {
     movieid?: string | number;
@@ -91,7 +91,14 @@ export class ThumbnailService {
             }
         }
 
-        // 2a. Musique : Albums complets
+        // CHANNELS
+        if (cat === CATEGORY_CHANNELS) {
+           if (cleanedArt && cleanedArt.startsWith("http")) {
+                return cleanedArt;
+            }
+        }
+
+        // ALBUMS
         if (cat === CATEGORY_ALBUMS && item.albumid) {
             if (cleanedArt && cleanedArt.startsWith("http")) {
                 return cleanedArt;
@@ -106,9 +113,8 @@ export class ThumbnailService {
             return `/api/media_player_proxy/${this.kodiEntityId}/browse_media/album/${String(item.albumid)}`;
         }
 
-        // 2b. Musique : Chansons / Morceaux individuels (Songs)
+        // SONGS
         if (cat === CATEGORY_SONGS) {
-            // Si l'image est déjà une URL internet directe résolue, on l'utilise directement
             if (cleanedArt && cleanedArt.startsWith("http")) {
                 return cleanedArt;
             }
@@ -120,14 +126,11 @@ export class ThumbnailService {
                 return "";
             }
 
-
-            // Fallback: if Kodi still provided an album ID but no song ID.
             if (item.albumid) {
                 return `/api/media_player_proxy/${this.kodiEntityId}/browse_media/album/${String(item.albumid)}`;
             }
         }
 
-        // 3. Global fallback: return the cleaned art if it exists, otherwise the cleaned raw thumbnail.
         return cleanedArt || this._cleanKodiUrl(item.thumbnail);
     }
 

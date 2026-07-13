@@ -165,18 +165,6 @@ export class KodiSearchCard extends LitElement {
                 this._query = "";
                 const artistInfo = this._getCurrentArtistInfo();
 
-                // if (!artistInfo.id) {
-                //     console.warn("No artist is currently playing");
-                //     return;
-                // }
-
-                // this._results = await this._searchService.searchCurrentArtist(artistInfo.id);
-                // this._isArtistView = true;
-
-                // const albums = this._results.albums || [];
-                // if (albums.length > 0 && albums[0].artist) {
-                //     this._artistName = Array.isArray(albums[0].artist) ? albums[0].artist[0] : albums[0].artist;
-                // }
                 this._drillDownArtist(artistInfo.id);
             }
         } catch (e) {
@@ -338,24 +326,6 @@ export class KodiSearchCard extends LitElement {
         }
     }
 
-    // private async _drillDownArtist(item: any): Promise<void> {
-    //     if (!this._searchService || !item.artistid) return;
-
-    //     try {
-    //         this._results = await this._searchService.searchCurrentArtist(item.artistid);
-    //         this._isArtistView = true;
-
-    //         const albums = this._results.albums || [];
-    //         if (albums.length > 0 && albums[0].artist) {
-    //             this._artistName = Array.isArray(albums[0].artist) ? albums[0].artist[0] : albums[0].artist;
-    //         } else {
-    //             this._artistName = item.title || item.label || "Artist";
-    //         }
-    //     } catch (e) {
-    //         this._isArtistView = false;
-    //         console.error("Error drilling down artist:", e);
-    //     }
-    // }
 
     private _reorderResult() {
         const order: string[] = this._config?.media_type_order ?? DEFAULT_MEDIA_TYPE_ORDER;
@@ -427,6 +397,7 @@ export class KodiSearchCard extends LitElement {
     }
 
     protected render() {
+        console.log(this._results)
         let statusClass = "fixed-green";
         const showVersion = this._config?.show_version ?? false;
 

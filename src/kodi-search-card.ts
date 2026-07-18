@@ -4,10 +4,10 @@ import "./components/results-container";
 import { LitElement, html, css, PropertyValues, CSSResultGroup } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { HomeAssistant, LovelaceCardEditor } from "custom-card-helpers";
-import { KodiSearchCardConfig, SearchResults, SearchResultItem, ItemClickDetail } from "./types";
+import { KodiSearchCardConfig, SearchResults, SearchResultItem, ItemClickDetail, SearchActionType } from "./types";
 import { SearchService } from "./services/search-service";
 import { ThumbnailService } from "./services/thumbnail-service";
-import { convertOutlineColor } from "./utils/formatters";
+import { convertOutlineColor, getMusicPlaylistItemKind } from "./utils/formatters";
 import {
     DEFAULT_ACTION_MODE,
     DEFAULT_ADD_POSITION,
@@ -17,12 +17,18 @@ import {
     DEFAULT_SHOW_ACTION_MODE,
     DEFAULT_SHOW_RECENTLY_ADDED,
     DEFAULT_SHOW_RECENTLY_PLAYED,
+    DEFAULT_SHOW_MUSIC_PLAYLIST,
     DEFAULT_SHOW_THUMBNAIL,
     DEFAULT_SHOW_THUMBNAIL_BORDER,
     DEFAULT_SHOW_THUMBNAIL_OVERLAY,
     ALBUM_SORT,
     DEFAULT_SHOW_VERSION,
     CARD_VERSION,
+    CATEGORY_MUSICPLAYLISTS,
+    PLAYLISTID_AUDIO,
+    ACTION_MAP,
+    ADD_POSITION,
+    DEFAULT_SHOW_CURRENT_ARTIST,
 } from "./const";
 import { kodiSearchCardCSS } from "./styles/kodi-search-card.style";
 
@@ -33,7 +39,7 @@ export class KodiSearchCard extends LitElement {
     @state() private _config?: KodiSearchCardConfig;
     @state() private _results: SearchResults | null = null;
     @state() private _query = "";
-    @state() private _searchAction: "play" | "add" = "play";
+    @property({ type: String }) _searchAction: SearchActionType = ACTION_MAP.play.id;
 
     @state() private _resolvedEntryId?: string;
     @state() private _resolvedKodiEntityId?: string;
@@ -63,6 +69,8 @@ export class KodiSearchCard extends LitElement {
             show_action_mode: DEFAULT_SHOW_ACTION_MODE,
             show_recently_added: DEFAULT_SHOW_RECENTLY_ADDED,
             show_recently_played: DEFAULT_SHOW_RECENTLY_PLAYED,
+            show_music_playlist: DEFAULT_SHOW_MUSIC_PLAYLIST,
+            show_current_artist: DEFAULT_SHOW_CURRENT_ARTIST, 
             action_mode: DEFAULT_ACTION_MODE,
             add_position: DEFAULT_ADD_POSITION,
             order: DEFAULT_MEDIA_TYPE_ORDER,
@@ -70,7 +78,7 @@ export class KodiSearchCard extends LitElement {
         };
     }
 
-   static get styles(): CSSResultGroup {
+    static get styles(): CSSResultGroup {
         return [kodiSearchCardCSS];
     }
     public setConfig(config: KodiSearchCardConfig): void {
@@ -121,7 +129,7 @@ export class KodiSearchCard extends LitElement {
         } else {
             console.error("The selected entity does not have the required attributes.");
         }
-        this._searchAction = this._config?.action_mode ?? "play";
+        this._searchAction = this._config?.action_mode ?? ACTION_MAP.play.id;
     }
 
     private _getCurrentArtistInfo(): { id?: number | string } {
@@ -166,6 +174,8 @@ export class KodiSearchCard extends LitElement {
                 const artistInfo = this._getCurrentArtistInfo();
 
                 this._drillDownArtist(artistInfo.id);
+            } else if (type === "music_playlists") {
+                this._results = await this._searchService.searchMusicPlaylists();
             }
         } catch (e) {
             console.error(`Navigation error [${type}]:`, e);
@@ -197,7 +207,7 @@ export class KodiSearchCard extends LitElement {
     private _handleResultsClick = async (e: CustomEvent<ItemClickDetail>): Promise<void> => {
         e.stopPropagation();
         e.stopImmediatePropagation();
-        
+
         const { item, category } = e.detail;
         if (!item) {
             console.error("The event does not contain any data in e.detail", e);
@@ -214,12 +224,54 @@ export class KodiSearchCard extends LitElement {
             return;
         }
 
-        // ===== PLAY/ADD LOGIC FOR THE OTHER CATEGORIES =====
+        // ===== GESTION DES PLAYLISTS MUSICALES =====
+        if (category === CATEGORY_MUSICPLAYLISTS) {
+            const playlistKind = getMusicPlaylistItemKind(item);
+            if (playlistKind === "directory") {
+                await this._drillDownMusicPlaylist(item);
+                return;
+            }
+
+            if (playlistKind === "blocked") {
+                return;
+            }
+
+            // If the item is a file, we handle the playlist
+            if (item.file) {
+                if (!this._resolvedEntryId) {
+                    console.error("Authentication data (entry_id) is missing.");
+                    return;
+                }
+                try {
+                    if (this._searchAction === ACTION_MAP.play.id) {
+                        await this.hass.connection.sendMessagePromise({
+                            type: "kodi_media_sensors/playlist_play",
+                            entry_id: this._resolvedEntryId,
+                            path: String(item.file),
+                            playlistid: PLAYLISTID_AUDIO,
+                        });
+                    } else if (this._searchAction === ACTION_MAP.add.id) {
+                        await this.hass.connection.sendMessagePromise({
+                            type: "kodi_media_sensors/playlist_add",
+                            entry_id: this._resolvedEntryId,
+                            path: String(item.file),
+                            playlistid: PLAYLISTID_AUDIO,
+                            position: this._config?.add_position ?? ADD_POSITION.last.id,
+                        });
+                    }
+                    return;
+                } catch (err) {
+                    console.error("WebSocket error playing dedicated playlist:", err);
+                }
+            }
+        }
+
+        // ===== PLAY/ADD LOGIC POUR TOUS LES AUTRES ELEMENTS (Chansons, Albums, Films...) =====
         let id: string | number | undefined;
         let itemName: string | undefined;
 
         if (item.type) {
-            itemName = item.type === "file" ? "filemusicplaylist" : `${item.type}id`;
+            itemName = item.type === "file" ? "file" : `${item.type}id`;
             const targetKey = item.type === "file" ? "file" : itemName;
             const value = item[targetKey as keyof SearchResultItem];
 
@@ -247,24 +299,23 @@ export class KodiSearchCard extends LitElement {
             } else if (item.channelid !== undefined) {
                 id = item.channelid;
                 itemName = "channelid";
-            } else if (item.file !== undefined) {
-                id = item.file;
-                itemName = "filemusicplaylist";
             }
         }
 
-        if (itemName !== "filemusicplaylist" && id !== undefined) {
+        if (id === undefined || !itemName) {
+            console.error("Unable to determine the item identifier or type", item);
+            return;
+        }
+
+        if (itemName !== "file") {
             const parsed = parseInt(String(id), 10);
             if (isNaN(parsed)) {
                 console.error(`Unable to execute the action: item_id (${id}) is not a valid integer.`);
                 return;
             }
             id = parsed;
-        }
-
-        if (id === undefined || !itemName) {
-            console.error("Unable to determine the item identifier or type", item);
-            return;
+        } else {
+            id = String(id);
         }
 
         if (!this._resolvedEntryId) {
@@ -283,7 +334,7 @@ export class KodiSearchCard extends LitElement {
         };
 
         if (isAddAction) {
-            servicePayload.position = this._config?.add_position || 1;
+            servicePayload.position = this._config?.add_position || ADD_POSITION.last.id;
         }
 
         try {
@@ -292,6 +343,7 @@ export class KodiSearchCard extends LitElement {
             console.error(`WebSocket error returned by Home Assistant for [${wsType}]:`, err);
         }
     };
+
 
     private async _drillDownTvShow(item: any): Promise<void> {
         if (!this._searchService || !item.tvshowid) return;
@@ -326,6 +378,17 @@ export class KodiSearchCard extends LitElement {
         }
     }
 
+    private async _drillDownMusicPlaylist(item: SearchResultItem): Promise<void> {
+        if (!this._searchService || !item.file) return;
+
+        try {
+            this._results = await this._searchService.searchMusicPlaylists(item.file);
+            this._isArtistView = false;
+            this._isTvShowView = false;
+        } catch (e) {
+            console.error("Error drilling down music playlist directory:", e);
+        }
+    }
 
     private _reorderResult() {
         const order: string[] = this._config?.media_type_order ?? DEFAULT_MEDIA_TYPE_ORDER;
@@ -397,7 +460,7 @@ export class KodiSearchCard extends LitElement {
     }
 
     protected render() {
-        console.log(this._results)
+        console.log(this._results);
         let statusClass = "fixed-green";
         const showVersion = this._config?.show_version ?? false;
 
@@ -435,6 +498,7 @@ export class KodiSearchCard extends LitElement {
                 .showRecentlyAdded="${this._config?.show_recently_added ?? true}"
                 .showRecentlyPlayed="${this._config?.show_recently_played ?? true}"
                 .showCurrentArtist="${this._config?.show_current_artist ?? true}"
+                .showMusicPlaylists="${this._config?.show_music_playlist ?? true}"
                 @search="${this._handleSearchControls}"
                 @clear="${this._handleSearchControls}"
                 @navigate="${this._handleSearchControls}"
@@ -454,7 +518,6 @@ export class KodiSearchCard extends LitElement {
                                   this._config?.outline_color ?? "var(--divider-color)",
                               )}"
                               .albumDetailsSort="${this._config?.album_details_sort ?? "default"}"
-                              .mediaTypeOrder="${this._config?.media_type_order ?? []}"
                               .searchAction="${this._searchAction}"
                               .thumbnailService="${this._thumbnailService}"
                               .isArtistView="${this._isArtistView}"
@@ -466,7 +529,7 @@ export class KodiSearchCard extends LitElement {
                       `
                     : html``}
             </div>
-             ${showVersion ? html` <div class="version-footer">Version: ${CARD_VERSION}</div> ` : ""}
+            ${showVersion ? html` <div class="version-footer">Version: ${CARD_VERSION}</div> ` : ""}
         `;
     }
 }

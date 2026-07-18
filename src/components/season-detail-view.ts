@@ -1,16 +1,16 @@
 import { LitElement, html, css, CSSResultGroup } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { SearchResultItem } from "../types";
+import { SearchActionType, SearchResultItem } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
 import "./item-thumbnail";
 import { getCategoryIcon } from "../utils/formatters";
-import { CATEGORY_SEASONS } from "../const";
+import { ACTION_MAP, CATEGORY_SEASONS } from "../const";
 import { seasonDetailCSS } from "../styles/season-detail-view.style";
 
 @customElement("kodi-season-detail-view")
 export class SeasonDetailView extends LitElement {
     @property() items: SearchResultItem[] = [];
-    @property() searchAction: "play" | "add" = "play";
+   @property({ type: String }) searchAction: SearchActionType = ACTION_MAP.play.id;
     @property() thumbnailService?: ThumbnailService;
     @property({ type: Boolean }) showThumbnailOverlay = true;
     @property({ type: Boolean }) showThumbnail = true;

@@ -1,4 +1,5 @@
 import { LovelaceCardConfig } from "custom-card-helpers";
+import { ACTION_MAP, ADD_POSITION, CATEGORIES } from "./const";
 
 /**
  * Kodi search results.
@@ -24,7 +25,8 @@ export interface SearchResultItem {
     title?: string;
     name?: string;
     label?: string;
-    type?: string;  
+    type?: string;
+    filetype?: string;
     artist?: string | string[];
     artistid?: number | string;
     album?: string;
@@ -70,8 +72,8 @@ export interface ItemClickDetail {
  * Card configuration - all supported options.
  */
 export interface KodiSearchCardConfig extends LovelaceCardConfig {
-    action_mode?: "play" | "add";
-    add_position?: number;
+    action_mode?: SearchActionType
+    add_position?: AddPositionType;
     album_details_sort?: string;
     entity: string;
     media_type_order?: string[];
@@ -83,6 +85,7 @@ export interface KodiSearchCardConfig extends LovelaceCardConfig {
     show_recently_added?: boolean;
     show_recently_played?: boolean;
     show_current_artist?: boolean;
+    show_music_playlist?: boolean;
     title?: string;
 }
 
@@ -121,3 +124,7 @@ export interface EditorField {
     min?: number;
     max?: number;
 }
+
+export type SearchActionType = keyof typeof ACTION_MAP;
+export type AddPositionType = keyof typeof ADD_POSITION;
+export type CategoryKey = keyof typeof CATEGORIES;

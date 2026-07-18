@@ -8,16 +8,17 @@
 
 import { LitElement, html, css, CSSResultGroup } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { SearchResultItem } from "../types";
+import { SearchActionType, SearchResultItem } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
 import { formatDuration, getCategoryIcon } from "../utils/formatters";
 import "./item-thumbnail";
 import { albumDetailViewCSS } from "../styles/album-detail-view.style"
+import { ACTION_MAP } from "../const";
 
 @customElement("kodi-album-detail-view")
 export class AlbumDetailView extends LitElement {
     @property() items: SearchResultItem[] = [];
-    @property() searchAction: "play" | "add" = "play";
+     @property({ type: String }) searchAction: SearchActionType = ACTION_MAP.play.id;
     @property() thumbnailService?: ThumbnailService;
     @property({ type: Boolean }) showThumbnailOverlay = true;
     @property({ type: Boolean }) showThumbnail = true;

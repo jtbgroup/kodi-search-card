@@ -1,21 +1,21 @@
 import { LitElement, html, css, CSSResultGroup } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { SearchResultItem, ItemClickDetail } from "../types";
+import { SearchResultItem, ItemClickDetail, SearchActionType } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
 import {
     buildMetadataString,
-    getActionIcon,
-    getCategoryIcon,
+    getItemPresentation,
     getThumbnailAspectRatio,
     isContainerCategory,
 } from "../utils/formatters";
 import { resultGridCSS } from "../styles/results-grid.style";
+import { ACTION_MAP } from "../const";
 
 @customElement("kodi-results-grid")
 export class ResultsGrid extends LitElement {
     @property() items: SearchResultItem[] = [];
     @property() category = "";
-    @property() searchAction: "play" | "add" = "play";
+    @property({ type: String }) searchAction: SearchActionType = ACTION_MAP.play.id;
     @property() thumbnailService?: ThumbnailService;
     @property({ type: Boolean }) showThumbnail? = true;
     @property({ type: Boolean }) showThumbnailOverlay? = true;
@@ -31,18 +31,18 @@ export class ResultsGrid extends LitElement {
     }
 
     private _renderGridItem(item: SearchResultItem) {
-        const icon = getCategoryIcon(this.category);
-        const isContainer = isContainerCategory(this.category);
+        const itemPresentation = getItemPresentation(item, this.category, this.searchAction);
+        const icon = itemPresentation.icon;
+        const isContainer = isContainerCategory(this.category) || itemPresentation.isContainer;
 
         const ratio = getThumbnailAspectRatio(this.category);
         const customStyle = `--thumb-ratio: ${ratio}`;
 
-        let actionIcon = getActionIcon(this.category, this.searchAction);
-        if (this.category === "artists" || this.category === "tvshow") {
-            actionIcon = "mdi:information";
-        }
-
         const handleClick = () => {
+            if (itemPresentation.isActionDisabled) {
+                return;
+            }
+
             const detail: ItemClickDetail = { item, category: this.category };
             this.dispatchEvent(
                 new CustomEvent("item-click", {
@@ -63,7 +63,7 @@ export class ResultsGrid extends LitElement {
                     .thumbnailService="${this.thumbnailService}"
                     .icon="${icon}"
                     .isContainer="${isContainer}"
-                    .actionIcon="${actionIcon}"
+                    .actionIcon="${itemPresentation.actionIcon}"
                     .showThumbnail="${this.showThumbnail}"
                     .showThumbnailOverlay="${this.showThumbnailOverlay}"
                     .outlineColor="${this.outlineColor}"

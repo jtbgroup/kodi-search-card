@@ -1,6 +1,6 @@
 import { LitElement, html, css, CSSResultGroup } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { SearchResults, SearchResultItem, ItemClickDetail } from "../types";
+import { SearchResults, SearchResultItem, ItemClickDetail, SearchActionType, CategoryKey } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
 import "./results-grid";
 import "./results-list";
@@ -8,12 +8,12 @@ import "./album-detail-view";
 import "./season-detail-view"; // Make sure the file is in the same folder.
 import { getCategoryIcon, isGridLayout } from "../utils/formatters";
 import { resultContainerCSS } from "../styles/results-container.style";
-import { CATEGORY_CHANNELS } from "../const";
+import { ACTION_MAP, CATEGORIES, CATEGORY_CHANNELS } from "../const";
 
 @customElement("kodi-results-container")
 export class ResultsContainer extends LitElement {
     @property({ type: Object }) results: SearchResults | null = null;
-    @property({ type: String }) searchAction: "play" | "add" = "play";
+    @property({ type: String }) searchAction: SearchActionType = ACTION_MAP.play.id;
     @property({ type: Object }) thumbnailService?: ThumbnailService;
 
     @property({ type: Boolean }) isArtistView = false;
@@ -26,7 +26,6 @@ export class ResultsContainer extends LitElement {
     @property({ type: Boolean }) showThumbnailBorder = true;
     @property({ type: String }) outlineColor = "var(--divider-color)";
     @property({ type: String }) albumDetailsSort = "default";
-    @property({ type: Array }) mediaTypeOrder: string[] = [];
 
     static get styles(): CSSResultGroup {
         return [resultContainerCSS];
@@ -53,7 +52,7 @@ export class ResultsContainer extends LitElement {
             <div class="results-wrapper" @item-click="${this._onItemClick}">
                 ${Object.entries(dataToRender).map(([category, items]) => {
                     if (Array.isArray(items) && items.length > 0) {
-                        // Cas spécifique pour les chaînes
+                        // specific case for channels: we split into tv and radio channels
                         if (category === CATEGORY_CHANNELS) {
                             // On sépare le tableau en deux grâce à la propriété channeltype
                             const tvItems = items.filter(item => item.channeltype === "tv");
@@ -65,7 +64,7 @@ export class ResultsContainer extends LitElement {
                             `;
                         }
 
-                        // Comportement par défaut pour toutes les autres catégories
+                        // default behaviour for all categories
                         return this._renderSection(category, items);
                     }
                     return "";
@@ -123,11 +122,11 @@ export class ResultsContainer extends LitElement {
         const isGrid = isGridLayout(category);
         const sectionIcon = getCategoryIcon(category);
 
-        let categoryTitle = category;
+        let categoryTitle = CATEGORIES[category as CategoryKey]?.label ?? "Item";
         if(category == CATEGORY_CHANNELS){
             categoryTitle += " " + items[0].channeltype;
         }
-
+        
         return html`
             <div class="category-section">
                 <h3 class="category-header">

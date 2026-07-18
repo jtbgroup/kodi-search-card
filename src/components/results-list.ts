@@ -1,15 +1,16 @@
 import { LitElement, html, css, CSSResultGroup } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { SearchResultItem, ItemClickDetail } from "../types";
+import { SearchResultItem, ItemClickDetail, SearchActionType } from "../types";
 import { ThumbnailService } from "../services/thumbnail-service";
-import { buildMetadataString, formatDuration, formatGenre, getActionIcon, getCategoryIcon } from "../utils/formatters";
+import { buildMetadataString, formatDuration, formatGenre, getItemPresentation } from "../utils/formatters";
 import { resultListCSS } from "../styles/results-list.style";
+import { ACTION_MAP } from "../const";
 
 @customElement("kodi-results-list")
 export class ResultsList extends LitElement {
     @property() items: SearchResultItem[] = [];
     @property() category = "";
-    @property() searchAction: "play" | "add" = "play";
+   @property({ type: String }) searchAction: SearchActionType = ACTION_MAP.play.id;
     @property() thumbnailService?: ThumbnailService;
     @property({ type: Boolean }) showThumbnail? = true;
     @property({ type: Boolean }) showThumbnailOverlay? = true;
@@ -32,16 +33,15 @@ export class ResultsList extends LitElement {
         const title = item.title || item.name || item.label || "";
         const genre = item.genre ? formatGenre(item.genre) : "";
         const subtext = buildMetadataString(item, this.category);
-        const icon = getCategoryIcon(this.category);
-
-        let actionIcon = getActionIcon(this.category, this.searchAction);
-        if (this.category === "artists" || this.category === "tvshow") {
-            actionIcon = "mdi:information";
-        }
+        const itemPresentation = getItemPresentation(item, this.category, this.searchAction);
 
         // const { cachedUrl, isCached } = this._getThumbnailForItem(item, this.category);
 
         const handleClick = () => {
+            if (itemPresentation.isActionDisabled) {
+                return;
+            }
+
             const detail: ItemClickDetail = { item, category: this.category };
             this.dispatchEvent(
                 new CustomEvent("item-click", {
@@ -58,8 +58,9 @@ export class ResultsList extends LitElement {
                     .item="${item}"
                     .category="${this.category}"
                     .thumbnailService="${this.thumbnailService}"
-                    .icon="${icon}"
-                    .actionIcon="${actionIcon}"
+                    .icon="${itemPresentation.icon}"
+                    .isContainer="${itemPresentation.isContainer}"
+                    .actionIcon="${itemPresentation.actionIcon}"
                     .showThumbnail="${this.showThumbnail}"
                     .showThumbnailOverlay="${this.showThumbnailOverlay}"
                     .outlineColor="${this.outlineColor}"

@@ -8,8 +8,11 @@ import {
     CATEGORY_SONGS,
     CATEGORY_TVSHOWS,
     CATEGORY_CHANNELS,
+    CATEGORY_MUSICPLAYLISTS,
+    MUSIC_PLAYLIST_EXTENSIONS_ALLOWED,
+    ACTION_MAP,
 } from "../const";
-import { SearchResultItem } from "../types";
+import { SearchActionType, SearchResultItem } from "../types";
 
 export function formatDuration(seconds: number | undefined): string {
     if (!seconds || isNaN(seconds)) return "";
@@ -80,6 +83,7 @@ export function convertOutlineColor(color: string): string {
 export function getCategoryIcon(category: string): string {
     switch (category.toLowerCase()) {
         case CATEGORY_SONGS:
+        case CATEGORY_MUSICPLAYLISTS:
             return "mdi:music";
         case CATEGORY_ALBUMS:
             return "mdi:album";
@@ -110,12 +114,103 @@ export function getThumbnailAspectRatio(category: string): string {
     }
 }
 
-export function getActionIcon(category: string, searchAction: "play" | "add"): string {
+function getFileExtension(filePath?: string): string {
+    if (!filePath) {
+        return "";
+    }
+
+    const normalized = filePath.toLowerCase();
+    const lastDot = normalized.lastIndexOf(".");
+    if (lastDot === -1) {
+        return "";
+    }
+
+    return normalized.slice(lastDot);
+}
+
+export function getMusicPlaylistItemKind(item: SearchResultItem): "playable" | "directory" | "blocked" {
+    const filePath = item.file || item.label || "";
+    const extension = getFileExtension(filePath);
+    const fileType = String(item.filetype || item.type || "").toLowerCase();
+    const isDirectory = fileType === "directory" || filePath.endsWith("/");
+    const isKnownExtension = MUSIC_PLAYLIST_EXTENSIONS_ALLOWED.includes(extension);
+
+    if (isDirectory && !extension) {
+        return "directory";
+    }
+
+    if (isKnownExtension) {
+        return "playable";
+    }
+
+    return "blocked";
+}
+
+export function getItemPresentation(
+    item: SearchResultItem,
+    category: string,
+    searchAction: SearchActionType,
+): {
+    icon: string;
+    actionIcon: string;
+    isContainer: boolean;
+    isActionDisabled: boolean;
+} {
+    const categoryLower = category.toLowerCase();
+    const defaultActionIcon = ACTION_MAP[searchAction].icon;
+
+    if (categoryLower === CATEGORY_MUSICPLAYLISTS) {
+        const itemKind = getMusicPlaylistItemKind(item);
+
+        if (itemKind === "directory") {
+            return {
+                icon: "mdi:folder",
+                actionIcon: "mdi:information",
+                isContainer: true,
+                isActionDisabled: false,
+            };
+        }
+
+        if (itemKind === "blocked") {
+            return {
+                icon: "mdi:music",
+                actionIcon: "mdi:stop",
+                isContainer: false,
+                isActionDisabled: true,
+            };
+        }
+
+        return {
+            icon: "mdi:music",
+            actionIcon: defaultActionIcon,
+            isContainer: false,
+            isActionDisabled: false,
+        };
+    }
+
+    if (["tvshows", "artists"].includes(categoryLower)) {
+        return {
+            icon: getCategoryIcon(category),
+            actionIcon: "mdi:information",
+            isContainer: true,
+            isActionDisabled: false,
+        };
+    }
+
+    return {
+        icon: getCategoryIcon(category),
+        actionIcon: defaultActionIcon,
+        isContainer: false,
+        isActionDisabled: false,
+    };
+}
+
+export function getActionIcon(category: string, searchAction: SearchActionType): string {
     const categoriesToNavigate = ["tvshows", "artists"];
     if (categoriesToNavigate.includes(category.toLowerCase())) {
         return "mdi:menu";
     }
-    return searchAction === "play" ? "mdi:play" : "mdi:plus";
+    return ACTION_MAP[searchAction].icon;
 }
 
 export function isGridLayout(category: string): boolean {

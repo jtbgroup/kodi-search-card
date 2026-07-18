@@ -1,15 +1,18 @@
 import { LitElement, html, css, CSSResultGroup } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { searchControlsCSS } from "../styles/search-controls.style";
+import { SearchActionType } from "../types";
+import { ACTION_MAP } from "../const";
 
 @customElement("kodi-search-controls")
 export class SearchControls extends LitElement {
     @property() query = "";
-    @property() searchAction: "play" | "add" = "play";
+    @property({ type: String }) searchAction: SearchActionType = ACTION_MAP.play.id;
     @property() showActionMode = true;
     @property() showRecentlyAdded = true;
     @property() showRecentlyPlayed = true;
     @property() showCurrentArtist = true;
+    @property() showMusicPlaylists = true;
 
     static get styles(): CSSResultGroup {
         return [searchControlsCSS];
@@ -39,14 +42,14 @@ export class SearchControls extends LitElement {
                         ${this.showActionMode
                             ? html`
                                   <div
-                                      class="action-btn ${this.searchAction === "play" ? "active" : ""}"
-                                      @click="${() => this._handleActionChange("play")}">
+                                      class="action-btn ${this.searchAction === ACTION_MAP.play.id ? "active" : ""}"
+                                      @click="${() => this._handleActionChange(ACTION_MAP.play.id)}">
                                       <ha-icon icon="mdi:play"></ha-icon>
                                       <span>Play</span>
                                   </div>
                                   <div
-                                      class="action-btn ${this.searchAction === "add" ? "active" : ""}"
-                                      @click="${() => this._handleActionChange("add")}">
+                                      class="action-btn ${this.searchAction === ACTION_MAP.add.id ? "active" : ""}"
+                                      @click="${() => this._handleActionChange(ACTION_MAP.add.id)}">
                                       <ha-icon icon="mdi:plus"></ha-icon>
                                       <span>Add</span>
                                   </div>
@@ -91,6 +94,18 @@ export class SearchControls extends LitElement {
                                       title="Current artist"></ha-icon>
                               `
                             : html``}
+                        ${this.showMusicPlaylists
+                            ? html`
+                                  <ha-icon
+                                      icon="mdi:playlist-music"
+                                      class="icon-btn"
+                                      @click="${() =>
+                                          this.dispatchEvent(
+                                              new CustomEvent("navigate", { detail: "music_playlists" }),
+                                          )}"
+                                      title="Music playlists"></ha-icon>
+                              `
+                            : html``}
                     </div>
                 </div>
             </div>
@@ -122,7 +137,7 @@ export class SearchControls extends LitElement {
         );
     }
 
-    private _handleActionChange(action: "play" | "add"): void {
+    private _handleActionChange(action: SearchActionType): void {
         this.searchAction = action;
         this.dispatchEvent(
             new CustomEvent("action-changed", {

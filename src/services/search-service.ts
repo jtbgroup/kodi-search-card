@@ -9,6 +9,8 @@ interface WebSocketRequest {
     category?: string;
     artistid?: number | string;
     tvshow_id?: number | string;
+    path?: string;
+    directory?: string;
 }
 
 interface WebSocketResponse {
@@ -78,6 +80,20 @@ export class SearchService {
             return {};
         }
     }
+
+  async searchMusicPlaylists(path?: string): Promise<SearchResults> {
+    try {
+        const result = await this.hass.callWS<SearchResults>({
+            type: "kodi_media_sensors/search_musicplaylists",
+            entry_id: this.resolvedEntryId,
+            ...(path && { path }), 
+        });
+        return result ?? {};
+    } catch (e) {
+        console.error(`Error searching music playlists (path: ${path ?? 'root'}):`, e);
+        return {};
+    }
+}
 
     private async _navigation(type: string): Promise<SearchResults> {
         try {

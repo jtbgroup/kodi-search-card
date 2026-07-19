@@ -17,6 +17,7 @@ This card is intented to be an alternative to an iframe containing Chorus.
 | ---- | ---- |
 | ![Kodi Search Card](./assets/kodi_search_card.png) | ![Kodi Search Card](./assets/kodi_search_card2.png) |
 
+
 ## Requirements
 
 This card requires a specific sensor that gets the data from Kodi. The sensor is provided by the custom component [Kodi Media Sensors](https://github.com/jtbgroup/kodi-media-sensors) (at least)

@@ -140,7 +140,7 @@ export class KodiSearchCardEditor extends LitElement implements LovelaceCardEdit
                 @value-changed=${this._valueChanged}>
             </ha-form>
 
-            <ha-expansion-panel header="Options des Thumbnails" outlined style="margin-top: 16px; margin-bottom: 16px;">
+            <ha-expansion-panel header="Thumbnail options" outlined style="margin-top: 16px; margin-bottom: 16px;">
                 <ha-form
                     .hass=${this.hass}
                     .data=${this._config}
@@ -150,7 +150,7 @@ export class KodiSearchCardEditor extends LitElement implements LovelaceCardEdit
                 </ha-form>
             </ha-expansion-panel>
 
-            <ha-expansion-panel header="Options d'Affichage" outlined style="margin-bottom: 16px;">
+            <ha-expansion-panel header="Display options" outlined style="margin-bottom: 16px;">
                 <ha-form
                     .hass=${this.hass}
                     .data=${this._config}

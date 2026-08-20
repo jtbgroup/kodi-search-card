@@ -1,5 +1,9 @@
 # SEARCH CARD - Changelog
 
+## 5.0.2
+
+- Bugfix in the css of the album details
+
 ## 5.0.1
 
 - Code clean up

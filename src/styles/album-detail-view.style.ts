@@ -60,6 +60,7 @@ export const albumDetailViewCSS = css`
         display: flex;
         flex-direction: column;
         gap: 4px;
+        min-width: 0;
     }
 
     .album-song-item {

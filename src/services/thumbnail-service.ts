@@ -145,7 +145,6 @@ export class ThumbnailService {
         }
 
         if (this.thumbnailLoadingQueue.has(url)) {
-            console.debug(`[ThumbnailService] URL is already being loaded, waiting: ${url}`);
             return await this.thumbnailLoadingQueue.get(url);
         }
 
@@ -161,7 +160,6 @@ export class ThumbnailService {
     private async _performLoad(url: string): Promise<string> {
         try {
             if (url.startsWith("http")) {
-                console.debug(`[ThumbnailService] Remote URL (HTTP): ${url}`);
                 this.thumbnailCache.set(url, url);
                 return url;
             } else if (url.startsWith("/")) {
@@ -198,7 +196,6 @@ export class ThumbnailService {
     public clearCache(): void {
         this.thumbnailCache.clear();
         this.thumbnailLoadingQueue.clear();
-        console.debug("[ThumbnailService] Cache and queue cleared");
     }
 
     private async _loadLocalImageAsBase64(url: string): Promise<string | undefined> {

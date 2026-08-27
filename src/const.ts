@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 export const CARD_VERSION = "5.0.2";
+=======
+export const CARD_VERSION = "5.0.3";
+>>>>>>> develop
 
 export const CATEGORY_MOVIES = "movies";
 export const CATEGORY_SONGS = "songs";

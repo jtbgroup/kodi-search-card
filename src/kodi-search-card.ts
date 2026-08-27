@@ -460,7 +460,6 @@ export class KodiSearchCard extends LitElement {
     }
 
     protected render() {
-        console.log(this._results);
         let statusClass = "fixed-green";
         const showVersion = this._config?.show_version ?? false;
 

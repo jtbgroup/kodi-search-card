@@ -1,4 +1,4 @@
-export const CARD_VERSION = "5.0.3";
+export const CARD_VERSION = "5.0.4";
 
 export const CATEGORY_MOVIES = "movies";
 export const CATEGORY_SONGS = "songs";

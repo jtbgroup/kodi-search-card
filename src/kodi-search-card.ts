@@ -91,6 +91,10 @@ export class KodiSearchCard extends LitElement {
     protected willUpdate(changedProperties: PropertyValues) {
         super.willUpdate(changedProperties);
 
+        if (changedProperties.has("_config")) {
+            this._searchAction = this._config?.action_mode ?? ACTION_MAP.play.id;
+        }
+
         if (changedProperties.has("hass") || changedProperties.has("_config")) {
             this._resolveConfig();
             this._fetchSensorState();
@@ -129,7 +133,6 @@ export class KodiSearchCard extends LitElement {
         } else {
             console.error("The selected entity does not have the required attributes.");
         }
-        this._searchAction = this._config?.action_mode ?? ACTION_MAP.play.id;
     }
 
     private _getCurrentArtistInfo(): { id?: number | string } {

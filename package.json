@@ -1,10 +1,6 @@
 {
     "name": "kodi-search-card",
-<<<<<<< HEAD
-    "version": "5.0.2",
-=======
     "version": "5.0.3",
->>>>>>> develop
     "description": "Kodi Search Card",
     "keywords": [
         "home-assistant",

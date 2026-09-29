@@ -1,4 +1,4 @@
-export const CARD_VERSION = "5.0.4";
+export const CARD_VERSION = "5.0.5";
 
 export const CATEGORY_MOVIES = "movies";
 export const CATEGORY_SONGS = "songs";
@@ -12,14 +12,14 @@ export const CATEGORY_CHANNELS = "channels";
 export const CATEGORY_MUSICPLAYLISTS = "musicplaylists";
 export const CATEGORIES = {
     movies: { id: "movies", label: "movies" },
-    songs: { id: "songs", label: "songs" }, // Corrigé
+    songs: { id: "songs", label: "songs" },
     musicvideos: { id: "musicvideos", label: "music videos" },
     artists: { id: "artists", label: "artists" },
     albums: { id: "albums", label: "albums" },
     episodes: { id: "episodes", label: "episodes" },
     seasons: { id: "seasons", label: "seasons" },
     tvshows: { id: "tvshows", label: "tv shows" },
-    channels: { id: "channels", label: "channels" }, // Corrigé
+    channels: { id: "channels", label: "channels" },
     musicplaylists: { id: "musicplaylists", label: "music playlists" },
 };
 
@@ -33,8 +33,6 @@ export const MEDIA_TYPE_PARAMS = {
     tvshow: { id: "tvshow", label: "TV Shows", icon: "mdi:movie", order: 5 },
     episode: { id: "episode", label: "Episodes", icon: "mdi:movie", order: 6 },
     channel: { id: "channel", label: "Channels", icon: "mdi:movie", order: 7 },
-    // seasondetail: { id: "seasondetail", label: "Season Detail", icon: "mdi:movie", order: -1 },
-    // albumdetail: { id: "albumdetail", label: "Album Detail", icon: "mdi:music", order: -1 },
     musicplaylist: { id: "musicplaylist", label: "Music Playlists", icon: "mdi:music", order: 8 },
 };
 

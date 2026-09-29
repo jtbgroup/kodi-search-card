@@ -20,15 +20,13 @@ This card is intented to be an alternative to an iframe containing Chorus.
 
 ## Requirements
 
-This card requires a specific sensor that gets the data from Kodi. The sensor is provided by the custom component [Kodi Media Sensors](https://github.com/jtbgroup/kodi-media-sensors) (at least)
+This card requires the search sensor provided by [Kodi Media Sensors](https://github.com/jtbgroup/kodi-media-sensors) v6.0.0 or later.
 
 ## Features
 
-The card will let you search items in kodi.
-You can display the recently added items.
-You can directly play items in your kodi instance.
+The card lets you search Kodi media and browse recently added or played items, the current artist, and music playlists. You can play items or add them to a Kodi playlist.
 
-The search function will look for songs (title), albums (title), artists (name), movies (title), tvshows (title), PVR Channels (label) [only if a PVR client addon is present].
+Search results can include songs, albums, artists, movies, TV shows, episodes, music videos, and PVR channels (when a PVR client add-on is present). Artist and TV show results support drill-down; music playlist directories can be browsed.
 
 ## Installation
 
@@ -42,26 +40,28 @@ Manual installation is of course possible, but not explained here as there are p
 | Name | Type | Default | Since | Description |
 |------|------|---------|-------|-------------|
 | type | string	| **required** | v1.0.0 | `custom:kodi-search-card` |
-| entity | string | **required** | v1.0.0 |  `sensor.kodi_media_sensor_search` |
+| entity | string | **required** | v1.0.0 | Entity ID of the search sensor provided by Kodi Media Sensors, for example `sensor.kodi_media_sensor_search`. |
 | title | string | optional | v1.0.0 | The title of the card |
-| show_thumbnail | boolean | `false` | v1.0.0 | Set to true if you want to show the thumbnails coming from kodi. Attention you can get problems when mixing http and https content; if so, leave it to false. |
-| show_thumbnail_overlay| boolean | `true` | v2.1 | When true, adds an lightgrey overlay above the thumbnail; this might be useful to see better the play icon displayed above the thumbnail.
-| show_thumbnail_border | boolean | `false` | v2.1 | When true, adds a 1px border around the thumbanils.
-| outline_color | string | optional<br/>default: `white` | v2.1 | This option is only used when **show_thumbnail_border** is true. The color can be a string (ex: 'white', 'red', 'green', ... ), rgb format (ex: 'rgb(10, 12, 250)'), hexa format (ex: '#EE22FF') or even css variables).
-| album_details_sort | string | Optional<br/> default: `Desc` | 2.5.0 | After a first search, you can drill down by clicking on an artist to see the all the albums. This list of albums can bes sorted based on the year of the album. Values can be `date_asc`, `date_desc`, `title_asc` or `title_desc`. |
-| show_action_mode | boolean | `false` | 2.6.0 | This property tells whether or not to display the action mode component. If not present, the default action mode will be used. |
-| show_recently_added | boolean | `true` | 3.4.0 | This property tells whether or not to display the recently added component. If not present, the default action mode will be used. |
-| show_recently_played | boolean | `true` | 3.4.0 | This property tells whether or not to display the recently played component. If not present, the default action mode will be used. |
-| action_mode | string | Optional <br /> default: `play`| 2.6.0 | This property allows to choose between `add` or `play` as action when clicking on an item. The value is overridden by the value of the Action Mode component in the search form of the card. |
-| add_position | integer | Optional<br /> default: `1` | 2.6.0 | This value indicates where to add an item in the playlist when the action_mode is `add` (in the card or in the configuration).<br/>0 = first position, 1 = second position, 1000 = 1001th position. To add an item as last position, use a value that is > than the size of the playlist.<br/> This parameters is only useful when selecting `add` as action mode (card configuration and/or search form of the card) |
-| media_type_order<br />_[previously `order`]_  | List | Optional | 2.7.0 | This list allows you to change the order of media types in the resultset. The resultset is of course dependent on the configuration of the Integration (cfr configuration of the Kodi Media Sensors). The possible values are `song`, `album`, `artist`, `movie`, `tvshow`, `episode`, `channel` (this is the default order).<br /> The 2 types `episodedetails` and `albumdetails` are always shown at the end, but are not directly accessible when querying Kodi, but only via drill-down. So, no need to add them in the list. |
-| show_version | boolean | `false` | 5.0.1 | shows the version of the card in the footer of the card |
+| show_thumbnail | boolean | `true` | v1.0.0 | Shows thumbnails from Kodi. Disable this if mixed HTTP/HTTPS content causes loading problems. |
+| show_thumbnail_overlay | boolean | `true` | v2.1 | Adds a light overlay over thumbnails to improve the visibility of the action icon. |
+| show_thumbnail_border | boolean | `true` | v2.1 | Adds a 1px border around thumbnails. |
+| outline_color | string | optional | v2.1 | Border color when **show_thumbnail_border** is enabled. Accepts a CSS color value, including named colors, RGB, hex, and CSS variables. |
+| album_details_sort | string | `date_desc` | 2.5.0 | Sorts albums when drilling down into an artist. Values: `date_asc`, `date_desc`, `title_asc`, or `title_desc`. |
+| show_action_mode | boolean | `true` | 2.6.0 | Shows or hides the Play/Add selector. When hidden, `action_mode` determines the action. |
+| show_recently_added | boolean | `true` | 3.4.0 | Shows or hides the Recently Added navigation button. |
+| show_recently_played | boolean | `true` | 3.4.0 | Shows or hides the Recently Played navigation button. |
+| show_current_artist | boolean | `true` | — | Shows or hides the Current Artist navigation button. |
+| show_music_playlist | boolean | `true` | — | Shows or hides the Music Playlists navigation button. |
+| action_mode | string | `play` | 2.6.0 | Default action for item clicks: `play` or `add`. If the action selector is visible, the user's selection takes precedence. |
+| add_position | string | `last` | 2.6.0 | Playlist position when `action_mode` is `add`: `next` or `last`. |
+| media_type_order | list | `song`, `album`, `artist`, `movie`, `musicvideo`, `tvshow`, `episode`, `channel`, `musicplaylist` | 2.7.0 | Controls the order of returned media categories. Categories shown depend on the Kodi Media Sensors integration and its configuration. When setting a custom list, include every category you want displayed; categories not listed are hidden. |
+| show_version | boolean | `false` | 5.0.1 | Shows the card version in the footer. |
 
 Example:
 
 ``` yaml
     type: custom:kodi-search-card
-    entity: sensor.kodi_media_sensor
+    entity: sensor.kodi_media_sensor_search
     title: What an amazing Card!!!
     show_version: true
     show_thumbnail: true
@@ -71,7 +71,7 @@ Example:
     show_action_mode: true
     action_mode: add
     outline_color: rgb(74,200,50)
-    add_position: 3
+    add_position: last
     media_type_order:
         - movie
         - album

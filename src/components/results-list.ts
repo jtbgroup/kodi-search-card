@@ -35,8 +35,6 @@ export class ResultsList extends LitElement {
         const subtext = buildMetadataString(item, this.category);
         const itemPresentation = getItemPresentation(item, this.category, this.searchAction);
 
-        // const { cachedUrl, isCached } = this._getThumbnailForItem(item, this.category);
-
         const handleClick = () => {
             if (itemPresentation.isActionDisabled) {
                 return;

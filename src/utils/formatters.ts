@@ -1,4 +1,3 @@
-// src/utils/formatters.ts
 import {
     CATEGORY_ALBUMS,
     CATEGORY_ARTISTS,

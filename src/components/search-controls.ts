@@ -112,9 +112,8 @@ export class SearchControls extends LitElement {
         `;
     }
 
-    // New helper method to add to the SearchControls class:
     private _handleClear(): void {
-        this.query = ""; // Clear the text field locally.
+        this.query = "";
         this.dispatchEvent(new CustomEvent("clear", { bubbles: true, composed: true }));
     }
 

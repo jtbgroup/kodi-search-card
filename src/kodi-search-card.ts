@@ -352,7 +352,6 @@ export class KodiSearchCard extends LitElement {
         if (!this._searchService || !item.tvshowid) return;
 
         try {
-            // Assume that the searchService has a method to retrieve a TV show's seasons.
             this._results = await this._searchService.searchTvShow(item.tvshowid);
             this._isTvShowView = true;
             this._tvShowName = item.title || item.label || "TV show";
